@@ -16,7 +16,7 @@ generates evidence-backed compliance reports.
 
 ------------------------------------------------------------------------
 
-## 🎯 Problem {#dart-problem}
+## 🎯 Problem 
 
 Packaged commodities sold through retail stores, supermarkets, and
 e-commerce platforms are expected to carry prescribed declarations such
@@ -30,7 +30,7 @@ validation, evidence collection, and reporting workflow.
 
 ------------------------------------------------------------------------
 
-## 💡 Solution {#bulb-solution}
+## 💡 Solution
 
 Validra follows an evidence-first pipeline:
 
@@ -71,15 +71,15 @@ review.
 
 ------------------------------------------------------------------------
 
-## 🚀 Key Features {#rocket-key-features}
+## 🚀 Key Features
 
-### 📷 Product Scanning {#camera-product-scanning}
+### 📷 Product Scanning 
 
 -   Upload or capture packaged commodity images.
 -   Process package and label images.
 -   Preserve original and processed evidence.
 
-### 👁️ Computer Vision & OCR {#eye-computer-vision--ocr}
+### 👁️ Computer Vision & OCR 
 
 -   Image preprocessing using OpenCV.
 -   Text detection and OCR.
@@ -87,7 +87,7 @@ review.
 -   Relevant label-region extraction.
 -   Readability and font-related analysis where technically measurable.
 
-### 🧾 Information Extraction {#receipt-information-extraction}
+### 🧾 Information Extraction 
 
 Identify structured fields such as:
 
@@ -100,7 +100,7 @@ Identify structured fields such as:
 -   Consumer-care information
 -   Other applicable declarations
 
-### ⚖️ Rule-Based Compliance Engine {#balance_scale-rule-based-compliance-engine}
+### ⚖️ Rule-Based Compliance Engine
 
 -   Check required declarations.
 -   Validate extracted values and formats.
@@ -109,14 +109,14 @@ Identify structured fields such as:
 -   Classify findings by severity.
 -   Maintain rule references and versions.
 
-### 🧠 RAG & Legal Intelligence {#brain-rag--legal-intelligence}
+### 🧠 RAG & Legal Intelligence
 
 -   Ingest authoritative legal/regulatory documents.
 -   Retrieve relevant provisions for findings.
 -   Provide contextual explanations.
 -   Connect findings with supporting legal references.
 
-### 📊 Enforcement Dashboard {#bar_chart-enforcement-dashboard}
+### 📊 Enforcement Dashboard
 
 -   Inspection statistics.
 -   Compliance/non-compliance trends.
@@ -124,7 +124,7 @@ Identify structured fields such as:
 -   Product and inspection history.
 -   Search and retrieval of previous inspections.
 
-### 📄 Compliance Reports {#page_facing_up-compliance-reports}
+### 📄 Compliance Reports 
 
 Generate reports containing:
 
@@ -138,7 +138,7 @@ Generate reports containing:
 -   Applicable legal references
 -   Inspection metadata
 
-### 🔐 Security {#closed_lock_with_key-security}
+### 🔐 Security 
 
 -   Authentication
 -   Role-based access
@@ -148,7 +148,7 @@ Generate reports containing:
 
 ------------------------------------------------------------------------
 
-## 🏗️ System Architecture {#building_construction-system-architecture}
+## 🏗️ System Architecture 
 
 ``` text
                          VALIDRA
@@ -209,7 +209,7 @@ Generate reports containing:
 
 ------------------------------------------------------------------------
 
-## 🧩 Technology Stack {#jigsaw-technology-stack}
+## 🧩 Technology Stack
 
   Layer             Technology
   ----------------- ---------------------------------------------
@@ -232,7 +232,7 @@ deployment constraints.
 
 ------------------------------------------------------------------------
 
-## 📁 Repository Structure {#file_folder-repository-structure}
+## 📁 Repository Structure 
 
 ``` text
 validra/
@@ -252,7 +252,7 @@ validra/
 
 ------------------------------------------------------------------------
 
-## 🔄 Processing Pipeline {#arrows_counterclockwise-processing-pipeline}
+## 🔄 Processing Pipeline
 
 ``` text
 Image
@@ -302,7 +302,7 @@ Example extracted field:
 
 ------------------------------------------------------------------------
 
-## 🧠 Rule Engine + RAG {#brain-rule-engine--rag}
+## 🧠 Rule Engine + RAG 
 
 Validra separates **compliance decisions** from **language generation**.
 
@@ -327,7 +327,7 @@ legal decision.
 
 ------------------------------------------------------------------------
 
-## 📊 Confidence-Aware Inspection {#bar_chart-confidence-aware-inspection}
+## 📊 Confidence-Aware Inspection 
 
 Validra tracks uncertainty throughout the AI pipeline.
 
@@ -356,7 +356,7 @@ cases.
 
 ------------------------------------------------------------------------
 
-## 🗃️ Core Data Model {#card_file_box-core-data-model}
+## 🗃️ Core Data Model 
 
 ``` text
 USER
@@ -389,7 +389,7 @@ audit_logs
 
 ------------------------------------------------------------------------
 
-## 🔌 API Overview {#electric_plug-api-overview}
+## 🔌 API Overview 
 
   Method   Endpoint              Purpose
   -------- --------------------- -------------------------
@@ -408,7 +408,7 @@ FastAPI/OpenAPI.
 
 ------------------------------------------------------------------------
 
-## 🧪 Testing Strategy {#test_tube-testing-strategy}
+## 🧪 Testing Strategy 
 
 ``` text
 Unit Testing
@@ -471,7 +471,7 @@ Important test cases include:
 
 ------------------------------------------------------------------------
 
-## 🛡️ Responsible AI & Legal Disclaimer {#shield-responsible-ai--legal-disclaimer}
+## 🛡️ Responsible AI & Legal Disclaimer 
 
 Validra is an **AI-assisted inspection and decision-support system**.
 
@@ -489,7 +489,7 @@ authorized authority.
 
 ------------------------------------------------------------------------
 
-## 🛠️ Development Roadmap {#hammer_and_wrench-development-roadmap}
+## 🛠️ Development Roadmap 
 
 ### Phase 1 --- Foundation {#phase-1--foundation}
 
@@ -548,7 +548,7 @@ authorized authority.
 
 ------------------------------------------------------------------------
 
-## 👥 Team Domains {#busts_in_silhouette-team-domains}
+## 👥 Team Domains 
 
   Domain                        Responsibility
   ----------------------------- --------------------------------------------------------------
@@ -564,7 +564,7 @@ validation.
 
 ------------------------------------------------------------------------
 
-## 🤝 Contribution Workflow {#handshake-contribution-workflow}
+## 🤝 Contribution Workflow 
 
 Recommended Git workflow:
 
@@ -592,7 +592,7 @@ Before opening a pull request:
 
 ------------------------------------------------------------------------
 
-## 🚀 Getting Started {#rocket-getting-started}
+## 🚀 Getting Started 
 
 ### Prerequisites
 
@@ -605,7 +605,7 @@ Before opening a pull request:
 ### Clone
 
 ``` bash
-git clone <repository-url>
+git clone 
 cd validra
 ```
 
@@ -638,7 +638,7 @@ passwords, or private credentials.
 
 ------------------------------------------------------------------------
 
-## 📚 Documentation {#books-documentation}
+## 📚 Documentation 
 
 Detailed technical documentation should live under `/docs`:
 
@@ -656,7 +656,7 @@ docs/
 
 ------------------------------------------------------------------------
 
-## 🏆 Smart India Hackathon 2026 {#trophy-smart-india-hackathon-2026}
+## 🏆 Smart India Hackathon 2026
 
 **Problem Statement:** 26034\
 **Organization:** Ministry of Consumer Affairs, Food & Public
@@ -670,7 +670,7 @@ Distribution\
 
 ------------------------------------------------------------------------
 
-## 📌 Status {#pushpin-status}
+## 📌 Status 
 
 🚧 **Active Development**
 
@@ -680,7 +680,7 @@ validated experimentally during development.
 
 ------------------------------------------------------------------------
 
-## 📄 License {#page_facing_up-license}
+## 📄 License 
 
 License to be finalized by the project team based on Smart India
 Hackathon submission requirements and future project plans.
