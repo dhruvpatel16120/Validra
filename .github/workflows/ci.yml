@@ -23,6 +23,9 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: 📦 Install PyYAML
+        run: pip install pyyaml
+
       - name: 🔍 Validate YAML & JSON Syntax
         run: |
           python -c "import yaml, glob; [yaml.safe_load(open(f)) for f in glob.glob('.github/**/*.yml', recursive=True)]"
