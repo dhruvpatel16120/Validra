@@ -11,8 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lint-and-syntax-check:
-    name: 📝 Linting & Syntax Validation
+  validate-markdown-and-yaml:
+    name: validate-markdown-and-yaml
     runs-on: ubuntu-latest
     steps:
       - name: 📥 Checkout Repository
