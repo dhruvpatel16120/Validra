@@ -1,0 +1,79 @@
+name: "⚖️ Legal Rule Addition / Task"
+description: "Define a new Legal Metrology compliance rule to be added to Validra's Rule Engine."
+title: "[RULE] "
+labels: ["rule-engine", "legal-research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for formalizing Legal Metrology Act 2009 & Packaged Commodities Rules 2011 requirements into machine-executable rules.
+
+  - type: input
+    id: rule_id
+    attributes:
+      label: "Rule ID Code"
+      description: "Format: LM-PC-XXX (e.g. LM-PC-001)"
+      placeholder: "LM-PC-005"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: target_field
+    attributes:
+      label: "Target Package Field"
+      options:
+        - "Maximum Retail Price (MRP)"
+        - "Net Quantity / Unit"
+        - "Manufacturer Name & Address"
+        - "Packer Details"
+        - "Importer Details"
+        - "Manufacturing / Packing / Import Date"
+        - "Consumer Care Details (Email/Phone)"
+        - "Country of Origin"
+        - "Common / Generic Name of Commodity"
+        - "Other Specific Declaration"
+    validations:
+      required: true
+
+  - type: textarea
+    id: legal_reference
+    attributes:
+      label: "Authoritative Legal Reference"
+      placeholder: "Legal Metrology (Packaged Commodities) Rules, 2011 - Rule 6(1)(e) - Month and Year of manufacture"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "Violation Severity Classification"
+      options:
+        - "High (Mandatory requirement missing - non-compliant)"
+        - "Medium (Format mismatch or placement issue)"
+        - "Low (Minor readability concern)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: validation_logic
+    attributes:
+      label: "Validation Logic Specifications"
+      description: "How should the Rule Engine check this field?"
+      placeholder: |
+        - Must exist: TRUE
+        - Format regex: "Rs\\.|MRP|₹" followed by numeric value
+        - Currency must be INR
+        - If confidence < 80%: Output state 'NEEDS REVIEW'
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain_owner
+    attributes:
+      label: "Assigned Team Lead"
+      options:
+        - "M4 — Rule Engine Lead"
+        - "M6 — Legal Research Lead"
+        - "M5 — RAG Legal Intelligence Lead"
+    validations:
+      required: true

@@ -1079,22 +1079,35 @@ main
  │
  └── develop
        │
-       ├── feature/frontend-*
-       ├── feature/backend-*
-       ├── feature/cv-*
-       ├── feature/rule-engine-*
-       ├── feature/rag-*
-       └── feature/qa-*
+       ├── feature/frontend-*   (M1)
+       ├── feature/backend-*    (M2)
+       ├── feature/cv-*         (M3)
+       ├── feature/rule-engine-* (M4)
+       ├── feature/rag-*        (M5)
+       └── feature/qa-*         (M6)
 ```
+
+### 📋 Issue & Pull Request Templates
+
+We have established end-to-end GitHub templates for streamlined tracking:
+
+- 🐛 **[Bug Report Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=bug_report.yml)** — Structured bug submission tagged by team domain (M1–M6) & component type.
+- 💡 **[Feature Request Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=feature_request.yml)** — Propose new features with user story and acceptance criteria.
+- ⚖️ **[Legal Rule Addition Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=rule_addition.yml)** — Formalize Legal Metrology Act/PC Rules into machine rules.
+- 🔬 **[QA & Benchmarking Task Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=qa_test_task.yml)** — Track OCR evaluation runs, test datasets, and performance tests.
+- 🔀 **[PR Templates](.github/PULL_REQUEST_TEMPLATE.md)** — Standardized PR templates with domain tags (M1–M6), type selectors (`frontend`, `backend`, `db`), testing checklists, and visual evidence sections.
+
+> 📖 **Complete Developer & QA Workflow Guide:** See [`.github/WORKFLOW_GUIDE.md`](.github/WORKFLOW_GUIDE.md) for full branch naming, issue-linking, and QA verification procedures.
 
 Before opening a pull request:
 
 -   ✅ Keep changes focused.
+-   ✅ Tag primary domain (`M1` to `M6`) and component type (`frontend`, `backend`, `db`, `cv`, `rule-engine`, `rag`, `qa`).
 -   ✅ Test locally.
 -   ✅ Update documentation when required.
 -   ❌ Never commit secrets or `.env` files.
 -   ✅ Add/update tests for important functionality.
--   ✅ Explain what changed and why.
+-   ✅ Explain what changed and attach visual/test evidence.
 
 ---
 

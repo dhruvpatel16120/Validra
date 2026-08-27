@@ -1,0 +1,54 @@
+name: "🔬 QA, Testing & Benchmarking Task"
+description: "Create a testing task for OCR evaluation, dataset creation, API latency benchmarking, or E2E tests."
+title: "[QA] "
+labels: ["qa", "testing", "benchmarks"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Track quality assurance tasks, test dataset creation, OCR accuracy benchmarks, and system latency evaluation.
+
+  - type: dropdown
+    id: qa_category
+    attributes:
+      label: "QA Category"
+      options:
+        - "OCR / Character Error Rate (CER) Evaluation"
+        - "Field Extraction Accuracy Benchmark"
+        - "Rule Validation Precision / Recall Benchmark"
+        - "API Latency & Processing Time Performance Test"
+        - "End-to-End Inspection Workflow Test"
+        - "Sample Package Dataset Acquisition & Annotation"
+        - "Security & Role-Based Access Audit"
+    validations:
+      required: true
+
+  - type: textarea
+    id: test_scope
+    attributes:
+      label: "Test Scope & Objectives"
+      placeholder: "Benchmark PaddleOCR vs Tesseract on 50 sample packaged commodity images across clear, blurred, and rotated conditions."
+    validations:
+      required: true
+
+  - type: textarea
+    id: success_metrics
+    attributes:
+      label: "Target Success Metrics"
+      placeholder: |
+        - Character Error Rate (CER) < 5%
+        - Field Extraction Accuracy > 90%
+        - E2E Latency < 3 seconds
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain_lead
+    attributes:
+      label: "Lead Tester / Domain Lead"
+      options:
+        - "M6 — Research & QA Lead"
+        - "M3 — Computer Vision Lead"
+        - "M2 — Backend & Performance Lead"
+    validations:
+      required: true
