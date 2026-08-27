@@ -1,0 +1,93 @@
+name: "🐛 Bug Report"
+description: "Report a bug, exception, incorrect rule output, or UI failure in Validra."
+title: "[BUG] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for helping improve Validra! Please fill out this form to help us locate and resolve the bug quickly.
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: "Primary Team Domain (M1–M6)"
+      description: "Which team domain primarily owns the component with this bug?"
+      options:
+        - "M1 — Frontend & Presentation (Next.js, UI/UX, Scanning, Dashboard)"
+        - "M2 — Backend & Infrastructure (FastAPI, Auth/JWT, RBAC, DB, Storage)"
+        - "M3 — Computer Vision & OCR (OpenCV, OCR engine, Bboxes, Readability)"
+        - "M4 — Rule Engine (Legal Metrology validation rules, Severity)"
+        - "M5 — RAG & AI (Vector search, Legal Context, LLM Explanations)"
+        - "M6 — Research & QA (Datasets, Benchmarks, E2E Tests, Docs)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component_type
+    attributes:
+      label: "Component Type"
+      description: "Select the layer or component affected."
+      options:
+        - "Frontend (UI / Next.js)"
+        - "Backend (FastAPI REST API)"
+        - "Database (PostgreSQL / Relational Data)"
+        - "CV / OCR Pipeline"
+        - "Rule Engine Evaluator"
+        - "RAG / Vector DB / LLM Service"
+        - "Reports / PDF Generation"
+        - "DevOps / Environment Setup"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: "Bug Severity"
+      options:
+        - "Critical / Blocker (System crash, complete inspection workflow broken)"
+        - "High (Core field extraction or rule evaluation incorrect)"
+        - "Medium (UI layout issue, non-blocking API error, missing error state)"
+        - "Low (Minor visual glitch, typo in documentation)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: "Bug Description"
+      description: "Clear and concise description of what the bug is."
+      placeholder: "When scanning a package image with blurry MRP, the Rule Engine outputs..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: "Steps to Reproduce"
+      description: "Exact steps to reproduce the behavior."
+      placeholder: |
+        1. Go to '/scan'
+        2. Upload image 'sample_product.jpg'
+        3. Click 'Analyze'
+        4. See error in browser console / terminal
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_behavior
+    attributes:
+      label: "Expected Behavior"
+      description: "What did you expect to happen?"
+      placeholder: "System should output status 'NEEDS REVIEW' due to low OCR confidence."
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs_or_screenshots
+    attributes:
+      label: "Logs, Error Tracebacks, or Screenshots"
+      description: "Paste error log tracebacks or drag-and-drop screenshots here."
+      placeholder: "Paste Python traceback or browser console log..."
+    validations:
+      required: false

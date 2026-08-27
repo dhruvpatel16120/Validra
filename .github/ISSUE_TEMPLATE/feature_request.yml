@@ -1,0 +1,65 @@
+name: "💡 Feature Request"
+description: "Propose a new feature, enhancement, or architectural improvement for Validra."
+title: "[FEAT] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Suggest an enhancement or new feature to expand Validra's inspection capabilities.
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: "Primary Team Domain (M1–M6)"
+      description: "Which team domain will lead implementation of this feature?"
+      options:
+        - "M1 — Frontend & Presentation (Next.js, UI/UX, Scanning, Dashboard)"
+        - "M2 — Backend & Infrastructure (FastAPI, Auth/JWT, RBAC, DB, Storage)"
+        - "M3 — Computer Vision & OCR (OpenCV, OCR engine, Bboxes, Readability)"
+        - "M4 — Rule Engine (Legal Metrology validation rules, Severity)"
+        - "M5 — RAG & AI (Vector search, Legal Context, LLM Explanations)"
+        - "M6 — Research & QA (Datasets, Benchmarks, E2E Tests, Docs)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: "Target Architecture Layer"
+      options:
+        - "Frontend (Next.js / UI)"
+        - "Backend (FastAPI REST API)"
+        - "Database (PostgreSQL / Relational Models)"
+        - "Computer Vision & OCR Pipeline"
+        - "Rule Engine Evaluator"
+        - "RAG & Legal Intelligence Engine"
+        - "Reports & Data Export"
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: "User Story"
+      placeholder: "As an Enforcement Officer, I want live camera capture capability on mobile so that I can scan products directly in retail stores."
+    validations:
+      required: true
+
+  - type: textarea
+    id: feature_details
+    attributes:
+      label: "Proposed Implementation Details"
+      description: "Describe how you envision this feature working technically."
+      placeholder: "1. Add MediaStream web API hook in Next.js\n2. Add frame preprocessing in OpenCV\n3. Send payload to POST /scans endpoint"
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: "Acceptance Criteria for QA"
+      description: "Specific conditions that must be satisfied to consider this feature done."
+      placeholder: "- [ ] User can switch between rear and front camera\n- [ ] Image frame is captured with resolution >= 1080p\n- [ ] Progress loader displayed during processing"
+    validations:
+      required: true

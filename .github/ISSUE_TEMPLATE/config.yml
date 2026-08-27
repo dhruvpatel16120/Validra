@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Validra Documentation
+    url: https://github.com/dhruvpatel16120/Validra/tree/main/docs
+    about: Read our interactive MDX setup guides and technical architecture documents.
+  - name: 💬 Team Discussions & Questions
+    url: https://github.com/dhruvpatel16120/Validra/discussions
+    about: Ask questions, share design ideas, or discuss hackathon strategy.
