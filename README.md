@@ -620,7 +620,7 @@ npm run dev
 ### Backend
 
 ``` bash
-cd backend
+cd backend https://github.com/dhruvpatel16120/Validra.git
 python -m venv .venv
 
 # Linux/macOS
