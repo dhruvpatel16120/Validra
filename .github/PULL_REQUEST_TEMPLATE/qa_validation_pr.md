@@ -1,7 +1,10 @@
-<!-- 
-  Validra Fast-Track QA, Benchmark & Dataset PR Template
-  Use for M6 (Research & QA), M3 (OCR Evaluation), M4 (Legal Rule Additions), M5 (RAG Grounding).
--->
+> [!IMPORTANT]
+> ⚠️ **INSTRUCTIONS FOR PR AUTHOR**:
+> 1. Follow title convention: `[QA][DOMAIN] Short description` (e.g. `[QA][M6] Add OCR evaluation dataset`)
+> 2. Complete benchmark metrics & verification checklist below.
+> 3. 🚨 **DELETE THIS INSTRUCTION BOX** before submitting your PR!
+
+---
 
 ## 🔬 QA / Benchmark / Rule Update Title
 

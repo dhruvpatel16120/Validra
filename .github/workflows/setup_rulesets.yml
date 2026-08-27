@@ -1,0 +1,65 @@
+name: 🛡️ Sync Branch Protection Rulesets
+
+on:
+  push:
+    paths:
+      - '.github/rulesets/**'
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  sync-ruleset:
+    name: 🔄 Sync Ruleset JSON to GitHub Settings
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      administration: write
+
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 🛡️ Sync Ruleset via GitHub REST API
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            const path = '.github/rulesets/main_branch_ruleset.json';
+            
+            if (!fs.existsSync(path)) {
+              console.log(`Ruleset JSON not found at ${path}`);
+              return;
+            }
+            
+            const rulesetData = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            
+            // Check existing rulesets
+            const existingRulesets = await github.rest.repos.getRepoRulesets({
+              owner,
+              repo
+            });
+            
+            const existing = existingRulesets.data.find(r => r.name === rulesetData.name);
+            
+            if (existing) {
+              console.log(`Updating existing ruleset '${rulesetData.name}' (ID: ${existing.id})...`);
+              await github.rest.repos.updateRepoRuleset({
+                owner,
+                repo,
+                ruleset_id: existing.id,
+                ...rulesetData
+              });
+              console.log(`✅ Ruleset updated successfully!`);
+            } else {
+              console.log(`Creating new ruleset '${rulesetData.name}'...`);
+              await github.rest.repos.createRepoRuleset({
+                owner,
+                repo,
+                ...rulesetData
+              });
+              console.log(`✅ Ruleset created successfully!`);
+            }

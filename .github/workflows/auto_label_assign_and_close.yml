@@ -1,0 +1,144 @@
+name: ⚙️ Auto Assign, Label & PR-Issue Workflow
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, closed]
+  issues:
+    types: [opened, reopened]
+
+jobs:
+  issue-automation:
+    name: 📌 Auto-Assign & Label Issues
+    if: github.event_name == 'issues' && (github.event.action == 'opened' || github.event.action == 'reopened')
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: 🏷️ Auto Assign Owner & Triage Label to New Issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = 'dhruvpatel16120';
+            const issueNumber = context.payload.issue.number;
+            
+            // Assign owner
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              assignees: [owner]
+            });
+            
+            // Add triage label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              labels: ['triage', 'needs-domain-lead']
+            });
+            
+            console.log(`Assigned issue #${issueNumber} to ${owner} and labeled 'triage'.`);
+
+  pr-automation:
+    name: 🔀 Auto-Assign Reviewer & Module Labels to PR
+    if: github.event_name == 'pull_request_target' && (github.event.action == 'opened' || github.event.action == 'synchronize' || github.event.action == 'reopened')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 👤 Assign Reviewer & Assignee
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prAuthor = context.payload.pull_request.user.login;
+            const owner = 'dhruvpatel16120';
+            const prNumber = context.payload.pull_request.number;
+            
+            // Always assign PR to owner for tracking
+            await github.rest.issues.addAssignees({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              assignees: [owner]
+            });
+            
+            if (prAuthor !== owner) {
+              // Request review from owner for team members' PRs
+              await github.rest.pulls.requestReviewers({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                reviewers: [owner]
+              });
+              console.log(`Requested owner review from ${owner} for PR #${prNumber}`);
+            } else {
+              console.log(`Owner ${owner} created PR #${prNumber} — owner self-review enabled.`);
+            }
+
+      - name: 🏷️ Apply Domain Labels Based on File Paths
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const files = await github.rest.pulls.listFiles({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber
+            });
+            
+            const labels = new Set();
+            for (const file of files.data) {
+              const path = file.filename;
+              if (path.startsWith('frontend/')) { labels.add('frontend'); labels.add('M1'); }
+              else if (path.startsWith('backend/')) { labels.add('backend'); labels.add('M2'); }
+              else if (path.startsWith('cv/')) { labels.add('cv'); labels.add('M3'); }
+              else if (path.startsWith('rule-engine/')) { labels.add('rule-engine'); labels.add('M4'); }
+              else if (path.startsWith('rag/')) { labels.add('rag'); labels.add('M5'); }
+              else if (path.startsWith('research/') || path.startsWith('tests/') || path.startsWith('docs/')) { labels.add('qa'); labels.add('M6'); }
+              else if (path.startsWith('.github/')) { labels.add('infra'); }
+            }
+            
+            if (labels.size > 0) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                labels: Array.from(labels)
+              });
+              console.log(`Applied labels: ${Array.from(labels).join(', ')}`);
+            }
+
+  pr-merged-auto-close-notification:
+    name: 🎉 Notify Merged PR & Linked Issue Resolution
+    if: github.event_name == 'pull_request_target' && github.event.action == 'closed' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: 💬 Add Merge & Automated Closure Confirmation Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const targetBranch = context.payload.pull_request.base.ref;
+            const body = context.payload.pull_request.body || '';
+            
+            const message = `### 🎉 Pull Request Merged into \`${targetBranch}\`!\n\n` +
+              `This PR has been approved by Repository Owner **@dhruvpatel16120** and successfully merged into production.\n\n` +
+              `- **Target Branch**: \`${targetBranch}\`\n` +
+              `- **Status**: ✅ Code integrated successfully\n` +
+              `- **Linked Issues**: Any linked issues containing \`Closes #XX\` or \`Fixes #XX\` have been automatically resolved and closed.\n\n` +
+              `*Automated notification by Validra CI/CD Workflow.*`;
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body: message
+            });

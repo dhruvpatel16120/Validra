@@ -1,15 +1,11 @@
-<!-- 
-  Validra Pull Request Template
-  Follow the title convention: [TYPE][DOMAIN] Short description
-  Examples: 
-    [FE][M1] Add camera upload UI to scan page
-    [BE][M2] Add POST /scans endpoint and task orchestration
-    [CV][M3] Integrate PaddleOCR and bounding box extraction
-    [RE][M4] Implement manufacturer declaration validation rule
-    [RAG][M5] Add legal vector embedding retrieval service
-    [QA][M6] Add end-to-end integration tests for inspection flow
-    [DB][M2] Migration for compliance_results table
--->
+> [!IMPORTANT]
+> ⚠️ **INSTRUCTIONS FOR PR AUTHOR**:
+> 1. **Follow PR Title Convention**: `[TYPE][DOMAIN] Short description`
+>    - *Examples*: `[FE][M1] Add camera upload UI`, `[BE][M2] Add POST /scans endpoint`, `[CV][M3] Integrate PaddleOCR`, `[RE][M4] Add MRP rule`, `[RAG][M5] Add embedding service`, `[QA][M6] Add E2E tests`, `[DB][M2] Add migration`
+> 2. **Fill Out All Sections**: Complete **PR Summary**, **Type of Change**, **Team Domain**, **Architecture Layer**, and **QA Checklist**.
+> 3. 🚨 **DELETE THIS INSTRUCTION BOX** before submitting your PR!
+
+---
 
 ## 📌 PR Summary
 
@@ -94,7 +90,6 @@ Check the layer(s) modified in this PR:
 - [ ] Verified locally on desktop/mobile viewport
 - [ ] Attached screenshot, API JSON response, or screen recording below
 
-<!-- Paste screenshots, terminal output, or JSON responses here -->
 <details>
 <summary>📸 Visual Evidence / Test Output (Click to expand)</summary>
 

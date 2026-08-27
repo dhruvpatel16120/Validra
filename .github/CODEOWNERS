@@ -1,0 +1,32 @@
+# ------------------------------------------------------------------------------
+# Validra GitHub CODEOWNERS
+# ------------------------------------------------------------------------------
+# Lines starting with '#' are comments.
+# Code reviews will automatically be requested from the listed domain owners.
+
+# Default global owners (All repositories changes require core team review)
+* @dhruvpatel16120
+
+# 🎨 M1 — Frontend Domain (Next.js, UI/UX, Scanning, Dashboard, Reports UI)
+/frontend/ @dhruvpatel16120
+
+# ⚙️ M2 — Backend & Infrastructure Domain (FastAPI, APIs, Auth/JWT, RBAC, DB, Storage)
+/backend/ @dhruvpatel16120
+/.env.example @dhruvpatel16120
+
+# 👁️ M3 — Computer Vision & OCR Domain (OpenCV, OCR engine, Bboxes, Readability)
+/cv/ @dhruvpatel16120
+
+# ⚖️ M4 — Rule Engine Domain (Legal Metrology validation rules, Severity, Schemas)
+/rule-engine/ @dhruvpatel16120
+
+# 🧠 M5 — RAG & AI Domain (Vector DB, Embeddings, Legal Context, LLM Explanations)
+/rag/ @dhruvpatel16120
+
+# 🔬 M6 — Research & QA Domain (Datasets, Benchmarks, Test Suites, SIH Docs)
+/research/ @dhruvpatel16120
+/tests/ @dhruvpatel16120
+/docs/ @dhruvpatel16120
+
+# 🛠️ DevOps & Repository Templates (GitHub Workflows, Templates, Issue Forms)
+/.github/ @dhruvpatel16120
