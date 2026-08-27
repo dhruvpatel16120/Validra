@@ -1,7 +1,10 @@
-<!-- 
-  Validra Bugfix PR Template
-  Use for resolving bugs, exceptions, edge-case failures, or performance regressions.
--->
+> [!IMPORTANT]
+> ⚠️ **INSTRUCTIONS FOR PR AUTHOR**:
+> 1. Follow title convention: `[BUG][DOMAIN] Short description` (e.g. `[BUG][M2] Fix unhandled DB timeout`)
+> 2. Complete root cause analysis & regression checklist below.
+> 3. 🚨 **DELETE THIS INSTRUCTION BOX** before submitting your PR!
+
+---
 
 ## 🐛 Bug Fix Title
 
@@ -10,7 +13,7 @@
 ## 🔍 Root Cause Analysis
 
 - **What was happening?**: <!-- Describe the broken behavior -->
-- **Why was it happening?**: <!-- Describe the underlying cause (e.g. OCR low confidence unhandled, null bounding box, API schema mismatch) -->
+- **Why was it happening?**: <!-- Describe the underlying cause -->
 - **How does this PR fix it?**: <!-- Describe the fix -->
 
 ---

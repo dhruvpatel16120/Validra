@@ -1,7 +1,10 @@
-<!-- 
-  Validra Feature PR Template
-  Use for new feature implementations across M1-M6 domains.
--->
+> [!IMPORTANT]
+> ⚠️ **INSTRUCTIONS FOR PR AUTHOR**:
+> 1. Follow title convention: `[FEAT][DOMAIN] Short description` (e.g. `[FEAT][M1] Add camera scanner`)
+> 2. Complete all sections below.
+> 3. 🚨 **DELETE THIS INSTRUCTION BOX** before submitting your PR!
+
+---
 
 ## 🚀 Feature Title
 
