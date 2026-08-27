@@ -1097,7 +1097,7 @@ We have established end-to-end GitHub templates for streamlined tracking:
 - 🔬 **[QA & Benchmarking Task Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=qa_test_task.yml)** — Track OCR evaluation runs, test datasets, and performance tests.
 - 🔀 **[PR Templates](.github/PULL_REQUEST_TEMPLATE.md)** — Standardized PR templates with domain tags (M1–M6), type selectors (`frontend`, `backend`, `db`), testing checklists, and visual evidence sections.
 
-> 📖 **Complete Developer & QA Workflow Guide:** See [`.github/WORKFLOW_GUIDE.md`](.github/WORKFLOW_GUIDE.md) for full branch naming, issue-linking, and QA verification procedures.
+> 📖 **End-to-End Collaboration & CI/CD Automation Guides:** See [`docs/TEAM_COLLABORATION_GUIDE.md`](docs/TEAM_COLLABORATION_GUIDE.md) & [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](docs/CI_CD_WORKFLOW_AUTOMATION.md) for full module boundaries, auto-closing issue keywords (`Closes #123`), repo owner approval workflows, CI/CD testing, and automated Kanban project board configuration.
 
 Before opening a pull request:
 
@@ -1167,6 +1167,9 @@ Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentat
 | Document | Description | Status |
 |:---------|:------------|:------:|
 | [`docs/base_setup.mdx`](./docs/base_setup.mdx) | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL) | ✅ Available |
+| [`docs/TEAM_COLLABORATION_GUIDE.md`](./docs/TEAM_COLLABORATION_GUIDE.md) | 🟡 Team domain boundaries, branching & GitHub Projects guide | ✅ Available |
+| [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/CI_CD_WORKFLOW_AUTOMATION.md) | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide | ✅ Available |
+| [`docs/CICD_CHECKLIST_AND_PENDING_SETUP.md`](./docs/CICD_CHECKLIST_AND_PENDING_SETUP.md) | 🧪 CI/CD pipeline checklist & one-time pending setup audit | ✅ Available |
 | `docs/frontend_setup.mdx` | 🔵 Frontend development environment setup | 🔜 Coming Soon |
 | `docs/backend_setup.mdx` | 🟣 Backend development environment setup | 🔜 Coming Soon |
 | `docs/architecture.md` | System architecture deep-dive | 🔜 Planned |
