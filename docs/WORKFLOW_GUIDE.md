@@ -6,7 +6,7 @@
   </a>
 </p>
 
-This guide defines the end-to-end contribution, issue tracking, and pull request workflow for **Team Validra (M1 to M6)** and QA testers.
+This guide defines the end-to-end contribution, issue tracking, and pull request workflow for **Team VisionMinds — Think. Build. Transform.** (M1 to M6) and QA testers.
 
 ---
 

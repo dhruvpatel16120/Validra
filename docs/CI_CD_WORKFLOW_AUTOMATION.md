@@ -6,7 +6,7 @@
   </a>
 </p>
 
-This document provides a complete overview of the CI/CD pipelines, branch protection rules, GitHub Actions automations, and domain workflows configured for **Validra**.
+This document provides a complete overview of the CI/CD pipelines, branch protection rules, GitHub Actions automations, and domain workflows configured for **Validra** by **Team VisionMinds — Think. Build. Transform.**.
 
 ---
 

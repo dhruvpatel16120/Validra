@@ -8,7 +8,8 @@
 
 <p align="center">
   <strong>Intelligent Product Compliance System</strong><br/>
-  <em>"See → Extract → Validate → Explain → Evidence → Report → Review"</em>
+  <em>"See → Extract → Validate → Explain → Evidence → Report → Review"</em><br/>
+  <strong>Team: VisionMinds — Think. Build. Transform.</strong>
 </p>
 
 <p align="center">
@@ -48,7 +49,8 @@ extracts mandatory declarations, evaluates them through a rule-based
 compliance engine, retrieves relevant legal context using RAG, and
 generates evidence-backed compliance reports.
 
-> 🌟 **Smart India Hackathon 2026 — Problem Statement ID: 26034**
+> 🌟 **Smart India Hackathon 2026 — Problem Statement ID: 26034**  
+> 👥 **Team:** VisionMinds — Think. Build. Transform.
 
 ---
 
@@ -1204,6 +1206,7 @@ Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentat
 
 | Field | Details |
 |:------|:--------|
+| **Team Name** | **VisionMinds — Think. Build. Transform.** |
 | **Problem Statement** | 26034 |
 | **Organization** | Ministry of Consumer Affairs, Food & Public Distribution |
 | **Department** | Department of Consumer Affairs (DoCA) |
@@ -1245,4 +1248,4 @@ If you find **Validra** impactful, innovative, or useful in advancing AI-powered
 
 <br/>
 
-<p align="center">Made with ❤️ for <b>Smart India Hackathon 2026</b> by <b>Team Validra</b></p>
+<p align="center">Made with ❤️ for <b>Smart India Hackathon 2026</b> by <b>VisionMinds — Think. Build. Transform.</b></p>
