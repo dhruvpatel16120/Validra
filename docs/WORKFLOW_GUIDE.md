@@ -1,5 +1,11 @@
 # 🤝 Validra GitHub Issue & Pull Request Workflow Guide
 
+<p align="center">
+  <a href="../README.md">
+    <img src="../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+  </a>
+</p>
+
 This guide defines the end-to-end contribution, issue tracking, and pull request workflow for **Team Validra (M1 to M6)** and QA testers.
 
 ---

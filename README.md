@@ -1,11 +1,18 @@
-#
+<p align="center">
+  <a href="https://github.com/dhruvpatel16120/Validra">
+    <img src="./Assets/Repo/logo_repo.png" alt="Validra Logo" width="180" />
+  </a>
+</p>
+
+<h1 align="center">VALIDRA</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/🛡️_VALIDRA-Intelligent_Product_Compliance-0d1117?style=for-the-badge&labelColor=0d1117&color=58a6ff" alt="Validra"/>
+  <strong>Intelligent Product Compliance System</strong><br/>
+  <em>"See → Extract → Validate → Explain → Evidence → Report → Review"</em>
 </p>
 
 <p align="center">
-  <strong>"See → Extract → Validate → Explain → Evidence → Report → Review"</strong>
+  <img src="./Assets/Repo/banner.png" alt="Validra Banner" width="100%" />
 </p>
 
 <p align="center">
@@ -100,6 +107,10 @@ pie title Common Compliance Issues
 ## 💡 Solution
 
 Validra follows an evidence-first pipeline:
+
+<p align="center">
+  <img src="./Assets/Repo/architecture-banner.png" alt="Validra System Architecture & Compliance Pipeline" width="100%" />
+</p>
 
 ```mermaid
 flowchart TD

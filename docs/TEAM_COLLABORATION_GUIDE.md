@@ -1,5 +1,11 @@
 # 🤝 Validra End-to-End Team Collaboration & Automated Workflow Guide
 
+<p align="center">
+  <a href="../README.md">
+    <img src="../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+  </a>
+</p>
+
 This document defines the complete end-to-end environment setup for **Team Validra**. It ensures that team members work independently on designated modules, issues are automatically tracked and closed, and all pull requests require review by **Repository Owner (@dhruvpatel16120)**, while giving the owner full capability to self-review and merge their own feature branches into `main`.
 
 ---
