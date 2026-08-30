@@ -1,5 +1,11 @@
 # 🛡️ Validra CI/CD & Production Workflow Automation
 
+<p align="center">
+  <a href="../README.md">
+    <img src="../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+  </a>
+</p>
+
 This document provides a complete overview of the CI/CD pipelines, branch protection rules, GitHub Actions automations, and domain workflows configured for **Validra**.
 
 ---
