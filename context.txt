@@ -1,0 +1,205 @@
+================================================================================
+VALIDRA — INTELLIGENT PRODUCT COMPLIANCE SYSTEM
+FULL PROJECT CONTEXT & AGENT KNOWLEDGE BASE
+================================================================================
+
+PROJECT IDENTITY
+--------------------------------------------------------------------------------
+Project Name: Validra (Intelligent Product Compliance System)
+Core Motto: "See → Extract → Validate → Explain → Evidence → Report → Review"
+Team: VisionMinds — Think. Build. Transform.
+Event: Smart India Hackathon (SIH) 2026
+Problem Statement ID: 26034
+Target Organization: Ministry of Consumer Affairs, Food & Public Distribution
+Department: Department of Consumer Affairs (DoCA), Government of India
+License: Apache License 2.0
+Repository URL: https://github.com/dhruvpatel16120/Validra
+
+--------------------------------------------------------------------------------
+1. EXECUTIVE OVERVIEW & PROBLEM STATEMENT
+--------------------------------------------------------------------------------
+Validra is an AI-assisted compliance checking system designed to inspect packaged 
+commodities against statutory requirements under India's Legal Metrology Act, 2009 
+and the Legal Metrology (Packaged Commodities) Rules, 2011.
+
+Problem Statement:
+Packaged commodities sold across retail stores, supermarkets, and e-commerce 
+platforms are mandated by law to display specific declarations (e.g., Manufacturer/
+Packer/Importer details, Net Quantity, Maximum Retail Price (MRP), Date of 
+Manufacture/Packing/Import, Consumer Care contact details, Country of Origin, etc.). 
+Manual enforcement inspection across massive, diverse product catalogs is slow, 
+resource-intensive, error-prone, paper-heavy, and unscalable.
+
+Solution:
+Validra provides an evidence-first, decision-support automation platform for 
+enforcement officers. The system ingests product images, runs computer vision (CV) 
+and Optical Character Recognition (OCR) to locate and extract declarations, evaluates 
+them against a deterministic compliance rule engine, retrieves supporting legal 
+provisions via a RAG (Retrieval-Augmented Generation) pipeline, generates legally 
+sound PDF evidence reports, and surfaces real-time enforcement analytics on a dashboard.
+
+Core System Principle:
+"AI extracts and assists → Rules evaluate → RAG explains and references → Human reviews uncertain cases."
+
+--------------------------------------------------------------------------------
+2. SYSTEM ARCHITECTURE & 5-LAYER DESIGN
+--------------------------------------------------------------------------------
+Validra is structured into five distinct layers:
+
+[ Layer 1: User Experience (Frontend) ]
+- Next.js (App Router), TypeScript, Tailwind CSS, shadcn/ui.
+- Features: Product image scanner interface, interactive evidence viewer with bounding-box highlights, enforcement analytics dashboard, inspection history search, PDF report preview/download.
+
+[ Layer 2: Orchestration (Backend & API) ]
+- FastAPI (Python), Async Orchestration, Pydantic data validation, SQLAlchemy ORM.
+- Features: Authentication & JWT RBAC, scan workflow orchestration, file management, database CRUD, PDF report generation (ReportLab).
+
+[ Layer 3: AI Understanding (Computer Vision & Extraction) ]
+- OpenCV: Preprocessing (resizing, contrast enhancement, denoising, perspective correction).
+- OCR Engine: PaddleOCR for text detection, bounding-box spatial localization, and text extraction.
+- Information Extraction: NLP & regex models (spaCy / scikit-learn) mapping raw OCR text into structured fields (MRP, Net Qty, Dates, Manufacturer details, Consumer Care).
+
+[ Layer 4: Compliance Intelligence (Rules + RAG) ]
+- Rule Engine: Deterministic Python validation rules for Legal Metrology PC Rules (checking presence, formatting, units, placement, and value bounds).
+- RAG Engine: Vector Database + Embeddings + LLM to ingest statutory legal documents (Legal Metrology Act 2009, PC Rules 2011), retrieve exact legal provisions for findings, and generate contextual explanations.
+
+[ Layer 5: Evidence & Data (Storage & Persistence) ]
+- Relational Database: PostgreSQL 15+ (users, products, inspections, extracted fields, violations, rules, audit logs).
+- Object Storage: S3-compatible / local media storage (original package photos, preprocessed images, cropped evidence regions, generated PDF reports).
+- Vector Database: Qdrant / Chroma / PGVector (legal document chunk embeddings).
+
+--------------------------------------------------------------------------------
+3. END-TO-END PROCESSING PIPELINE
+--------------------------------------------------------------------------------
+1. Image Upload & Validation: Officer captures/uploads product packaging image via Next.js UI -> sent to POST /scans endpoint.
+2. OpenCV Preprocessing: System normalizes image resolution, removes noise, adjusts contrast, and corrects perspective distortions.
+3. OCR & Spatial Localization: PaddleOCR runs text detection; outputs recognized text strings alongside bounding boxes [x, y, w, h] and confidence scores (0.0 to 1.0).
+4. Information Extraction: Extracted text is mapped to structured fields:
+   - MRP (value, currency, format check)
+   - Net Quantity (value, unit of measurement)
+   - Manufacturer / Packer / Importer Name & Address
+   - Manufacturing / Packing / Import Date (month, year, format)
+   - Consumer Care Details (email, phone, address)
+5. Rule Evaluation: Structured JSON is evaluated by the Deterministic Rule Engine against Legal Metrology Rules.
+6. Confidence Propagation & State Determination:
+   - High Confidence + Pass = COMPLIANT (✅)
+   - High Confidence + Rule Violation = NON-COMPLIANT (❌)
+   - Low OCR / Extraction Confidence (< threshold) = NEEDS REVIEW (⚠️)
+7. RAG Legal Enrichment: For any violation or finding, vector search retrieves applicable sections of the Legal Metrology Act/Rules and generates contextual explanation & penalty references.
+8. Evidence & PDF Generation: System crops evidence image snippets matching bounding boxes, attaches legal references, saves inspection record to PostgreSQL, and generates an official PDF report.
+
+--------------------------------------------------------------------------------
+4. DATABASE MODEL & ENTITY RELATIONSHIPS
+--------------------------------------------------------------------------------
+Database Engine: PostgreSQL
+
+Key Entities:
+1. `users`: user_id (PK), name, email, role (officer, admin), hashed_password, created_at
+2. `products`: product_id (PK), name, category, barcode, brand
+3. `inspections`: inspection_id (PK), product_id (FK), inspector_id (FK), status (processing, completed, failed), compliance_score, overall_status (compliant, non_compliant, needs_review), created_at, completed_at
+4. `images`: image_id (PK), inspection_id (FK), image_type (original, preprocessed, evidence_crop), storage_path, created_at
+5. `extracted_fields`: field_id (PK), inspection_id (FK), field_name (mrp, net_qty, manufacturer, mfg_date, consumer_care), raw_value, normalized_value, confidence (float), bbox (json [x,y,w,h])
+6. `compliance_results`: result_id (PK), inspection_id (FK), status, score, total_rules_checked, rules_passed, rules_failed, rules_review
+7. `violations`: violation_id (PK), inspection_id (FK), rule_id (FK), violation_type, description, severity (critical, major, minor), confidence, bbox, evidence_image_path
+8. `rules`: rule_id (PK), rule_code (e.g., LMR-PC-2011-R6), field_target, is_required, validation_regex_or_func, severity, legal_reference, effective_date
+9. `reports`: report_id (PK), inspection_id (FK), storage_path (PDF), format, generated_at
+10. `audit_logs`: log_id (PK), user_id (FK), action, details, timestamp
+
+--------------------------------------------------------------------------------
+5. API CONTRACTS & ENDPOINTS OVERVIEW
+--------------------------------------------------------------------------------
+Backend Framework: FastAPI (OpenAPI / Swagger documented at /docs)
+
+Key Endpoints:
+- `POST /auth/login` -> Authenticates officer, returns JWT access token.
+- `POST /scans` -> Accepts multipart/form-data image upload. Starts async processing pipeline. Returns `{ "inspection_id": "INS-XXXX", "status": "processing" }`.
+- `GET /scans/{id}` -> Polls inspection status and high-level progress.
+- `GET /inspections/{id}` -> Retrieves complete inspection details: extracted fields with bounding boxes, compliance status, score, list of violations, evidence crops, legal explanations.
+- `GET /products` -> Search and filter product catalog.
+- `GET /violations` -> Query violation records across inspections (filterable by category, date, severity).
+- `GET /dashboard` -> Aggregate metrics for enforcement dashboard (compliance rate, common violation pie chart, total scans, pending reviews).
+- `POST /reports/{inspection_id}` -> Triggers PDF report generation.
+- `GET /reports/{inspection_id}` -> Downloads the generated PDF report.
+
+--------------------------------------------------------------------------------
+6. TECHNOLOGY STACK
+--------------------------------------------------------------------------------
+- Frontend: Next.js 14+ (App Router), React 18+, TypeScript, Tailwind CSS, shadcn/ui, Lucide Icons, Recharts (for dashboard stats).
+- Backend: FastAPI, Python 3.10+, Uvicorn (ASGI), Pydantic v2, SQLAlchemy 2.0 (asyncio).
+- Computer Vision & OCR: OpenCV (python-opencv), PaddleOCR / EasyOCR.
+- NLP & Information Extraction: spaCy, Regex engines, scikit-learn.
+- Compliance Rule Engine: Python-based custom deterministic evaluation engine.
+- Legal RAG Engine: LangChain / LlamaIndex, Vector Database (Qdrant/Chroma/PGVector), HuggingFace SentenceTransformers embeddings, OpenAI/Gemini/Local LLM.
+- PDF Generation: ReportLab / PyPDF.
+- Relational Storage: PostgreSQL 15+.
+- Containerization & DevOps: Docker, GitHub Actions (CI/CD).
+
+--------------------------------------------------------------------------------
+7. REPOSITORY STRUCTURE & DIRECTORY TREE
+--------------------------------------------------------------------------------
+validra/
+├── frontend/                 # Next.js Application
+│   ├── app/                  # App Router pages (login, dashboard, scan, inspections, reports)
+│   ├── components/           # React UI components (camera scanner, evidence viewer, stats cards)
+│   ├── lib/                  # API client, utilities, types
+│   └── public/               # Static assets & icons
+│
+├── backend/                  # FastAPI Application
+│   ├── app/
+│   │   ├── api/              # API route handlers (v1 endpoints)
+│   │   ├── core/             # Security, JWT, config settings
+│   │   ├── database/         # PostgreSQL connection & session manager
+│   │   ├── models/           # SQLAlchemy database tables
+│   │   ├── schemas/          # Pydantic request/response schemas
+│   │   └── services/         # Orchestration & business logic
+│   └── requirements.txt      # Python dependencies
+│
+├── cv/                       # Computer Vision & OCR Engine
+│   ├── preprocessing/        # OpenCV image optimization scripts
+│   ├── detection/            # Label region detection
+│   ├── ocr/                  # PaddleOCR wrapper & bounding box extraction
+│   └── extraction/           # Named Entity Recognition & field parsing
+│
+├── rule-engine/              # Legal Metrology Rule Evaluation Engine
+│   ├── rules/                # Rule definition files (LMA 2009 / PC Rules 2011)
+│   ├── validators/           # Individual field validation functions
+│   ├── evaluators/           # Main rule execution engine
+│   └── schemas/              # Rule input/output schema definitions
+│
+├── rag/                      # Legal Intelligence RAG Engine
+│   ├── ingestion/            # Statutory Act & Rule PDF/Text chunking
+│   ├── retrieval/            # Vector store similarity search
+│   ├── embeddings/           # Embedding model initialization
+│   └── generation/           # LLM prompt templates & legal explanation builder
+│
+├── research/                 # Datasets, legal benchmarks, OCR test images
+├── tests/                    # Unit, integration, E2E & benchmark test suite
+├── docs/                     # Interactive MDX & Markdown documentation
+├── .github/                  # Workflows, PR templates, issue templates
+├── .gitignore
+├── LICENSE                   # Apache 2.0
+└── README.md                 # Full repository documentation
+
+--------------------------------------------------------------------------------
+8. TEAM MODULE RESPONSIBILITIES (M1 - M6)
+--------------------------------------------------------------------------------
+- Domain M1 (🎨 Frontend): Next.js UI, scanning interface, bounding box overlay, dashboard charts, PDF report viewer. [Tag: `frontend`]
+- Domain M2 (⚙️ Backend & Infra): FastAPI routes, DB models, Auth JWT, file uploads, orchestration, deployment. [Tags: `backend`, `db`]
+- Domain M3 (👁️ Computer Vision): OpenCV preprocessing, PaddleOCR, text detection, bounding box extraction, readability analysis. [Tag: `cv`]
+- Domain M4 (⚖️ Rule Engine): Codifying Legal Metrology Act & PC Rules into machine validation logic, violation classification. [Tag: `rule-engine`]
+- Domain M5 (🧠 RAG & AI): Ingestion of legal acts, vector embeddings, similarity search, generating legal explanation texts. [Tag: `rag`]
+- Domain M6 (🔬 Research & QA): OCR accuracy benchmarks, test dataset creation, E2E testing, SIH presentation docs. [Tags: `qa`, `research`]
+
+--------------------------------------------------------------------------------
+9. DEVELOPER & AI AGENT GUIDELINES
+--------------------------------------------------------------------------------
+1. No Hardcoded Credentials: Never hardcode API keys, passwords, or database URLs. Use `.env` and `app/core/config.py`.
+2. Strict Domain Isolation: Keep Rule Engine (M4) deterministic. The Rule Engine MUST make compliance decisions; LLM (M5) is ONLY for generating human-friendly legal explanations and references.
+3. Preserve Confidence Metadata: Always pass OCR bounding boxes `[x,y,w,h]` and confidence values from CV/OCR (M3) through Extraction to Backend (M2) and Rule Engine (M4).
+4. Branching Strategy: Branch names must follow `<type>/<domain>-<short-description>` (e.g., `feature/m1-scan-ui`, `feature/m3-opencv-crop`, `bugfix/m2-db-retry`).
+5. PR Titles: `[TYPE][DOMAIN] Title` (e.g., `[FE][M1] Add camera scanner interface`, `[BE][M2] Add POST /scans endpoint`).
+6. Evidence Trail: Always maintain references to the original uploaded image file, preprocessed image, and cropped evidence regions.
+
+================================================================================
+END OF CONTEXT FILE — VALIDRA PROJECT
+================================================================================
