@@ -6,7 +6,7 @@
   </a>
 </p>
 
-This document defines the complete end-to-end environment setup for **Team Validra**. It ensures that team members work independently on designated modules, issues are automatically tracked and closed, and all pull requests require review by **Repository Owner (@dhruvpatel16120)**, while giving the owner full capability to self-review and merge their own feature branches into `main`.
+This document defines the complete end-to-end environment setup for **Team VisionMinds — Think. Build. Transform.** (Validra). It ensures that team members work independently on designated modules, issues are automatically tracked and closed, and all pull requests require review by **Repository Owner (@dhruvpatel16120)**, while giving the owner full capability to self-review and merge their own feature branches into `main`.
 
 ---
 
