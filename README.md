@@ -1160,7 +1160,7 @@ Before opening a pull request:
 | PostgreSQL  | 15+     | Database                     |
 | OCR/CV deps | —      | Required OCR/CV dependencies |
 
-> 📖 **New to development?** Check our **[Base Setup Guide](./docs/base_setup.mdx)** for step-by-step installation instructions starting from scratch!
+> 📖 **New to development?** Check our **[Base Setup Guide](./docs/setup/base_setup.mdx)** for step-by-step installation instructions starting from scratch!
 
 ### Clone
 
@@ -1201,29 +1201,36 @@ uvicorn app.main:app --reload
 
 Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentation with embedded **Mermaid diagrams** for visual system explanations.
 
-| Document                                                                                  | Description                                                            |     Status     |
-| :---------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- | :------------: |
-| [`.agents/AGENTS.md`](./.agents/AGENTS.md)                                               | 🤖 Workspace agent rules, token efficiency & domain constraints        |   ✅ Active   |
-| [`docs/PRD.md`](./docs/PRD.md)                                                           | 📋 Product Requirements Document & MVP Scope                           |   ✅ Active   |
-| [`docs/Architecture.md`](./docs/Architecture.md)                                         | 🏗️ Technical Architecture, Auth & Security Specification             |   ✅ Active   |
-| [`docs/Design.md`](./docs/Design.md)                                                     | 🎨 UI/UX Specifications & Review Inspection Design                     |   ✅ Active   |
-| [`docs/Rules.md`](./docs/Rules.md)                                                       | ⚖️ Development Rules & Token Efficiency Guidelines                   |   ✅ Active   |
-| [`docs/Team_Role.md`](./docs/Team_Role.md)                                               | 👥 Team Domain Ownership Mapping (M1–M6)                              |   ✅ Active   |
-| [`docs/mapping.md`](./docs/mapping.md)                                                   | 🗺️ Navigation & Directory Index                                      |   ✅ Active   |
-| [`docs/memory.md`](./docs/memory.md)                                                     | 🧠 Project Decision & Solved Problem Log                               |   ✅ Active   |
-| [`docs/base_setup.mdx`](./docs/base_setup.mdx)                                           | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL)   |  ✅ Available  |
-| [`docs/TEAM_COLLABORATION_GUIDE.md`](./docs/TEAM_COLLABORATION_GUIDE.md)                 | 🟡 Team domain boundaries, branching & GitHub Projects guide           |  ✅ Available  |
-| [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/CI_CD_WORKFLOW_AUTOMATION.md)               | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide |  ✅ Available  |
-| [`docs/CICD_CHECKLIST_AND_PENDING_SETUP.md`](./docs/CICD_CHECKLIST_AND_PENDING_SETUP.md) | 🧪 CI/CD pipeline checklist & one-time pending setup audit             |  ✅ Available  |
-| `docs/frontend_setup.mdx`                                                               | 🔵 Frontend development environment setup                              | 🔜 Coming Soon |
-| `docs/backend_setup.mdx`                                                                | 🟣 Backend development environment setup                               | 🔜 Coming Soon |
-| `docs/architecture.md`                                                                  | System architecture deep-dive                                          |   🔜 Planned   |
-| `docs/api.md`                                                                           | API documentation                                                      |   🔜 Planned   |
-| `docs/database.md`                                                                      | Database schema & migrations                                           |   🔜 Planned   |
-| `docs/cv-pipeline.md`                                                                   | CV/OCR pipeline documentation                                          |   🔜 Planned   |
-| `docs/rule-engine.md`                                                                   | Rule engine documentation                                              |   🔜 Planned   |
-| `docs/rag.md`                                                                           | RAG pipeline documentation                                             |   🔜 Planned   |
-| `docs/testing.md`                                                                       | Testing strategy & guidelines                                          |   🔜 Planned   |
+### 🟢 Environment & Setup Guides
+
+| Document | Description | Status |
+| :--- | :--- | :---: |
+| [`docs/setup/base_setup.mdx`](./docs/setup/base_setup.mdx) | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL) |  ✅ Available  |
+| [`docs/setup/backend_setup.mdx`](./docs/setup/backend_setup.mdx) | 🟣 Backend development environment setup & runner guide |  ✅ Available  |
+| [`docs/setup/frontend_setup.mdx`](./docs/setup/frontend_setup.mdx) | 🔵 Frontend development environment setup & runner guide |  ✅ Available  |
+
+### 🟡 Team & Workflow Guides
+
+| Document | Description | Status |
+| :--- | :--- | :---: |
+| [`docs/team-guide/Team_Role.md`](./docs/team-guide/Team_Role.md) | 👥 Team domain ownership mapping (M1–M6) |   ✅ Active   |
+| [`docs/team-guide/WORKFLOW_GUIDE.md`](./docs/team-guide/WORKFLOW_GUIDE.md) | 🤝 GitHub issue creation & PR submission workflow guide |  ✅ Available  |
+| [`docs/team-guide/TEAM_COLLABORATION_GUIDE.md`](./docs/team-guide/TEAM_COLLABORATION_GUIDE.md) | 🟡 Team domain boundaries, branching & GitHub Projects guide |  ✅ Available  |
+| [`docs/team-guide/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/team-guide/CI_CD_WORKFLOW_AUTOMATION.md) | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide |  ✅ Available  |
+
+
+### 🔵 Architecture & Feature Specifications
+
+| Document | Description | Status |
+| :--- | :--- | :---: |
+| [`docs/frontend/Design.md`](./docs/frontend/Design.md) | 🎨 UI/UX specifications & review inspection design |   ✅ Active   |
+| `docs/architecture.md` | System architecture deep-dive | 🔜 Planned |
+| `docs/api.md` | API documentation & endpoint contracts | 🔜 Planned |
+| `docs/database.md` | Database schema & migration guide | 🔜 Planned |
+| `docs/cv-pipeline.md` | CV & OCR pipeline documentation | 🔜 Planned |
+| `docs/rule-engine.md` | Legal compliance rule engine documentation | 🔜 Planned |
+| `docs/rag.md` | Legal RAG retrieval pipeline documentation | 🔜 Planned |
+| `docs/testing.md` | Testing strategy & evaluation metrics | 🔜 Planned |
 
 ### Why MDX + Mermaid?
 

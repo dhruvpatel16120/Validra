@@ -13,7 +13,9 @@ docs/
 ├── memory.md                   # Project decision & solved-problem log
 │
 ├── setup/                      # Environment & installation guides
-│   └── base_setup.mdx          # Beginner-friendly full environment setup
+│   ├── base_setup.mdx          # Beginner-friendly full environment setup
+│   ├── backend_setup.mdx       # FastAPI backend environment & runtime setup
+│   └── frontend_setup.mdx      # Next.js frontend environment & runtime setup
 │
 ├── frontend/                   # Frontend design & UI/UX specs
 │   └── Design.md               # UI/UX & system design specifications

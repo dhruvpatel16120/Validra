@@ -1,15 +1,12 @@
-# Validra — Workspace Agent Rules & Guidelines
+# Validra — Workspace Agent Rules and Guidelines
 
-> ⭐ **Top Constraint**: You are an implementation agent, not an autonomous architect. Preserve the existing Validra architecture and team boundaries. When a task requires cross-module or architectural changes, explain the dependency and request/record coordination before modifying unrelated modules.
+> Top Constraint: You are an implementation agent, not an autonomous architect. Preserve existing architecture and team boundaries. For cross-module or architectural changes, explain the dependency and coordinate before modifying unrelated modules.
 
 ---
 
-## Part 1: Token Usage & Implementation Efficiency
+## Part 1: Token Usage and Efficiency
 
-### 1. Core Objective
-
-Optimize token usage for implementation quality.
-**Priority**:
+### 1. Priority Order
 
 1. Secure, correct, production-quality code
 2. Passing tests
@@ -17,124 +14,145 @@ Optimize token usage for implementation quality.
 4. Efficient token usage
 5. Concise communication
 
-Use tokens primarily for understanding implementation, writing code, testing, debugging, and security validation. Do NOT waste tokens on unnecessary conversation, explanations, walkthroughs, or repeated context.
+Spend tokens primarily on: implementation, code, testing, debugging, security validation.
+Do NOT spend tokens on: unnecessary conversation, thinking for simple tasks, explanations, walkthroughs, repeated context,create walkthroughs.md.
 
-### 2. Communication Rules
+### 2. Communication
 
-- **Greeting**: Use minimum tokens (e.g., `Starting implementation.` or `Understood. Implementing.`).
-- **Completion**: Short summary only (What changed, test results, important issues). Avoid step-by-step walkthroughs, repeating requirements, or generic conclusions.
+- Greeting: Minimal (e.g. `Implementing.`)
+- Completion: Short summary only (what changed, test results, issues). No walkthroughs, no repeating requirements, no generic conclusions.
 
-### 3. Token Allocation Budget
+### 3. Token Budget
 
-- **High allocation**: Code implementation, debugging, test generation, security validation, architecture validation, error investigation.
-- **Minimize allocation**: Greetings, status messages, task completion verbosity, repeating existing docs/requirements, unnecessary codebase/browser exploration.
+- High: Code, debugging, tests, security, architecture validation, error investigation.
+- Low: Greetings, status updates, completion verbosity, repeating docs, unnecessary exploration.
 
-### 4. No Unnecessary Conversation
+### 4. When to Communicate
 
-Communicate ONLY when:
+Only when:
 
 - A decision is required
 - A blocking issue exists
 - A cross-module dependency exists
-- Security risk exists
-- Architecture conflict exists
+- A security risk exists
+- An architecture conflict exists
 - Implementation is complete
 
-### 5. Implementation-First Workflow
-
-Default workflow:
+### 5. Default Workflow
 
 1. Understand task
-2. Locate relevant files
+2. Locate relevant files (check `docs/mapping.md` first)
 3. Read only required code/context
-4. Plan implementation for large task only and avoid for small task or changes
-5. Create/update `implementation.md` (or workspace plan)
+4. Plan only for large tasks; skip for small changes
+5. Create/update `implementation.md`
 6. Implement code
 7. Test
-8. Fix failures & re-test
+8. Fix failures and re-test
 9. Update required documentation
 10. Give concise completion response
 
 ### 6. Browser Interaction
 
-DO NOT use browser interaction for normal development tasks unless explicitly requested by the user. Use editor, terminal, repo files, tests, build tools, linters, and type checkers instead.
+Do NOT use browser for development tasks unless the user explicitly requests it. Use editor, terminal, repo files, tests, build tools, linters, and type checkers.
 
-### 7. Codebase Search Efficiency & Line Mapping
+### 7. Codebase Search
 
-- Search only what is required for the current task.
-- Check `.agent/mapping.md` first to locate target modules/files and it's line number.
-- Use line-range inspection (read only required line ranges of large files).
-- Prefer smart Windows CMD commands (`findstr /S /N /I "symbol" *.py *.ts *.tsx`).
+- Search only what the current task requires.
+- Check `docs/mapping.md` first to locate target modules/files and line numbers.
+- use smart search or ask user to give location of file or code.
+- Use line-range reads for large files.
+- Prefer `findstr /S /N /I "symbol" *.py *.ts *.tsx` on Windows.
 
-### 8. Documentation Efficiency & Living Docs
+### 8. Documentation
 
-Living documentation hierarchy:
-`PRD.md` → `Architecture.md` → `Design.md` → `Rules.md` → `Team_Role.md` → `mapping.md` → Implementation → `README.md` / `memory.md`
+Living docs hierarchy (read in order when needed):
 
-- Read only relevant documentation sections for the active task.
-- Update documentation only when implementation changes alter assumptions, APIs, or design. Do not rewrite entire documents—update affected sections.
+1. `docs/PRD.md` -- product requirements
+2. `docs/Architecture.md` -- system architecture and module boundaries
+3. `docs/Design.md` -- detailed design decisions
+4. `docs/Rules.md` -- project-wide coding and process rules
+5. `docs/team-guide/Team_Role.md` -- team ownership and responsibilities
+6. `docs/team-guide/WORKFLOW_GUIDE.md` -- workflow and domain ownership details
+7. `docs/mapping.md` -- file/module location index with line numbers
+8. `README.md` -- high-level project overview and system design
+9. `docs/memory.md` -- session memory and past decisions
+
+Rules:
+
+- Read only the sections relevant to the active task.
+- Update docs only when implementation changes alter assumptions, APIs, or design. Update affected sections, not entire documents.
 
 ### 9. Explanation Requests
 
-Do NOT provide explanations in chat unless explicitly requested. If requested, write the explanation to `temp/explaination.md` and reply concisely: `temp/explaination.md created.`
+Do NOT explain in chat unless the user asks. If asked, write to `temp/explanation.md` and reply: `temp/explanation.md created.`
 
-### 10. Security & Testing Priorities
+### 10. Security and Testing
 
 - Token efficiency must NEVER reduce security or skip testing.
-- Always validate Auth, JWT, RBAC, input validation, SQLi/XSS prevention, and secrets handling.
-- Mandatory test cycle: Code → Test → Fix → Re-test. Never claim success without runtime/test validation.
+- Always validate: Auth, JWT, RBAC, input validation, SQLi/XSS prevention, secrets handling.
+- Mandatory cycle: Code > Test > Fix > Re-test. Never claim success without runtime/test validation.
 
 ---
 
-## Part 2: Validra Technical & Architectural Rules
+## Part 2: Technical and Architectural Rules
 
-### 11. Project Understanding & Architecture Preservation
+### 11. Architecture Preservation
 
-- Read `README.md` and `docs/Architecture.md` before making architectural or cross-module changes.
-- when user request for pr template or github related work check .github and give document or file in temp folder and give short summary only in chat.
-- Treat the System Design & Architecture section of `README.md` as the high-level architecture.
+Before making architectural or cross-module changes, read:
 
-### 12. Modular Directory Architecture
+- `README.md` (System Design and Architecture section)
+- `docs/Architecture.md`
 
-Follow a directory-based modular structure:
+For PR templates or GitHub-related requests, check `.github/` directory, place output in `temp/` folder, and give a short summary in chat.
 
-```text
+### 12. Modular Directory Structure
+
+Every module follows this layout:
+
+```
 module/
-├── components/
-├── services/
-├── schemas/
-├── utils/
-├── types/
-└── tests/
+  components/
+  services/
+  schemas/
+  utils/
+  types/
+  tests/
 ```
 
-Keep files small, focused, and follow the Single Responsibility Principle without over-engineering simple features. ensure API can handle all test cases and runtime error without fail
+Keep files small and focused. Follow Single Responsibility Principle. Ensure APIs handle all test cases and runtime errors without silent failure.
 
-### 13. Team Module Ownership (M1–M6) — VERY IMPORTANT
+### 13. Team Module Ownership (M1-M6) -- CRITICAL
 
-Every task, issue, and code change belongs to a specific team domain owner as defined in `docs/WORKFLOW_GUIDE.md`:
+Every task belongs to a specific domain owner. See `docs/team-guide/Team_Role.md` and `docs/team-guide/WORKFLOW_GUIDE.md` for full details.
 
-- **M1** → 🎨 **Frontend & Presentation** (Next.js, UI/UX, Scanning interface, Enforcement Dashboard, Reports UI, Evidence viewer) [`frontend`]
-- **M2** → ⚙️ **Backend & Infrastructure** (FastAPI, REST APIs, PostgreSQL, Auth/JWT, RBAC, Object Storage, Task orchestration) [`backend` / `db`]
-- **M3** → 👁️ **Computer Vision & OCR** (OpenCV preprocessing, OCR engine, Text detection, Bounding boxes, Readability analysis) [`cv`]
-- **M4** → ⚖️ **Rule Engine** (Legal Metrology rule formalization, Validation logic, Violation severity, Rule repository) [`rule-engine`]
-- **M5** → 🧠 **RAG & AI** (Legal document ingestion, Vector embeddings, Context retrieval, LLM explanations) [`rag`]
-- **M6** → 🔬 **Research & QA** (Datasets, Model benchmarking, Rule validation testing, E2E testing, SIH docs) [`qa` / `research`]
+| Module | Domain          | Scope                                                                              | Directory            |
+| ------ | --------------- | ---------------------------------------------------------------------------------- | -------------------- |
+| M1     | Frontend        | Next.js, UI/UX, scanning interface, dashboard, reports, evidence viewer            | `frontend`         |
+| M2     | Backend/Infra   | FastAPI, REST APIs, PostgreSQL, Auth/JWT, RBAC, object storage, task orchestration | `backend`, `db`  |
+| M3     | Computer Vision | OpenCV preprocessing, OCR engine, text detection, bounding boxes, readability      | `cv`               |
+| M4     | Rule Engine     | Legal Metrology rules, validation logic, violation severity, rule repository       | `rule-engine`      |
+| M5     | RAG/AI          | Legal document ingestion, vector embeddings, context retrieval, LLM explanations   | `rag`              |
+| M6     | Research/QA     | Datasets, model benchmarking, rule validation testing, E2E testing                 | `qa`, `research` |
 
-**Hard Rule**: Only modify files belonging to your assigned domain. Do NOT refactor another team's module, alter shared APIs without coordination, or modify database schemas while working on an unrelated feature.
-If a cross-module change is genuinely required: STOP → Explain dependency → Identify affected modules → Record coordination in `implementation.md` → Make minimum required change.
+Hard rules:
 
-### 14. Next.js Rules (M1)
+- Only modify files in your assigned domain.
+- Do NOT refactor another team's module, alter shared APIs without coordination, or modify DB schemas on unrelated features.
+- If cross-module change is required: STOP > explain dependency > identify affected modules > record in `implementation.md` > make minimum change.
+
+### 14. Frontend Rules (M1)
+
+Refer to `docs/Design.md` for UI design decisions.
 
 - Component-based architecture with reusable UI components.
-- Prefer Server Components by default; use Client Components (`"use client"`) only where client interactivity is required.
-- Minimize client JS bundle size, avoid redundant API calls, keep pages thin.
+- Server Components by default; Client Components (`"use client"`) only for interactivity.
+- Minimize client JS bundle size. Avoid redundant API calls. Keep pages thin.
 
 ### 15. Library Selection
 
-Check existing project dependencies before adding new ones. Prefer established, maintained libraries that solve the exact problem. Avoid adding dependencies for trivial tasks or duplicating library functionality.
+Check existing `package.json` / `requirements.txt` before adding dependencies. Prefer established, maintained libraries. Do not add deps for trivial tasks or duplicate existing functionality.
 
-### 16. Computer Vision & AI Rules (M3)
+### 16. Computer Vision Rules (M3)
 
 - Preserve structured outputs, explicit schemas, and confidence scores.
 - Preserve spatial bounding-box information for evidence localization.
@@ -143,37 +161,48 @@ Check existing project dependencies before adding new ones. Prefer established, 
 
 ### 17. Rule Engine Rules (M4)
 
+Refer to `docs/Rules.md` for rule definitions and `docs/PRD.md` for compliance requirements.
+
 - Deterministic, explainable, and versioned compliance evaluation.
 - Never let an LLM directly determine the final legal compliance decision.
 - Standard rule fields: `rule_id`, `version`, `condition`, `applicable_category`, `validation_logic`, `severity`, `legal_reference`, `effective_date`.
 
-### 18. RAG & Legal Intelligence Rules (M5)
+### 18. RAG Rules (M5)
 
-- Ingest authoritative legal sources (Legal Metrology Act, 2009 & Packaged Commodities Rules, 2011).
+- Ingest authoritative legal sources (Legal Metrology Act, 2009 and Packaged Commodities Rules, 2011).
 - Preserve source metadata and return exact section citations.
 - RAG provides explanation and citations; it never overrides the deterministic Rule Engine.
 
-### 19. Security Rules 🔐
+### 19. Security Rules
+
+Refer to `docs/Architecture.md` for auth flow and `docs/Rules.md` for security policies.
 
 - Next.js handles Auth (NextAuth/Auth.js + Nodemailer), generating JWT tokens.
-- FastAPI backend independently verifies JWT signature + expiry + RBAC for EVERY protected endpoint (OCR, Rule Engine, RAG). Never trust frontend authorization alone.
+- FastAPI independently verifies JWT signature + expiry + RBAC for EVERY protected endpoint. Never trust frontend authorization alone.
 - Never commit hardcoded secrets, API keys, or `.env` files.
 
-### 20. Database & API Rules (M2)
+### 20. Database and API Rules (M2)
+
+Refer to `docs/Architecture.md` for data model and `docs/backend/` for API specs.
 
 - API contracts must have clear endpoints, Pydantic/Zod request/response schemas, validation, and error handling.
-- Use migrations for database schema changes. Avoid N+1 queries, use proper indexes, keep DB logic out of the frontend.
+- Use migrations for DB schema changes. Avoid N+1 queries, use proper indexes, keep DB logic out of the frontend.
 
-### 21. Error Handling & NEEDS_REVIEW Fallback
+### 21. Error Handling
 
+- Never fail silently.
+- When OCR or extraction yields low confidence or partial failure, log the error and set inspection status to `NEEDS_REVIEW` for manual inspector review.
 - Never fail silently. When OCR or extraction yields low confidence or partial failure, log the controlled error and set inspection status to `NEEDS_REVIEW` for manual inspector review.
 
 ### 22. Git, PR & Final Checklist
 
-- Feature branches (`feature/domain-name`).
-- Focused commits with test evidence attached.
+Refer to `docs/team-guide/CI_CD_WORKFLOW_AUTOMATION.md` for CI/CD details and `.github/` for PR templates.
+
+- Always Check branch first if it is main branch then ask user to change on new branch
+- Feature branches: `feature/domain-name`.
+- Focused commits with test evidence.
 - Before completion, verify:
   - [ ] Correct team domain ownership respected
   - [ ] Architecture and security guidelines followed
   - [ ] Tests executed and passed
-  - [ ] Relevant living docs (`PRD.md`, `Architecture.md`, `memory.md`) updated if required
+  - [ ] Relevant living docs updated if needed (`docs/PRD.md`, `docs/Architecture.md`, `docs/memory.md`)

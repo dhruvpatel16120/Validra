@@ -1,0 +1,118 @@
+---
+title: "Frontend Setup Guide"
+description: "Step-by-step instructions for setting up, configuring, and running the Validra Next.js frontend."
+---
+
+# 🎨 Validra — Frontend Setup Guide
+
+<p align="center">
+  <a href="../../README.md">
+    <img src="../../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+  </a>
+</p>
+
+> **Team VisionMinds — Think. Build. Transform.**  
+> **Domain M1:** Frontend & UI/UX
+
+---
+
+## 📋 System Requirements
+
+| Tool | Recommended Version | Purpose |
+| :--- | :--- | :--- |
+| **Node.js** | 18.0+ (LTS 20+ recommended) | JavaScript/TypeScript Runtime |
+| **npm** | 9.0+ | Package Manager |
+| **Next.js** | 16+ | App Router Frontend Framework |
+
+---
+
+## 🚀 Quick Setup (Automated)
+
+Validra includes an automated environment setup script inside the `frontend/` directory.
+
+### Run Automated Setup Command
+
+```bash
+cd frontend
+npm run setup
+```
+
+Alternatively, you can run the setup script directly with Node:
+
+```bash
+node scripts/setup.js
+```
+
+What the setup script does automatically:
+1. Checks for `.env` in `frontend/`.
+2. Copies `.env.example` to `.env` if `.env` does not exist.
+3. Installs all required project dependencies using `npm install`.
+
+---
+
+## 🛠️ Manual Setup
+
+If you prefer to perform each setup step manually:
+
+### 1. Navigate to Frontend Directory
+
+```bash
+cd frontend
+```
+
+### 2. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+### 3. Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 🏃 Running the Development Server
+
+Start the Next.js live-reloading development server:
+
+```bash
+npm run dev
+```
+
+The frontend application will be accessible at:
+
+- **Frontend App Base URL:** `http://localhost:3000`
+
+---
+
+## 🧪 Available Scripts
+
+| Command | Action | Description |
+| :--- | :--- | :--- |
+| `npm run setup` | `node scripts/setup.js` | Automated environment configuration & dependency installation |
+| `npm run dev` | `next dev` | Start development server with hot module replacement |
+| `npm run build` | `next build` | Create optimized production build |
+| `npm run start` | `next start` | Start production server after building |
+| `npm run lint` | `eslint` | Execute ESLint static analysis across source code |
+
+---
+
+## 📁 Directory Structure
+
+```text
+frontend/
+├── public/                # Static visual assets & fonts
+├── scripts/
+│   └── setup.js          # Automated environment & dependency setup script
+├── src/                   # Source code (Next.js App Router)
+│   └── app/               # Application routes, layouts, and components
+├── .env.example           # Template environment variables
+├── eslint.config.mjs      # ESLint configuration
+├── next.config.ts         # Next.js configuration
+├── package.json           # Package dependencies & scripts
+├── postcss.config.mjs     # PostCSS configuration
+└── tsconfig.json          # TypeScript configuration
+```
