@@ -1207,7 +1207,7 @@ Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentat
 | :--- | :--- | :---: |
 | [`docs/setup/base_setup.mdx`](./docs/setup/base_setup.mdx) | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL) |  ✅ Available  |
 | [`docs/setup/backend_setup.mdx`](./docs/setup/backend_setup.mdx) | 🟣 Backend development environment setup & runner guide |  ✅ Available  |
-| `docs/setup/frontend_setup.mdx` | 🔵 Frontend development environment setup | 🔜 Coming Soon |
+| [`docs/setup/frontend_setup.mdx`](./docs/setup/frontend_setup.mdx) | 🔵 Frontend development environment setup & runner guide |  ✅ Available  |
 
 ### 🟡 Team & Workflow Guides
 
