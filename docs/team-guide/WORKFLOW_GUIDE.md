@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="../README.md">
-    <img src="../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+    <img src="../../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
   </a>
 </p>
 
