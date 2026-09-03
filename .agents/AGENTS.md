@@ -91,6 +91,7 @@ Do NOT provide explanations in chat unless explicitly requested. If requested, w
 ### 11. Project Understanding & Architecture Preservation
 
 - Read `README.md` and `docs/Architecture.md` before making architectural or cross-module changes.
+- when user request for pr template or github related work check .github and give document or file in temp folder and give short summary only in chat.
 - Treat the System Design & Architecture section of `README.md` as the high-level architecture.
 
 ### 12. Modular Directory Architecture
