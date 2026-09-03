@@ -1,0 +1,141 @@
+---
+title: "Backend Setup Guide"
+description: "Step-by-step instructions for setting up, configuring, and running the Validra FastAPI backend."
+---
+
+# ⚙️ Validra — Backend Setup Guide
+
+<p align="center">
+  <a href="../README.md">
+    <img src="../Assets/Repo/logo_repo.png" alt="Validra Logo" width="140" />
+  </a>
+</p>
+
+> **Team VisionMinds — Think. Build. Transform.**  
+> **Domain M2:** Backend & Infrastructure
+
+---
+
+## 📋 System Requirements
+
+| Tool | Recommended Version | Purpose |
+| :--- | :--- | :--- |
+| **Python** | 3.10+ | FastAPI Backend & AI Runtime |
+| **pip** | Latest | Package Manager |
+| **Virtualenv** | Built-in (`venv`) | Isolated Python Environment |
+
+---
+
+## 🚀 Quick Setup (Automated)
+
+Validra includes automated environment setup scripts inside the `backend/` directory.
+
+### Windows (PowerShell)
+
+```powershell
+cd backend
+.\setup.ps1
+```
+
+### Windows (CMD)
+
+```cmd
+cd backend
+setup.bat
+```
+
+### Linux / macOS
+
+```bash
+cd backend
+chmod +x setup.sh
+./setup.sh
+```
+
+---
+
+## 🛠️ Manual Setup
+
+If you prefer to perform each setup step manually:
+
+### 1. Navigate to Backend Directory
+
+```bash
+cd backend
+```
+
+### 2. Create Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+### 3. Activate Virtual Environment
+
+- **Windows (PowerShell):** `.venv\Scripts\Activate.ps1`
+- **Windows (CMD):** `.venv\Scripts\activate.bat`
+- **Linux / macOS:** `source .venv/bin/activate`
+
+### 4. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+### 5. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## 🏃 Running the Backend Server
+
+Start the live-reloading development server:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+The FastAPI server will be available at:
+
+- **API Base URL:** `http://127.0.0.1:8000`
+- **Swagger Interactive Docs:** `http://127.0.0.1:8000/docs`
+- **ReDoc Interactive Docs:** `http://127.0.0.1:8000/redoc`
+- **Health Check Endpoint:** `http://127.0.0.1:8000/health`
+
+---
+
+## 🧪 Running Unit Tests
+
+Run the test suite using `pytest`:
+
+```bash
+pytest
+```
+
+---
+
+## 📁 Directory Structure
+
+```text
+backend/
+├── app/
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── router.py      # APIRouter definitions & endpoints
+│   ├── core/
+│   │   ├── __init__.py
+│   │   └── config.py      # BaseSettings configuration
+│   ├── __init__.py
+│   └── main.py            # FastAPI entrypoint
+├── tests/
+│   ├── conftest.py        # Pytest fixtures
+│   └── test_main.py       # API tests
+├── .env.example
+├── requirements.txt
+├── setup.bat
+├── setup.ps1
+└── setup.sh
+```

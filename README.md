@@ -1216,7 +1216,7 @@ Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentat
 | [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/CI_CD_WORKFLOW_AUTOMATION.md)               | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide |  ✅ Available  |
 | [`docs/CICD_CHECKLIST_AND_PENDING_SETUP.md`](./docs/CICD_CHECKLIST_AND_PENDING_SETUP.md) | 🧪 CI/CD pipeline checklist & one-time pending setup audit             |  ✅ Available  |
 | `docs/frontend_setup.mdx`                                                               | 🔵 Frontend development environment setup                              | 🔜 Coming Soon |
-| `docs/backend_setup.mdx`                                                                | 🟣 Backend development environment setup                               | 🔜 Coming Soon |
+| [`docs/backend_setup.mdx`](./docs/backend_setup.mdx)                                            | 🟣 Backend development environment setup                               |  ✅ Available  |
 | `docs/architecture.md`                                                                  | System architecture deep-dive                                          |   🔜 Planned   |
 | `docs/api.md`                                                                           | API documentation                                                      |   🔜 Planned   |
 | `docs/database.md`                                                                      | Database schema & migrations                                           |   🔜 Planned   |
