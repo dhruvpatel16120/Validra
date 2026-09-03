@@ -49,7 +49,7 @@ extracts mandatory declarations, evaluates them through a rule-based
 compliance engine, retrieves relevant legal context using RAG, and
 generates evidence-backed compliance reports.
 
-> 🌟 **Smart India Hackathon 2026 — Problem Statement ID: 26034**  
+> 🌟 **Smart India Hackathon 2026 — Problem Statement ID: 26034**
 > 👥 **Team:** VisionMinds — Think. Build. Transform.
 
 ---
@@ -60,7 +60,7 @@ generates evidence-backed compliance reports.
 - [💡 Solution](#-solution)
 - [🧠 Why Validra?](#-why-validra)
 - [🚀 Key Features](#-key-features)
-- [🏗️ System Design & Architecture](#-system-design--architecture)
+- [🏗️ System Design &amp; Architecture](#-system-design--architecture)
 - [🔄 Processing Pipeline](#-processing-pipeline)
 - [⚖️ Rule Engine + RAG](#-rule-engine--rag)
 - [📊 Confidence-Aware Inspection](#-confidence-aware-inspection)
@@ -69,7 +69,7 @@ generates evidence-backed compliance reports.
 - [🧩 Technology Stack](#-technology-stack)
 - [📁 Repository Structure](#-repository-structure)
 - [🧪 Testing Strategy](#-testing-strategy)
-- [🛡️ Responsible AI & Legal Disclaimer](#-responsible-ai--legal-disclaimer)
+- [🛡️ Responsible AI &amp; Legal Disclaimer](#-responsible-ai--legal-disclaimer)
 - [🛠️ Development Roadmap](#-development-roadmap)
 - [👥 Team Domains](#-team-domains)
 - [🤝 Contribution Workflow](#-contribution-workflow)
@@ -153,14 +153,14 @@ review.
 
 ## 🧠 Why Validra?
 
-| ❌ Traditional Manual Inspection | ✅ Validra — AI-Assisted Inspection |
-|:---|:---|
-| 🐢 Slow, manual label reading | ⚡ Instant AI-powered scanning |
-| 📝 Paper-based records | 💾 Digital evidence preservation |
-| 🧑 Single inspector bottleneck | 🤖 Scalable, consistent checks |
-| 🔍 Misses subtle violations | 🎯 Detects missing/incorrect declarations |
-| 📊 No analytics or trends | 📊 Real-time enforcement dashboard |
-| 🗂️ Hard to retrieve past records | 🔎 Searchable inspection history |
+| ❌ Traditional Manual Inspection   | ✅ Validra — AI-Assisted Inspection      |
+| :--------------------------------- | :---------------------------------------- |
+| 🐢 Slow, manual label reading      | ⚡ Instant AI-powered scanning            |
+| 📝 Paper-based records             | 💾 Digital evidence preservation          |
+| 🧑 Single inspector bottleneck     | 🤖 Scalable, consistent checks            |
+| 🔍 Misses subtle violations        | 🎯 Detects missing/incorrect declarations |
+| 📊 No analytics or trends          | 📊 Real-time enforcement dashboard        |
+| 🗂️ Hard to retrieve past records | 🔎 Searchable inspection history          |
 
 ```mermaid
 
@@ -191,76 +191,76 @@ flowchart TD
 
 ### 📷 Product Scanning
 
--   Upload or capture packaged commodity images.
--   Process package and label images.
--   Preserve original and processed evidence.
+- Upload or capture packaged commodity images.
+- Process package and label images.
+- Preserve original and processed evidence.
 
 ### 👁️ Computer Vision & OCR
 
--   Image preprocessing using OpenCV.
--   Text detection and OCR.
--   Bounding-box based text localization.
--   Relevant label-region extraction.
--   Readability and font-related analysis where technically measurable.
+- Image preprocessing using OpenCV.
+- Text detection and OCR.
+- Bounding-box based text localization.
+- Relevant label-region extraction.
+- Readability and font-related analysis where technically measurable.
 
 ### 🧾 Information Extraction
 
 Identify structured fields such as:
 
--   MRP
--   Net quantity
--   Manufacturer
--   Packer
--   Importer
--   Manufacturing/packing/import-related date information
--   Consumer-care information
--   Other applicable declarations
+- MRP
+- Net quantity
+- Manufacturer
+- Packer
+- Importer
+- Manufacturing/packing/import-related date information
+- Consumer-care information
+- Other applicable declarations
 
 ### ⚖️ Rule-Based Compliance Engine
 
--   Check required declarations.
--   Validate extracted values and formats.
--   Apply category-specific rules where applicable.
--   Detect missing or potentially non-compliant declarations.
--   Classify findings by severity.
--   Maintain rule references and versions.
+- Check required declarations.
+- Validate extracted values and formats.
+- Apply category-specific rules where applicable.
+- Detect missing or potentially non-compliant declarations.
+- Classify findings by severity.
+- Maintain rule references and versions.
 
 ### 🧠 RAG & Legal Intelligence
 
--   Ingest authoritative legal/regulatory documents.
--   Retrieve relevant provisions for findings.
--   Provide contextual explanations.
--   Connect findings with supporting legal references.
+- Ingest authoritative legal/regulatory documents.
+- Retrieve relevant provisions for findings.
+- Provide contextual explanations.
+- Connect findings with supporting legal references.
 
 ### 📊 Enforcement Dashboard
 
--   Inspection statistics.
--   Compliance/non-compliance trends.
--   Violation categories.
--   Product and inspection history.
--   Search and retrieval of previous inspections.
+- Inspection statistics.
+- Compliance/non-compliance trends.
+- Violation categories.
+- Product and inspection history.
+- Search and retrieval of previous inspections.
 
 ### 📄 Compliance Reports
 
 Generate reports containing:
 
--   Product information
--   Extracted declarations
--   Compliance status
--   Violations
--   Evidence images
--   Evidence locations
--   Confidence values
--   Applicable legal references
--   Inspection metadata
+- Product information
+- Extracted declarations
+- Compliance status
+- Violations
+- Evidence images
+- Evidence locations
+- Confidence values
+- Applicable legal references
+- Inspection metadata
 
-### 🔐 Security
+### 🔐 Security & Authentication
 
--   Authentication
--   Role-based access
--   Protected APIs
--   Inspection history
--   Audit records
+- **Next.js Auth**: Auth.js / NextAuth with Nodemailer for email verification & session management.
+- **FastAPI Backend Authorization**: Independent JWT signature, expiration, and RBAC verification on every protected request.
+- **Role-Based Access (RBAC)**: Enforced boundaries between Inspector and Admin personas.
+- **Protected Services**: OCR, CV, Rule Engine, and RAG pipelines accessible only via authorized backend requests.
+- **Inspection Audit Logs**: Complete digital audit trail for all inspection decisions.
 
 ---
 
@@ -270,25 +270,25 @@ Generate reports containing:
 
 ```mermaid
 flowchart TD
-    USER["👤 Officer / User"]
+    USER["👤 Inspector / Admin"]
 
     subgraph FRONTEND["🖥️ Frontend — Next.js"]
-        F1["Login"]
-        F2["Scan Product"]
-        F3["Results"]
-        F4["Dashboard"]
-        F5["History"]
-        F6["Reports"]
-        F7["Admin"]
+        F1["Auth.js / NextAuth & Nodemailer"]
+        F2["Landing & Public Pages"]
+        F3["Inspector Portal\nDashboard · Scan · Review Inspection · Reports"]
+        F4["Admin Portal\nUsers · Rules · Legal RAG Docs · Audit Logs"]
+    end
+
+    subgraph AUTH["🔐 Authentication Layer"]
+        JWT["JWT Access Token\n(Issued by Next.js Auth)"]
     end
 
     subgraph BACKEND["⚙️ Backend — FastAPI"]
-        B1["Authentication / Authorization"]
+        B1["FastAPI Auth Middleware\n(Verify JWT Signature, Expiry & RBAC)"]
         B2["API Gateway / Request Validation"]
         B3["Scan Orchestration"]
-        B4["File Management"]
-        B5["Report Management"]
-        B6["Database Operations"]
+        B4["Report Management"]
+        B5["Database Operations"]
     end
 
     subgraph AI["🤖 AI Understanding"]
@@ -309,19 +309,21 @@ flowchart TD
     end
 
     subgraph COMPLIANCE["⚖️ Compliance Intelligence"]
-        RE["Rule Engine\nRequired? · Correct? · Readable?\nFormat? · Placement?"]
-        RAG["RAG Engine\nLegal Documents · Embeddings\nRetrieval · Explanation"]
+        RE["Rule Engine\nDeterministic Validation\nRequired? · Format? · Placement?"]
+        RAG["RAG Engine\nLegal Documents · Vector Store\nCitation · Contextual Explanation"]
     end
 
     subgraph DATA["💾 Evidence & Data"]
-        DB["PostgreSQL\nUsers · Products · Inspections\nViolations · Reports"]
-        OBJ["Object Storage\nProduct Images · Evidence\nProcessed Images · Reports"]
+        DB["PostgreSQL\nUsers · Inspections · Violations"]
+        OBJ["Object Storage\nEvidence Images · PDF Reports"]
         VDB["Vector Database\nLegal Embeddings"]
     end
 
     USER --> FRONTEND
-    FRONTEND -->|"REST / JSON"| BACKEND
-    BACKEND --> AI
+    F1 --> JWT
+    FRONTEND -->|"Bearer JWT Header"| BACKEND
+    B1 --> B2
+    B2 --> AI
     AI --> COMPLIANCE
     RE <--> RAG
     COMPLIANCE --> DATA
@@ -330,6 +332,7 @@ flowchart TD
 
     style USER fill:#0d1117,stroke:#58a6ff,color:#fff
     style FRONTEND fill:#0d1117,stroke:#7c3aed,color:#fff
+    style AUTH fill:#0d1117,stroke:#ffab00,color:#fff
     style BACKEND fill:#0d1117,stroke:#e94560,color:#fff
     style CV fill:#0d1117,stroke:#00bcd4,color:#fff
     style IE fill:#0d1117,stroke:#ff9800,color:#fff
@@ -337,9 +340,27 @@ flowchart TD
     style DATA fill:#0d1117,stroke:#ff6b35,color:#fff
 ```
 
+### Dedicated Review Inspection Workflow
+
+Validra operates as an **AI-assisted decision-support system**, not a fully autonomous legal decision-maker. Key compliance decisions incorporate human-in-the-loop review:
+
+```mermaid
+flowchart LR
+    A["🤖 AI Result & Findings"] --> B["👮 Inspector Reviews Evidence"]
+    B --> C["✏️ Accept / Reject / Modify Finding"]
+    C --> D["💬 Add Remarks"]
+    D --> E["📄 Finalize & Issue Compliance Report"]
+
+    style A fill:#0d1117,stroke:#7c3aed,color:#fff
+    style B fill:#0d1117,stroke:#00bcd4,color:#fff
+    style C fill:#0d1117,stroke:#ffab00,color:#fff
+    style D fill:#0d1117,stroke:#58a6ff,color:#fff
+    style E fill:#0d3b0d,stroke:#00c853,color:#fff
+```
+
 ### Five-Layer Architecture
 
-``` text
+```text
 ┌───────────────────────────────────────────┐
 │              USER EXPERIENCE              │
 │     Next.js • Scan • Dashboard • Reports  │
@@ -458,7 +479,7 @@ flowchart TD
 
 Example OCR output:
 
-``` json
+```json
 {
   "text": "MRP ₹50",
   "confidence": 0.96,
@@ -468,7 +489,7 @@ Example OCR output:
 
 Example extracted field:
 
-``` json
+```json
 {
   "mrp": {
     "value": 50.0,
@@ -529,11 +550,11 @@ legal decision.
 
 ### Rule Engine Decision States
 
-| State | Icon | Meaning | When Used |
-|:------|:-----|:--------|:----------|
-| **Compliant** | ✅ | Declaration passes validation | High confidence, rule satisfied |
-| **Non-Compliant** | ❌ | Violation detected | Declaration missing/invalid, high confidence |
-| **Needs Review** | ⚠️ | Uncertain result | Low OCR/extraction confidence |
+| State                   | Icon | Meaning                       | When Used                                    |
+| :---------------------- | :--- | :---------------------------- | :------------------------------------------- |
+| **Compliant**     | ✅   | Declaration passes validation | High confidence, rule satisfied              |
+| **Non-Compliant** | ❌   | Violation detected            | Declaration missing/invalid, high confidence |
+| **Needs Review**  | ⚠️ | Uncertain result              | Low OCR/extraction confidence                |
 
 ---
 
@@ -566,13 +587,13 @@ flowchart LR
 
 ### High vs Low Confidence Examples
 
-| Stage | ✅ High Confidence | ⚠️ Low Confidence |
-|:------|:-------------------|:-------------------|
-| OCR | 96% | 48% |
-| Extraction | 94% | 42% |
-| Validation | 99% | — |
-| **Overall** | **93%** | **Low** |
-| **Result** | ✅ `COMPLIANT` | ⚠️ `NEEDS REVIEW` |
+| Stage             | ✅ High Confidence | ⚠️ Low Confidence  |
+| :---------------- | :----------------- | :------------------- |
+| OCR               | 96%                | 48%                  |
+| Extraction        | 94%                | 42%                  |
+| Validation        | 99%                | —                   |
+| **Overall** | **93%**      | **Low**        |
+| **Result**  | ✅`COMPLIANT`    | ⚠️`NEEDS REVIEW` |
 
 This reduces false certainty and helps officers focus on ambiguous
 cases.
@@ -678,7 +699,7 @@ erDiagram
 
 Potential entities:
 
-``` text
+```text
 users
 products
 inspections
@@ -691,34 +712,34 @@ reports
 audit_logs
 ```
 
-| Table | Purpose | Key Relationships |
-|:------|:--------|:------------------|
-| `users` | Officer/admin accounts | Creates inspections |
-| `products` | Product information | Inspected via inspections |
-| `inspections` | Core inspection record | Links all entities |
-| `images` | Original + processed images | Belong to inspection |
-| `extracted_fields` | OCR/extraction results | Per inspection, with confidence |
-| `compliance_results` | Overall compliance status | One per inspection |
-| `violations` | Individual violations found | References rules |
-| `rules` | Legal compliance rules | Referenced by violations |
-| `reports` | Generated PDF reports | One per inspection |
-| `audit_logs` | Who did what, when | System-wide tracking |
+| Table                  | Purpose                     | Key Relationships               |
+| :--------------------- | :-------------------------- | :------------------------------ |
+| `users`              | Officer/admin accounts      | Creates inspections             |
+| `products`           | Product information         | Inspected via inspections       |
+| `inspections`        | Core inspection record      | Links all entities              |
+| `images`             | Original + processed images | Belong to inspection            |
+| `extracted_fields`   | OCR/extraction results      | Per inspection, with confidence |
+| `compliance_results` | Overall compliance status   | One per inspection              |
+| `violations`         | Individual violations found | References rules                |
+| `rules`              | Legal compliance rules      | Referenced by violations        |
+| `reports`            | Generated PDF reports       | One per inspection              |
+| `audit_logs`         | Who did what, when          | System-wide tracking            |
 
 ---
 
 ## 🔌 API Overview
 
-| Method | Endpoint | Purpose | Auth |
-|:-------|:---------|:--------|:----:|
-| `POST` | `/auth/login` | Authenticate user | ❌ |
-| `POST` | `/scans` | Upload/start inspection | ✅ |
-| `GET` | `/scans/{id}` | Get processing status | ✅ |
-| `GET` | `/inspections/{id}` | Retrieve inspection | ✅ |
-| `GET` | `/products` | Search products | ✅ |
-| `GET` | `/violations` | Retrieve violations | ✅ |
-| `GET` | `/dashboard` | Dashboard statistics | ✅ |
-| `POST` | `/reports/{id}` | Generate report | ✅ |
-| `GET` | `/reports/{id}` | Retrieve report | ✅ |
+| Method   | Endpoint              | Purpose                 | Auth |
+| :------- | :-------------------- | :---------------------- | :--: |
+| `POST` | `/auth/login`       | Authenticate user       |  ❌  |
+| `POST` | `/scans`            | Upload/start inspection |  ✅  |
+| `GET`  | `/scans/{id}`       | Get processing status   |  ✅  |
+| `GET`  | `/inspections/{id}` | Retrieve inspection     |  ✅  |
+| `GET`  | `/products`         | Search products         |  ✅  |
+| `GET`  | `/violations`       | Retrieve violations     |  ✅  |
+| `GET`  | `/dashboard`        | Dashboard statistics    |  ✅  |
+| `POST` | `/reports/{id}`     | Generate report         |  ✅  |
+| `GET`  | `/reports/{id}`     | Retrieve report         |  ✅  |
 
 API contracts should be versioned and documented through
 FastAPI/OpenAPI.
@@ -727,6 +748,7 @@ FastAPI/OpenAPI.
 <summary><strong>📡 Example API Usage</strong></summary>
 
 **Start Inspection:**
+
 ```http
 POST /scans
 Content-Type: multipart/form-data
@@ -735,6 +757,7 @@ image = product.jpg
 ```
 
 **Response:**
+
 ```json
 {
   "inspection_id": "INS-000124",
@@ -743,6 +766,7 @@ image = product.jpg
 ```
 
 **Poll for result:**
+
 ```http
 GET /scans/INS-000124
 ```
@@ -762,20 +786,20 @@ GET /scans/INS-000124
 
 ## 🧩 Technology Stack
 
-| Layer | Technology | Badge | Purpose |
-|:------|:-----------|:------|:--------|
-| **Frontend** | Next.js, TypeScript | ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white) | High-performance, SEO-friendly UI |
-| **UI** | Tailwind CSS, shadcn/ui | ![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?style=flat&logo=tailwindcss&logoColor=white) ![shadcn](https://img.shields.io/badge/shadcn/ui-000?style=flat&logo=shadcnui&logoColor=white) | Modern utility-first styling |
-| **Backend** | FastAPI, Python | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white) | Async REST API & orchestration |
-| **Database** | PostgreSQL | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white) | Relational data storage |
-| **Computer Vision** | OpenCV | ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white) | Image preprocessing & analysis |
-| **OCR** | PaddleOCR / selected engine | ![PaddleOCR](https://img.shields.io/badge/PaddleOCR-0062B0?style=flat&logo=paddlepaddle&logoColor=white) | Text recognition |
-| **ML/NLP** | spaCy, scikit-learn | ![spaCy](https://img.shields.io/badge/spaCy-09A3D5?style=flat&logo=spacy&logoColor=white) | NLP & extraction |
-| **RAG** | Embeddings + Vector DB | ![VectorDB](https://img.shields.io/badge/Vector_DB-FF6B35?style=flat) | Legal document retrieval |
-| **LLM** | Configurable provider | ![LLM](https://img.shields.io/badge/LLM-7c3aed?style=flat) | Explanation generation |
-| **Auth** | JWT / configurable | ![JWT](https://img.shields.io/badge/JWT-000?style=flat&logo=jsonwebtokens&logoColor=white) | Authentication & authorization |
-| **Reports** | ReportLab | ![ReportLab](https://img.shields.io/badge/ReportLab-333?style=flat) | PDF report generation |
-| **API** | REST / JSON | ![REST](https://img.shields.io/badge/REST-02569B?style=flat) | API protocol |
+| Layer                     | Technology                  | Badge                                                                                                                                                                                                   | Purpose                           |
+| :------------------------ | :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :-------------------------------- |
+| **Frontend**        | Next.js, TypeScript         | ![Next.js](https://img.shields.io/badge/Next.js-black?style=flat&logo=next.js&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white) | High-performance, SEO-friendly UI |
+| **UI**              | Tailwind CSS, shadcn/ui     | ![Tailwind](https://img.shields.io/badge/Tailwind-06B6D4?style=flat&logo=tailwindcss&logoColor=white) ![shadcn](https://img.shields.io/badge/shadcn/ui-000?style=flat&logo=shadcnui&logoColor=white)    | Modern utility-first styling      |
+| **Backend**         | FastAPI, Python             | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white) ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)            | Async REST API & orchestration    |
+| **Database**        | PostgreSQL                  | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)                                                                                                | Relational data storage           |
+| **Computer Vision** | OpenCV                      | ![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=flat&logo=opencv&logoColor=white)                                                                                                            | Image preprocessing & analysis    |
+| **OCR**             | PaddleOCR / selected engine | ![PaddleOCR](https://img.shields.io/badge/PaddleOCR-0062B0?style=flat&logo=paddlepaddle&logoColor=white)                                                                                                | Text recognition                  |
+| **ML/NLP**          | spaCy, scikit-learn         | ![spaCy](https://img.shields.io/badge/spaCy-09A3D5?style=flat&logo=spacy&logoColor=white)                                                                                                               | NLP & extraction                  |
+| **RAG**             | Embeddings + Vector DB      | ![VectorDB](https://img.shields.io/badge/Vector_DB-FF6B35?style=flat)                                                                                                                                   | Legal document retrieval          |
+| **LLM**             | Configurable provider       | ![LLM](https://img.shields.io/badge/LLM-7c3aed?style=flat)                                                                                                                                              | Explanation generation            |
+| **Auth**            | JWT / configurable          | ![JWT](https://img.shields.io/badge/JWT-000?style=flat&logo=jsonwebtokens&logoColor=white)                                                                                                              | Authentication & authorization    |
+| **Reports**         | ReportLab                   | ![ReportLab](https://img.shields.io/badge/ReportLab-333?style=flat)                                                                                                                                     | PDF report generation             |
+| **API**             | REST / JSON                 | ![REST](https://img.shields.io/badge/REST-02569B?style=flat)                                                                                                                                            | API protocol                      |
 
 Technology choices may evolve based on accuracy, benchmarks, cost, and
 deployment constraints.
@@ -784,7 +808,7 @@ deployment constraints.
 
 ## 📁 Repository Structure
 
-``` text
+```text
 validra/
 │
 ├── frontend/                 # Next.js application
@@ -851,28 +875,28 @@ flowchart TD
 
 Important test cases include:
 
--   Clear images
--   Blurred images
--   Rotated images
--   Low-light images
--   Missing declarations
--   Incorrect formats
--   OCR errors
--   Low-confidence extraction
--   Multiple product categories
--   Conflicting information
--   API failures
--   Unauthorized access
--   Report-generation failures
+- Clear images
+- Blurred images
+- Rotated images
+- Low-light images
+- Missing declarations
+- Incorrect formats
+- OCR errors
+- Low-confidence extraction
+- Multiple product categories
+- Conflicting information
+- API failures
+- Unauthorized access
+- Report-generation failures
 
 ### Evaluation Metrics
 
-| Domain | Metrics |
-|:-------|:--------|
-| **OCR / Extraction** | Character/Word Error Rate, Field Accuracy, Precision, Recall, F1-score |
-| **Computer Vision** | Detection Precision/Recall, IoU where applicable |
+| Domain                      | Metrics                                                                                      |
+| :-------------------------- | :------------------------------------------------------------------------------------------- |
+| **OCR / Extraction**  | Character/Word Error Rate, Field Accuracy, Precision, Recall, F1-score                       |
+| **Computer Vision**   | Detection Precision/Recall, IoU where applicable                                             |
 | **Compliance Engine** | Rule Validation Accuracy, False-Positive Rate, False-Negative Rate, Violation Classification |
-| **System** | Average Processing Time, API Latency, Successful Processing Rate, Report Generation Time |
+| **System**            | Average Processing Time, API Latency, Successful Processing Rate, Report Generation Time     |
 
 ---
 
@@ -882,12 +906,12 @@ Validra is an **AI-assisted inspection and decision-support system**.
 
 The system should:
 
--   ✅ Preserve supporting evidence.
--   ✅ Display confidence levels.
--   ✅ Provide applicable rule references.
--   ✅ Flag uncertain cases for manual review.
--   ❌ Avoid presenting low-confidence AI outputs as definitive legal
-    conclusions.
+- ✅ Preserve supporting evidence.
+- ✅ Display confidence levels.
+- ✅ Provide applicable rule references.
+- ✅ Flag uncertain cases for manual review.
+- ❌ Avoid presenting low-confidence AI outputs as definitive legal
+  conclusions.
 
 > **Final legal interpretation and enforcement action should remain with the authorized authority.**
 
@@ -951,58 +975,58 @@ flowchart TD
 
 ### Phase 1 — Foundation
 
--   [ ] Repository setup
--   [ ] Next.js frontend
--   [ ] FastAPI backend
--   [ ] PostgreSQL schema
--   [ ] Authentication
--   [ ] API contracts
+- [ ] Repository setup
+- [ ] Next.js frontend
+- [ ] FastAPI backend
+- [ ] PostgreSQL schema
+- [ ] Authentication
+- [ ] API contracts
 
 ### Phase 2 — Core AI Pipeline
 
--   [ ] Image upload
--   [ ] OpenCV preprocessing
--   [ ] OCR integration
--   [ ] Bounding-box extraction
--   [ ] Mandatory-field extraction
--   [ ] Initial compliance rules
+- [ ] Image upload
+- [ ] OpenCV preprocessing
+- [ ] OCR integration
+- [ ] Bounding-box extraction
+- [ ] Mandatory-field extraction
+- [ ] Initial compliance rules
 
 ### Phase 3 — Compliance Intelligence
 
--   [ ] Rule repository
--   [ ] Rule evaluator
--   [ ] Violation classification
--   [ ] Confidence propagation
--   [ ] Evidence localization
+- [ ] Rule repository
+- [ ] Rule evaluator
+- [ ] Violation classification
+- [ ] Confidence propagation
+- [ ] Evidence localization
 
 ### Phase 4 — RAG
 
--   [ ] Legal document ingestion
--   [ ] Chunking
--   [ ] Embeddings
--   [ ] Vector search
--   [ ] Relevant-rule retrieval
--   [ ] Explanation generation
+- [ ] Legal document ingestion
+- [ ] Chunking
+- [ ] Embeddings
+- [ ] Vector search
+- [ ] Relevant-rule retrieval
+- [ ] Explanation generation
 
 ### Phase 5 — Productization
 
--   [ ] Enforcement dashboard
--   [ ] Inspection history
--   [ ] PDF reports
--   [ ] Search and filtering
--   [ ] Role-based access
--   [ ] Audit logs
+- [ ] Enforcement dashboard
+- [ ] Inspection history
+- [ ] PDF reports
+- [ ] Search and filtering
+- [ ] Role-based access
+- [ ] Audit logs
 
 ### Phase 6 — Validation & Deployment
 
--   [ ] Dataset creation
--   [ ] Model benchmarking
--   [ ] End-to-end testing
--   [ ] Security testing
--   [ ] Performance optimization
--   [ ] Deployment
--   [ ] Documentation
--   [ ] SIH demonstration
+- [ ] Dataset creation
+- [ ] Model benchmarking
+- [ ] End-to-end testing
+- [ ] Security testing
+- [ ] Performance optimization
+- [ ] Deployment
+- [ ] Documentation
+- [ ] SIH demonstration
 
 ---
 
@@ -1034,14 +1058,14 @@ flowchart TD
     style QAT fill:#0d1117,stroke:#ff6b35,color:#fff
 ```
 
-| Domain | Responsibility |
-|:-------|:---------------|
-| 🎨 **Frontend** | Next.js, UI/UX, dashboard, scanning workflow |
-| ⚙️ **Backend & Infrastructure** | FastAPI, APIs, DB, Auth, storage, deployment |
-| 👁️ **Computer Vision** | OpenCV, OCR, detection, readability analysis |
-| ⚖️ **Rule Engine** | Legal rules, validation, violations, compliance scoring |
-| 🧠 **RAG & AI** | Legal retrieval, embeddings, LLM integration |
-| 🔬 **Research & QA** | Legal research, datasets, evaluation, testing, documentation |
+| Domain                                 | Responsibility                                               |
+| :------------------------------------- | :----------------------------------------------------------- |
+| 🎨**Frontend**                   | Next.js, UI/UX, dashboard, scanning workflow                 |
+| ⚙️**Backend & Infrastructure** | FastAPI, APIs, DB, Auth, storage, deployment                 |
+| 👁️**Computer Vision**          | OpenCV, OCR, detection, readability analysis                 |
+| ⚖️**Rule Engine**              | Legal rules, validation, violations, compliance scoring      |
+| 🧠**RAG & AI**                   | Legal retrieval, embeddings, LLM integration                 |
+| 🔬**Research & QA**              | Legal research, datasets, evaluation, testing, documentation |
 
 All members contribute to integration, debugging, and final system
 validation.
@@ -1087,7 +1111,7 @@ gitGraph
 
 Recommended Git workflow:
 
-``` text
+```text
 main
  │
  └── develop
@@ -1107,20 +1131,20 @@ We have established end-to-end GitHub templates for streamlined tracking:
 - 🐛 **[Bug Report Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=bug_report.yml)** — Structured bug submission tagged by team domain (M1–M6) & component type.
 - 💡 **[Feature Request Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=feature_request.yml)** — Propose new features with user story and acceptance criteria.
 - ⚖️ **[Legal Rule Addition Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=rule_addition.yml)** — Formalize Legal Metrology Act/PC Rules into machine rules.
-- 🔬 **[QA & Benchmarking Task Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=qa_test_task.yml)** — Track OCR evaluation runs, test datasets, and performance tests.
+- 🔬 **[QA &amp; Benchmarking Task Form](https://github.com/dhruvpatel16120/Validra/issues/new?template=qa_test_task.yml)** — Track OCR evaluation runs, test datasets, and performance tests.
 - 🔀 **[PR Templates](.github/PULL_REQUEST_TEMPLATE.md)** — Standardized PR templates with domain tags (M1–M6), type selectors (`frontend`, `backend`, `db`), testing checklists, and visual evidence sections.
 
 > 📖 **End-to-End Collaboration & CI/CD Automation Guides:** See [`docs/TEAM_COLLABORATION_GUIDE.md`](docs/TEAM_COLLABORATION_GUIDE.md) & [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](docs/CI_CD_WORKFLOW_AUTOMATION.md) for full module boundaries, auto-closing issue keywords (`Closes #123`), repo owner approval workflows, CI/CD testing, and automated Kanban project board configuration.
 
 Before opening a pull request:
 
--   ✅ Keep changes focused.
--   ✅ Tag primary domain (`M1` to `M6`) and component type (`frontend`, `backend`, `db`, `cv`, `rule-engine`, `rag`, `qa`).
--   ✅ Test locally.
--   ✅ Update documentation when required.
--   ❌ Never commit secrets or `.env` files.
--   ✅ Add/update tests for important functionality.
--   ✅ Explain what changed and attach visual/test evidence.
+- ✅ Keep changes focused.
+- ✅ Tag primary domain (`M1` to `M6`) and component type (`frontend`, `backend`, `db`, `cv`, `rule-engine`, `rag`, `qa`).
+- ✅ Test locally.
+- ✅ Update documentation when required.
+- ❌ Never commit secrets or `.env` files.
+- ✅ Add/update tests for important functionality.
+- ✅ Explain what changed and attach visual/test evidence.
 
 ---
 
@@ -1128,26 +1152,26 @@ Before opening a pull request:
 
 ### Prerequisites
 
-| Tool | Version | Purpose |
-|:-----|:--------|:--------|
-| Git | Latest | Version control |
-| Node.js | 18+ LTS | Frontend runtime |
-| Python | 3.10+ | Backend + AI |
-| PostgreSQL | 15+ | Database |
-| OCR/CV deps | — | Required OCR/CV dependencies |
+| Tool        | Version | Purpose                      |
+| :---------- | :------ | :--------------------------- |
+| Git         | Latest  | Version control              |
+| Node.js     | 18+ LTS | Frontend runtime             |
+| Python      | 3.10+   | Backend + AI                 |
+| PostgreSQL  | 15+     | Database                     |
+| OCR/CV deps | —      | Required OCR/CV dependencies |
 
 > 📖 **New to development?** Check our **[Base Setup Guide](./docs/base_setup.mdx)** for step-by-step installation instructions starting from scratch!
 
 ### Clone
 
-``` bash
+```bash
 git clone https://github.com/dhruvpatel16120/Validra.git
 cd validra
 ```
 
 ### Frontend
 
-``` bash
+```bash
 cd frontend
 npm install
 npm run dev
@@ -1155,7 +1179,7 @@ npm run dev
 
 ### Backend
 
-``` bash
+```bash
 cd backend
 python -m venv .venv
 
@@ -1177,21 +1201,29 @@ uvicorn app.main:app --reload
 
 Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentation with embedded **Mermaid diagrams** for visual system explanations.
 
-| Document | Description | Status |
-|:---------|:------------|:------:|
-| [`docs/base_setup.mdx`](./docs/base_setup.mdx) | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL) | ✅ Available |
-| [`docs/TEAM_COLLABORATION_GUIDE.md`](./docs/TEAM_COLLABORATION_GUIDE.md) | 🟡 Team domain boundaries, branching & GitHub Projects guide | ✅ Available |
-| [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/CI_CD_WORKFLOW_AUTOMATION.md) | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide | ✅ Available |
-| [`docs/CICD_CHECKLIST_AND_PENDING_SETUP.md`](./docs/CICD_CHECKLIST_AND_PENDING_SETUP.md) | 🧪 CI/CD pipeline checklist & one-time pending setup audit | ✅ Available |
-| `docs/frontend_setup.mdx` | 🔵 Frontend development environment setup | 🔜 Coming Soon |
-| `docs/backend_setup.mdx` | 🟣 Backend development environment setup | 🔜 Coming Soon |
-| `docs/architecture.md` | System architecture deep-dive | 🔜 Planned |
-| `docs/api.md` | API documentation | 🔜 Planned |
-| `docs/database.md` | Database schema & migrations | 🔜 Planned |
-| `docs/cv-pipeline.md` | CV/OCR pipeline documentation | 🔜 Planned |
-| `docs/rule-engine.md` | Rule engine documentation | 🔜 Planned |
-| `docs/rag.md` | RAG pipeline documentation | 🔜 Planned |
-| `docs/testing.md` | Testing strategy & guidelines | 🔜 Planned |
+| Document                                                                                  | Description                                                            |     Status     |
+| :---------------------------------------------------------------------------------------- | :--------------------------------------------------------------------- | :------------: |
+| [`.agents/AGENTS.md`](./.agents/AGENTS.md)                                               | 🤖 Workspace agent rules, token efficiency & domain constraints        |   ✅ Active   |
+| [`docs/PRD.md`](./docs/PRD.md)                                                           | 📋 Product Requirements Document & MVP Scope                           |   ✅ Active   |
+| [`docs/Architecture.md`](./docs/Architecture.md)                                         | 🏗️ Technical Architecture, Auth & Security Specification             |   ✅ Active   |
+| [`docs/Design.md`](./docs/Design.md)                                                     | 🎨 UI/UX Specifications & Review Inspection Design                     |   ✅ Active   |
+| [`docs/Rules.md`](./docs/Rules.md)                                                       | ⚖️ Development Rules & Token Efficiency Guidelines                   |   ✅ Active   |
+| [`docs/Team_Role.md`](./docs/Team_Role.md)                                               | 👥 Team Domain Ownership Mapping (M1–M6)                              |   ✅ Active   |
+| [`docs/mapping.md`](./docs/mapping.md)                                                   | 🗺️ Navigation & Directory Index                                      |   ✅ Active   |
+| [`docs/memory.md`](./docs/memory.md)                                                     | 🧠 Project Decision & Solved Problem Log                               |   ✅ Active   |
+| [`docs/base_setup.mdx`](./docs/base_setup.mdx)                                           | 🟢 Base environment setup guide (Git, IDE, Node, Python, PostgreSQL)   |  ✅ Available  |
+| [`docs/TEAM_COLLABORATION_GUIDE.md`](./docs/TEAM_COLLABORATION_GUIDE.md)                 | 🟡 Team domain boundaries, branching & GitHub Projects guide           |  ✅ Available  |
+| [`docs/CI_CD_WORKFLOW_AUTOMATION.md`](./docs/CI_CD_WORKFLOW_AUTOMATION.md)               | 🛡️ CI/CD testing, branch protection rules & auto-closing issue guide |  ✅ Available  |
+| [`docs/CICD_CHECKLIST_AND_PENDING_SETUP.md`](./docs/CICD_CHECKLIST_AND_PENDING_SETUP.md) | 🧪 CI/CD pipeline checklist & one-time pending setup audit             |  ✅ Available  |
+| `docs/frontend_setup.mdx`                                                               | 🔵 Frontend development environment setup                              | 🔜 Coming Soon |
+| `docs/backend_setup.mdx`                                                                | 🟣 Backend development environment setup                               | 🔜 Coming Soon |
+| `docs/architecture.md`                                                                  | System architecture deep-dive                                          |   🔜 Planned   |
+| `docs/api.md`                                                                           | API documentation                                                      |   🔜 Planned   |
+| `docs/database.md`                                                                      | Database schema & migrations                                           |   🔜 Planned   |
+| `docs/cv-pipeline.md`                                                                   | CV/OCR pipeline documentation                                          |   🔜 Planned   |
+| `docs/rule-engine.md`                                                                   | Rule engine documentation                                              |   🔜 Planned   |
+| `docs/rag.md`                                                                           | RAG pipeline documentation                                             |   🔜 Planned   |
+| `docs/testing.md`                                                                       | Testing strategy & guidelines                                          |   🔜 Planned   |
 
 ### Why MDX + Mermaid?
 
@@ -1204,15 +1236,15 @@ Validra uses **MDX** (Markdown + JSX) for interactive, component-rich documentat
 
 ## 🏆 Smart India Hackathon 2026
 
-| Field | Details |
-|:------|:--------|
-| **Team Name** | **VisionMinds — Think. Build. Transform.** |
-| **Problem Statement** | 26034 |
-| **Organization** | Ministry of Consumer Affairs, Food & Public Distribution |
-| **Department** | Department of Consumer Affairs (DoCA) |
-| **Category** | Software |
-| **Theme** | Miscellaneous |
-| **Project** | **Validra — Intelligent Product Compliance** |
+| Field                       | Details                                                  |
+| :-------------------------- | :------------------------------------------------------- |
+| **Team Name**         | **VisionMinds — Think. Build. Transform.**        |
+| **Problem Statement** | 26034                                                    |
+| **Organization**      | Ministry of Consumer Affairs, Food & Public Distribution |
+| **Department**        | Department of Consumer Affairs (DoCA)                    |
+| **Category**          | Software                                                 |
+| **Theme**             | Miscellaneous                                            |
+| **Project**           | **Validra — Intelligent Product Compliance**      |
 
 > **Validra — Intelligent Product Compliance.**
 
