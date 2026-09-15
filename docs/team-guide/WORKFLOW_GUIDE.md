@@ -14,14 +14,14 @@ This guide defines the end-to-end contribution, issue tracking, and pull request
 
 Every task, issue, and pull request MUST be tagged with its primary domain owner:
 
-| Domain ID | Responsibility | Core Scope | GitHub Tag |
-|:---:|:---|:---|:---:|
-| **M1** | 🎨 **Frontend & Presentation** | Next.js, UI/UX, Scanning interface, Enforcement Dashboard, Reports UI, Evidence viewer | `frontend` |
-| **M2** | ⚙️ **Backend & Infrastructure** | FastAPI, REST APIs, PostgreSQL, Auth/JWT, RBAC, Object Storage, Task orchestration | `backend` / `db` |
-| **M3** | 👁️ **Computer Vision & OCR** | OpenCV preprocessing, OCR engine, Text detection, Bounding boxes, Readability analysis | `cv` |
-| **M4** | ⚖️ **Rule Engine** | Legal Metrology rule formalization, Validation logic, Violation severity, Rule repository | `rule-engine` |
-| **M5** | 🧠 **RAG & AI** | Legal document ingestion, Vector embeddings, Context retrieval, LLM explanations | `rag` |
-| **M6** | 🔬 **Research & QA** | Datasets, Model benchmarking, Rule validation testing, E2E testing, SIH docs | `qa` / `research` |
+|  Domain ID  | Responsibility                         | Core Scope                                                                                |      GitHub Tag      |
+| :----------: | :------------------------------------- | :---------------------------------------------------------------------------------------- | :-------------------: |
+| **M1** | 🎨**Frontend & Presentation**    | Next.js, UI/UX, Scanning interface, Enforcement Dashboard, Reports UI, Evidence viewer    |     `frontend`     |
+| **M2** | ⚙️**Backend & Infrastructure** | FastAPI, REST APIs, PostgreSQL, Auth/JWT, RBAC, Object Storage, Task orchestration        | `backend` / `db` |
+| **M3** | 👁️**Computer Vision & OCR**    | OpenCV preprocessing, OCR engine, Text detection, Bounding boxes, Readability analysis    |        `cv`        |
+| **M4** | ⚖️**Rule Engine**              | Legal Metrology rule formalization, Validation logic, Violation severity, Rule repository |    `rule-engine`    |
+| **M5** | 🧠**RAG & AI**                   | Legal document ingestion, Vector embeddings, Context retrieval, LLM explanations          |        `rag`        |
+| **M6** | 🔬**Research & QA**              | Datasets, Model benchmarking, Rule validation testing, E2E testing, SIH docs              | `qa` / `research` |
 
 ---
 
