@@ -228,11 +228,12 @@ async function sendMailSafely({
     });
     console.log(`\n✅ [EMAIL SENT] ${actionType} -> ${to} (Subject: "${subject}")\n`);
     return { success: true };
-  } catch (err: any) {
-    const isAuthError = err.responseCode === 535 || err.code === "EAUTH";
+  } catch (err: unknown) {
+    const errorObj = err as { responseCode?: number; code?: string; message?: string };
+    const isAuthError = errorObj.responseCode === 535 || errorObj.code === "EAUTH";
 
     console.error(`\n⚠️ [EMAIL DISPATCH WARNING] Could not send ${actionType} email to ${to}:`);
-    console.error(`   Error: ${err.message}`);
+    console.error(`   Error: ${errorObj.message || String(err)}`);
 
     if (isAuthError) {
       console.warn(`
@@ -528,7 +529,8 @@ export async function verifySmtpConnection(): Promise<{ ok: boolean; message: st
   try {
     await transporter.verify();
     return { ok: true, message: "SMTP connection verified successfully." };
-  } catch (err: any) {
-    return { ok: false, message: err.message || "Unknown SMTP error" };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { ok: false, message: message || "Unknown SMTP error" };
   }
 }
