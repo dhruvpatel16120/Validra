@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -12,12 +13,12 @@ export function Logo({
   className,
   showSubtitle = true,
   size = "md",
-  theme = "auto",
+  theme = "light",
 }: LogoProps) {
-  const iconSizes = {
-    sm: "w-7 h-7",
-    md: "w-9 h-9",
-    lg: "w-11 h-11",
+  const imageDimensions = {
+    sm: { width: 32, height: 32 },
+    md: { width: 42, height: 42 },
+    lg: { width: 50, height: 50 },
   };
 
   const textSizes = {
@@ -26,56 +27,42 @@ export function Logo({
     lg: "text-2xl",
   };
 
-  const titleColor =
-    theme === "dark"
-      ? "text-white"
-      : theme === "light"
-      ? "text-slate-900"
-      : "text-slate-900 dark:text-white";
-
-  const subtitleColor =
-    theme === "dark"
-      ? "text-zinc-400"
-      : theme === "light"
-      ? "text-slate-500"
-      : "text-slate-500 dark:text-zinc-400";
+  const isDark = theme === "dark";
 
   return (
     <Link href="/" className={cn("inline-flex items-center gap-2.5 group select-none", className)}>
-      {/* Emblem */}
-      <div
-        className={cn(
-          "relative flex items-center justify-center rounded-lg bg-green-700 text-white shadow-xs group-hover:bg-green-800 transition-colors",
-          iconSizes[size]
-        )}
-      >
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          className="w-5 h-5 text-white"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          {/* Official Verification Shield & Checkmark */}
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="m9 12 2 2 4-4" />
-        </svg>
+      {/* Emblem from public folder */}
+      <div className="relative flex items-center justify-center shrink-0 drop-shadow-xs">
+        <Image
+          src="/logo-192.png"
+          alt="Validra Logo"
+          width={imageDimensions[size].width}
+          height={imageDimensions[size].height}
+          className="object-contain transition-transform group-hover:scale-105"
+          priority
+        />
       </div>
 
       {/* Brand Text */}
       <div className="flex flex-col leading-tight">
-        <div className="flex items-center gap-1.5">
-          <span className={cn("font-bold tracking-tight text-slate-900", textSizes[size])}>
-            VALID<span className="text-green-700">RA</span>
-          </span>
-          <span className="text-[10px] uppercase font-semibold px-1.5 py-0.2 rounded bg-green-50 text-green-800 border border-green-200">
-            Gov
+        <div className="flex items-center">
+          <span
+            className={cn(
+              "font-extrabold tracking-tight",
+              isDark ? "text-white" : "text-slate-900",
+              textSizes[size]
+            )}
+          >
+            VALID<span className="text-green-600">RA</span>
           </span>
         </div>
         {showSubtitle && (
-          <span className="text-[10px] font-medium tracking-wider text-slate-500 uppercase">
+          <span
+            className={cn(
+              "text-[10px] font-semibold tracking-wider uppercase",
+              isDark ? "text-slate-400" : "text-slate-500"
+            )}
+          >
             Legal Metrology Portal
           </span>
         )}

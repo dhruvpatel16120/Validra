@@ -20,9 +20,8 @@ interface ResetFormErrors {
 }
 
 /**
- * Reusable ResetPasswordForm component.
- * Handles missing-token error state, password inputs with visibility toggles,
- * dynamic password strength evaluation, client-side validation, and simulated submission.
+ * ResetPasswordForm component with real API integration.
+ * POSTs to /api/auth/reset-password with token and new password.
  */
 export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) {
   const [password, setPassword] = React.useState("");
@@ -30,6 +29,7 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
   const [showPassword, setShowPassword] = React.useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<ResetFormErrors>({});
+  const [serverError, setServerError] = React.useState<string | null>(null);
   const [isLoading, setIsLoading] = React.useState(false);
   const [isSuccess, setIsSuccess] = React.useState(false);
 
@@ -39,7 +39,7 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
       <div className={cn("flex flex-col items-center text-center space-y-4 py-1", className)}>
         {/* Warning Icon Badge */}
         <div
-          className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-500/5"
+          className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 text-amber-500 flex items-center justify-center shadow-lg shadow-amber-500/5"
           aria-hidden="true"
         >
           <AlertCircle className="w-6 h-6" />
@@ -47,10 +47,10 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
 
         {/* Missing Token Heading & Message */}
         <div className="space-y-1.5">
-          <h3 className="text-lg font-bold tracking-tight text-white">
+          <h3 className="text-lg font-bold tracking-tight text-slate-900">
             Invalid or missing reset link
           </h3>
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-sm leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-500 max-w-sm leading-relaxed">
             This password reset link is missing or invalid. Please request a new reset link.
           </p>
         </div>
@@ -59,7 +59,7 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
         <div className="w-full space-y-3 pt-2">
           <Link
             href="/forgot-password"
-            className="inline-flex items-center justify-center w-full h-11 text-sm font-semibold rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 shadow-md shadow-emerald-500/25 transition-all"
+            className="inline-flex items-center justify-center w-full h-11 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/25 transition-all"
           >
             Request a new reset link
           </Link>
@@ -67,7 +67,7 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
           <div className="pt-1">
             <Link
               href="/login"
-              className="text-xs text-zinc-400 hover:text-emerald-400 transition-colors focus-visible:outline-none focus-visible:underline"
+              className="text-xs text-slate-500 hover:text-emerald-700 transition-colors focus-visible:outline-none focus-visible:underline"
             >
               Back to sign in
             </Link>
@@ -83,7 +83,7 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
       <div className={cn("flex flex-col items-center text-center space-y-4 py-1", className)}>
         {/* Success Icon Badge */}
         <div
-          className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/5"
+          className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/5"
           aria-hidden="true"
         >
           <CircleCheck className="w-6 h-6" />
@@ -131,23 +131,63 @@ export function ResetPasswordForm({ token, className }: ResetPasswordFormProps) 
     return Object.keys(nextErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setServerError(null);
 
     if (!validate()) {
       return;
     }
 
     setIsLoading(true);
-    // Simulate short network request
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      const response = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setServerError(data.message || "Failed to reset password. Please try again.");
+        return;
+      }
+
       setIsSuccess(true);
-    }, 1000);
+    } catch {
+      setServerError("Unable to connect to server. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <form className={cn("space-y-4", className)} onSubmit={handleSubmit} noValidate>
+      {/* Server Error */}
+      {serverError && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed"
+        >
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <div className="flex-1">
+            <span>{serverError}</span>
+            {serverError.includes("expired") && (
+              <div className="mt-1">
+                <Link
+                  href="/forgot-password"
+                  className="text-emerald-700 hover:text-emerald-800 font-medium underline underline-offset-2"
+                >
+                  Request a new reset link &rarr;
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* New Password Field */}
       <div>
         <label

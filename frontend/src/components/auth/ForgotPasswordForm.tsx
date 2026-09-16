@@ -7,8 +7,8 @@ import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
 
 /**
- * Reusable ForgotPasswordForm component with client-side validation,
- * simulated submit flow, confirmation state, resend cooldown timer, and accessible navigation.
+ * ForgotPasswordForm component with real API integration.
+ * POSTs to /api/auth/forgot-password to send reset email.
  */
 export function ForgotPasswordForm() {
   const [email, setEmail] = React.useState("");
@@ -52,7 +52,20 @@ export function ForgotPasswordForm() {
     return true;
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const sendResetEmail = async () => {
+    const response = await fetch("/api/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
+    });
+
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.message || "Failed to send reset email.");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validate()) {
@@ -60,25 +73,32 @@ export function ForgotPasswordForm() {
     }
 
     setIsLoading(true);
-    // Simulate short network request
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await sendResetEmail();
       setIsSubmitted(true);
       setCooldown(30);
-    }, 1000);
+    } catch {
+      setError("Failed to send reset email. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
     if (isResending || cooldown > 0) return;
 
     setIsResending(true);
     setResendSuccess(false);
 
-    setTimeout(() => {
-      setIsResending(false);
+    try {
+      await sendResetEmail();
       setResendSuccess(true);
       setCooldown(30);
-    }, 1000);
+    } catch {
+      // Silently fail on resend
+    } finally {
+      setIsResending(false);
+    }
   };
 
   const handleTryAnotherEmail = () => {

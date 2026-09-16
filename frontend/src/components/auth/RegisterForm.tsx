@@ -7,8 +7,6 @@ import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
 import { PasswordStrengthMeter } from "@/components/auth/PasswordStrengthMeter";
-import { useAuth } from "@/hooks/useAuth";
-import { ApiError, getUserFriendlyErrorMessage } from "@/services/api";
 
 interface RegisterFormErrors {
   fullName?: string;
@@ -18,12 +16,11 @@ interface RegisterFormErrors {
 }
 
 /**
- * Reusable RegisterForm component with client-side validation,
- * dynamic password strength meter, real auth-service integration, and error alerts.
+ * RegisterForm component with real API integration.
+ * POSTs to /api/auth/register, then redirects to email verification.
  */
 export function RegisterForm() {
   const router = useRouter();
-  const { register: registerUser, isAuthenticated, isLoading: isAuthChecking } = useAuth();
   const [fullName, setFullName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
@@ -33,13 +30,6 @@ export function RegisterForm() {
   const [errors, setErrors] = React.useState<RegisterFormErrors>({});
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-
-  // Prevent already-authenticated users from staying on register page
-  React.useEffect(() => {
-    if (!isAuthChecking && isAuthenticated) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthChecking, isAuthenticated, router]);
 
   // Email format regular expression (RFC 5322 subset)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -83,28 +73,31 @@ export function RegisterForm() {
 
     setIsSubmitting(true);
     try {
-      const response = await registerUser({
-        fullName: fullName.trim(),
-        email: email.trim(),
-        password,
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          fullName: fullName.trim(),
+          email: email.trim().toLowerCase(),
+          password,
+        }),
       });
 
-      // If email verification is required or user is not verified yet
-      if (response?.requiresEmailVerification || !response?.user?.isVerified) {
-        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
-      } else {
-        router.push("/login");
-      }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.code === "EMAIL_ALREADY_REGISTERED") {
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (response.status === 409) {
           setServerError("An account with this email address already exists. Please sign in instead.");
         } else {
-          setServerError(err.message);
+          setServerError(data.message || "Registration failed. Please try again.");
         }
-      } else {
-        setServerError(getUserFriendlyErrorMessage(err));
+        return;
       }
+
+      // Registration successful — redirect to verify email page
+      router.push(`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+    } catch {
+      setServerError("Unable to connect to server. Please check your network connection.");
     } finally {
       setIsSubmitting(false);
     }

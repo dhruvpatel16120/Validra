@@ -49,6 +49,7 @@ jobs:
           if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
             cd frontend
             npm ci --ignore-scripts || npm install
+            npx prisma generate
             npm run lint --if-present
             npm run build --if-present
           else
