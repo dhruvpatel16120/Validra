@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { VerifyEmailCard } from "@/components/auth/VerifyEmailCard";
 
@@ -22,7 +23,9 @@ export default async function VerifyEmailPage({
 
   return (
     <AuthCard>
-      <VerifyEmailCard email={email} />
+      <Suspense fallback={null}>
+        <VerifyEmailCard email={email} />
+      </Suspense>
     </AuthCard>
   );
 }

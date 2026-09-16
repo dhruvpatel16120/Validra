@@ -9,5 +9,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// NOTE: Table models will be created by the team during schema implementation.
-// Do NOT run 'prisma migrate dev' or 'prisma db push' yet.
+/// User roles within the Validra Legal Metrology inspection system.
+enum UserRole {
+  INSPECTOR
+  ADMIN
+}
+
+/// Core user account for inspectors and administrators.
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  fullName          String
+  role              UserRole  @default(INSPECTOR)
+
+  /// Admin must approve inspector accounts before they can log in.
+  isActive          Boolean   @default(false)
+  /// Email must be verified before login is permitted.
+  isVerified        Boolean   @default(false)
+
+  badgeNumber       String?
+  jurisdiction      String?
+
+  // Email verification token
+  verifyToken       String?   @unique
+  verifyTokenExpiry DateTime?
+
+  // Password reset token
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role, isActive])
+  @@map("users")
+}
