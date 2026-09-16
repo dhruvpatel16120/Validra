@@ -270,7 +270,7 @@ async function sendMailSafely({
     return {
       success: false,
       simulated: true,
-      error: err.message,
+      error: errorObj.message || String(err),
     };
   }
 }
