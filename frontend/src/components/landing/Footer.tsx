@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
-import { Logo, GithubIcon } from "@/components/shared";
+import { FaGithub } from "react-icons/fa6";
+import { Logo } from "@/components/shared";
 import { FOOTER_SECTIONS } from "@/lib/data/navigation";
 import { SITE_CONFIG } from "@/lib/constants";
 
@@ -11,7 +12,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Brand Column */}
           <div className="lg:col-span-2 flex flex-col space-y-4">
-            <Logo size="lg" />
+            <Logo size="lg" theme="dark" />
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
               {SITE_CONFIG.description}
             </p>
@@ -34,7 +35,7 @@ export function Footer() {
                 className="w-9 h-9 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 hover:text-white hover:border-slate-600 transition-colors"
                 aria-label="GitHub Repository"
               >
-                <GithubIcon className="w-4 h-4" />
+                <FaGithub className="w-4 h-4" />
               </a>
               <span className="text-xs text-slate-400 font-mono">
                 Team VisionMinds

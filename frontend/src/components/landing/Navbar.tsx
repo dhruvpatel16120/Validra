@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Menu, X, Shield, ArrowRight, ExternalLink } from "lucide-react";
+import { Menu, X, Shield, ArrowRight } from "lucide-react";
+import { FaGithub } from "react-icons/fa6";
 import { Logo, Button } from "@/components/shared";
 import { NAV_LINKS } from "@/lib/data/navigation";
 import { cn } from "@/lib/utils";
@@ -47,16 +48,17 @@ export function Navbar() {
           </nav>
 
           {/* CTAs */}
-          <div className="hidden sm:flex items-center space-x-3">
-            <Link
+          <div className="hidden sm:flex items-center space-x-2.5">
+            <a
               href="https://github.com/dhruvpatel16120/Validra"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-medium text-slate-500 hover:text-slate-800 px-2.5 py-1.5 transition-colors inline-flex items-center gap-1.5"
+              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors flex items-center justify-center"
+              aria-label="GitHub Repository"
+              title="GitHub Repository"
             >
-              <span>SIH 2026</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Link>
+              <FaGithub className="w-5 h-5" />
+            </a>
 
             <Link href="/dashboard">
               <Button size="sm" className="bg-green-700 hover:bg-green-800 text-white font-medium text-xs sm:text-sm shadow-xs">
@@ -114,9 +116,10 @@ export function Navbar() {
               href="https://github.com/dhruvpatel16120/Validra"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-center text-slate-500 hover:text-slate-800 py-2"
+              className="text-xs text-center text-slate-600 hover:text-slate-900 py-2 flex items-center justify-center gap-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors font-medium"
             >
-              Smart India Hackathon 2026 · Problem 26034
+              <FaGithub className="w-4 h-4" />
+              <span>Smart India Hackathon 2026 · GitHub</span>
             </a>
           </div>
         </div>
