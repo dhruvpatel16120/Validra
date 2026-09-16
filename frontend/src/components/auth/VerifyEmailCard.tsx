@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { MailCheck, CheckCircle2, Loader2 } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { MailCheck, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -14,14 +15,19 @@ export interface VerifyEmailCardProps {
 }
 
 /**
- * Reusable VerifyEmailCard component.
- * Displays email verification instructions, resend cooldown timer,
- * and navigation links.
+ * VerifyEmailCard component with real API integration.
+ * Calls /api/auth/resend-verification for resend functionality.
+ * Auto-detects error/expired states from URL params.
  */
 export function VerifyEmailCard({ email, className }: VerifyEmailCardProps) {
+  const searchParams = useSearchParams();
   const [isSending, setIsSending] = React.useState(false);
   const [cooldown, setCooldown] = React.useState(0);
   const [statusMessage, setStatusMessage] = React.useState<string | null>(null);
+
+  // Check for error from redirect (expired token, etc.)
+  const errorFromRedirect = searchParams.get("error");
+  const errorMessage = searchParams.get("message");
 
   // Manage 30-second cooldown timer
   React.useEffect(() => {
@@ -40,18 +46,30 @@ export function VerifyEmailCard({ email, className }: VerifyEmailCardProps) {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const handleResend = () => {
-    if (isSending || cooldown > 0) return;
+  const handleResend = async () => {
+    if (isSending || cooldown > 0 || !email) return;
 
     setIsSending(true);
     setStatusMessage(null);
 
-    // Simulate short network request
-    setTimeout(() => {
-      setIsSending(false);
-      setStatusMessage("Verification email sent successfully.");
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      if (response.ok) {
+        setStatusMessage("Verification email sent successfully.");
+      } else {
+        setStatusMessage("Failed to send verification email. Please try again.");
+      }
       setCooldown(30);
-    }, 1000);
+    } catch {
+      setStatusMessage("Unable to connect to server. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -82,8 +100,20 @@ export function VerifyEmailCard({ email, className }: VerifyEmailCardProps) {
         </div>
       )}
 
+      {/* Error from redirect (expired token, etc.) */}
+      {errorFromRedirect && errorMessage && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium w-full"
+        >
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-amber-500" aria-hidden="true" />
+          <span>{errorMessage}</span>
+        </div>
+      )}
+
       {/* Success Status Message */}
-      {statusMessage && (
+      {statusMessage && statusMessage.includes("successfully") && (
         <div
           role="status"
           aria-live="polite"
@@ -94,12 +124,24 @@ export function VerifyEmailCard({ email, className }: VerifyEmailCardProps) {
         </div>
       )}
 
+      {/* Error Status Message */}
+      {statusMessage && !statusMessage.includes("successfully") && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="flex items-center justify-center gap-2 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium w-full"
+        >
+          <AlertCircle className="w-4 h-4 flex-shrink-0 text-rose-600" aria-hidden="true" />
+          <span>{statusMessage}</span>
+        </div>
+      )}
+
       {/* Actions */}
       <div className="w-full space-y-3.5 pt-1">
         <Button
           type="button"
           onClick={handleResend}
-          disabled={isSending || cooldown > 0}
+          disabled={isSending || cooldown > 0 || !email}
           className="w-full h-11 text-sm font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {isSending ? (

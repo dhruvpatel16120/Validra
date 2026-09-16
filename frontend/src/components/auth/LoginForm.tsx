@@ -2,12 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { AlertCircle, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/hooks/useAuth";
-import { ApiError, getUserFriendlyErrorMessage } from "@/services/api";
 
 interface FormErrors {
   email?: string;
@@ -15,12 +14,12 @@ interface FormErrors {
 }
 
 /**
- * Reusable LoginForm component with client-side validation,
- * real auth-service integration, error banners, and password visibility toggle.
+ * LoginForm component with NextAuth credentials sign-in.
+ * Handles email verification status, admin approval gating, and success messages.
  */
 export function LoginForm() {
   const router = useRouter();
-  const { login, isAuthenticated, isLoading: isAuthChecking } = useAuth();
+  const searchParams = useSearchParams();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = React.useState(false);
@@ -29,12 +28,13 @@ export function LoginForm() {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  // Prevent already-authenticated users from staying on login page
-  React.useEffect(() => {
-    if (!isAuthChecking && isAuthenticated) {
-      router.replace("/dashboard");
-    }
-  }, [isAuthChecking, isAuthenticated, router]);
+  // Success message from email verification redirect
+  const verifiedMessage = searchParams.get("verified") === "true"
+    ? searchParams.get("message") || "Email verified successfully! You can now sign in."
+    : null;
+  const errorFromRedirect = searchParams.get("error")
+    ? searchParams.get("message") || null
+    : null;
 
   // Email format regular expression (RFC 5322 subset)
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,30 +68,37 @@ export function LoginForm() {
 
     setIsSubmitting(true);
     try {
-      const response = await login({
-        email: email.trim(),
+      const result = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
         password,
-        rememberMe,
+        redirect: false,
       });
 
-      // If user requires email verification, navigate to verification screen
-      if (response?.user && !response.user.isVerified) {
-        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
-      } else {
-        router.push("/dashboard");
-      }
-    } catch (err) {
-      if (err instanceof ApiError) {
-        if (err.code === "INVALID_CREDENTIALS") {
+      if (result?.error) {
+        // Parse NextAuth error messages from our authorize() function
+        const errorMsg = result.error;
+        if (errorMsg.includes("INVALID_CREDENTIALS")) {
           setServerError("Invalid email address or password. Please check your credentials.");
-        } else if (err.status === 403 || err.message.toLowerCase().includes("verify")) {
-          setServerError("Your account requires email verification before signing in.");
+        } else if (errorMsg.includes("EMAIL_NOT_VERIFIED")) {
+          setServerError("Your email address has not been verified yet.");
+          // Redirect to verification page after a moment
+          setTimeout(() => {
+            router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+          }, 2000);
+        } else if (errorMsg.includes("ACCOUNT_NOT_APPROVED")) {
+          setServerError("Your account is pending admin approval. You will be notified once approved.");
+          setTimeout(() => {
+            router.push("/pending-approval");
+          }, 2000);
         } else {
-          setServerError(err.message);
+          setServerError("An error occurred during sign in. Please try again.");
         }
-      } else {
-        setServerError(getUserFriendlyErrorMessage(err));
+      } else if (result?.ok) {
+        router.push("/dashboard");
+        router.refresh();
       }
+    } catch {
+      setServerError("Unable to connect to server. Please check your network connection.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,6 +106,30 @@ export function LoginForm() {
 
   return (
     <form className="space-y-4" onSubmit={handleSubmit} noValidate>
+      {/* Verification Success Banner */}
+      {verifiedMessage && !serverError && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs leading-relaxed"
+        >
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{verifiedMessage}</span>
+        </div>
+      )}
+
+      {/* Redirect Error Banner */}
+      {errorFromRedirect && !serverError && !verifiedMessage && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed"
+        >
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{errorFromRedirect}</span>
+        </div>
+      )}
+
       {/* Top Server Error Alert */}
       {serverError && (
         <div
@@ -109,13 +140,23 @@ export function LoginForm() {
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="flex-1">
             <span>{serverError}</span>
-            {serverError.includes("verification") && (
+            {serverError.includes("verified") && (
               <div className="mt-1">
                 <Link
                   href={`/verify-email?email=${encodeURIComponent(email.trim())}`}
                   className="text-emerald-700 hover:text-emerald-800 font-medium underline underline-offset-2"
                 >
                   Go to email verification &rarr;
+                </Link>
+              </div>
+            )}
+            {serverError.includes("pending") && (
+              <div className="mt-1">
+                <Link
+                  href="/pending-approval"
+                  className="text-emerald-700 hover:text-emerald-800 font-medium underline underline-offset-2"
+                >
+                  View approval status &rarr;
                 </Link>
               </div>
             )}

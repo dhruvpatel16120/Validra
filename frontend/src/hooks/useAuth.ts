@@ -5,6 +5,7 @@ import { authService } from "@/services/auth-service";
 import {
   apiClient,
   getAuthToken,
+  setAuthToken,
   getUserFriendlyErrorMessage,
 } from "@/services/api";
 import type {
@@ -23,14 +24,14 @@ interface AuthStore {
 }
 
 // ============================================================================
-// TODO: TEMPORARY DEVELOPMENT-ONLY AUTHENTICATION BYPASS FOR FRONTEND UI TESTING
-// Allows manual inspection testing of the complete Inspector frontend when backend/DB is not connected.
-// This bypass is strictly disabled in production builds (process.env.NODE_ENV !== "development").
-// To disable in development: set NEXT_PUBLIC_DEV_AUTH_BYPASS=false in frontend/.env
+// INSPECTION AUTHENTICATION BYPASS FOR TESTING & DEMO
+// Allows direct inspection testing of the complete Inspector frontend.
+// Controlled via NEXT_PUBLIC_BYPASS_INSPECTION_AUTH=true in .env
 // ============================================================================
 const IS_DEV_BYPASS_ACTIVE =
-  process.env.NODE_ENV === "development" &&
-  process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true";
+  process.env.NEXT_PUBLIC_BYPASS_INSPECTION_AUTH === "true" ||
+  process.env.NEXT_PUBLIC_DEV_AUTH_BYPASS === "true" ||
+  process.env.NEXT_PUBLIC_INSPECTOR_BYPASS === "true";
 
 const DEV_INSPECTOR_USER: User = {
   id: "dev-inspector-01",
@@ -52,6 +53,10 @@ let authStore: AuthStore = {
   hasChecked: IS_DEV_BYPASS_ACTIVE,
   error: null,
 };
+
+if (IS_DEV_BYPASS_ACTIVE) {
+  setAuthToken("dev-mock-bypass-token");
+}
 
 const listeners = new Set<() => void>();
 
