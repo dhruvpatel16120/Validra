@@ -174,3 +174,34 @@ def test_inspection_pdf_endpoint_not_found(client):
     res = client.get("/api/inspections/00000000-0000-0000-0000-000000000000/pdf")
     assert res.status_code == 404
 
+
+def test_get_and_update_profile(client, inspector_token):
+    """Test GET and PATCH /api/profile endpoints."""
+    headers = {"Authorization": f"Bearer {inspector_token}"}
+    # GET /api/profile
+    res = client.get("/api/profile", headers=headers)
+    assert res.status_code == 200
+    data = res.json()
+    assert "user" in data
+    assert "stats" in data
+    assert "total_scans" in data["stats"]
+    assert "compliant" in data["stats"]
+    assert "flagged" in data["stats"]
+    assert "reports" in data["stats"]
+    original_name = data["user"]["full_name"]
+
+    # PATCH /api/profile
+    patch_res = client.patch(
+        "/api/profile",
+        headers=headers,
+        json={"full_name": "Senior Inspector Verma", "badge_number": "LM-DEL-999"}
+    )
+    assert patch_res.status_code == 200
+    updated = patch_res.json()
+    assert updated["user"]["full_name"] == "Senior Inspector Verma"
+    assert updated["user"]["badge_number"] == "LM-DEL-999"
+    assert "stats" in updated
+
+    # Restore
+    client.patch("/api/profile", headers=headers, json={"full_name": original_name})
+

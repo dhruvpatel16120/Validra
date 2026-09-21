@@ -113,7 +113,7 @@ async def get_current_user(
     # Query PostgreSQL to verify active status
     stmt = select(User).where((User.id == user_id) | (User.email == email))
     res = await db.execute(stmt)
-    db_user = res.scalar_one_or_none()
+    db_user = res.scalars().first()
 
     if db_user:
         if not db_user.is_active:

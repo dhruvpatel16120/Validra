@@ -168,17 +168,17 @@ export function InspectorHeader({
             aria-expanded={isUserMenuOpen}
             aria-haspopup="menu"
             aria-label="User account menu"
-            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 cursor-pointer"
+            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40 cursor-pointer transition-colors"
           >
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center text-xs font-bold">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200/80 text-emerald-700 flex items-center justify-center text-xs font-bold tracking-tight">
               {initials}
             </div>
             <div className="hidden md:flex flex-col text-left leading-tight">
-              <span className="text-xs font-semibold text-slate-900 max-w-[120px] truncate">
+              <span className="text-xs font-semibold text-slate-900 max-w-[130px] truncate">
                 {displayName}
               </span>
-              <span className="text-[10px] text-slate-500 truncate">
-                Inspector
+              <span className="text-[10px] text-slate-500 truncate font-medium">
+                Legal Metrology Inspector
               </span>
             </div>
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" aria-hidden="true" />
@@ -190,18 +190,13 @@ export function InspectorHeader({
               className="absolute right-0 mt-2 w-60 rounded-2xl bg-white border border-slate-200 p-2 shadow-xl z-50 animate-in fade-in slide-in-from-top-2 duration-150 text-left"
             >
               {/* Account identity */}
-              <div className="px-3 py-2 border-b border-slate-100 mb-1">
+              <div className="px-3.5 py-2.5 border-b border-slate-100/90 mb-1">
                 <p className="text-xs font-semibold text-slate-900 truncate">
                   {displayName}
                 </p>
-                <p className="text-[11px] text-slate-500 truncate">
+                <p className="text-[11px] text-slate-500 truncate mt-0.5 font-mono">
                   {displayEmail}
                 </p>
-                <div className="mt-1.5">
-                  <span className="text-[9.5px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    Inspector Officer
-                  </span>
-                </div>
               </div>
 
               {/* Links */}

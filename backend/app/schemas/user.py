@@ -28,14 +28,42 @@ class UserProfileResponse(BaseModel):
     badge_number: Optional[str] = None
     jurisdiction: Optional[str] = None
     created_at: datetime
+    updated_at: Optional[datetime] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class UserUpdateRequest(BaseModel):
     full_name: Optional[str] = None
+    fullName: Optional[str] = None
     badge_number: Optional[str] = None
+    badgeNumber: Optional[str] = None
     jurisdiction: Optional[str] = None
+
+
+class RecentScanItem(BaseModel):
+    inspection_id: str
+    product_name: Optional[str] = None
+    brand: Optional[str] = None
+    category: str = "general"
+    overall_status: str
+    compliance_score: Optional[float] = None
+    created_at: datetime
+
+
+class UserStatsResponse(BaseModel):
+    total_scans: int = 0
+    compliant: int = 0
+    flagged: int = 0
+    needs_review: int = 0
+    reports: int = 0
+    avg_compliance_score: float = 0.0
+
+
+class ProfileResponse(BaseModel):
+    user: UserProfileResponse
+    stats: UserStatsResponse
+    recent_scans: list[RecentScanItem] = []
 
 
 class AdminCreateUserRequest(BaseModel):
