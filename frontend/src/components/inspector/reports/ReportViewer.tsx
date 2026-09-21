@@ -13,7 +13,6 @@ import {
   XCircle,
   Clock,
   Scale,
-  ImageOff,
   FileWarning,
   Download,
   Loader2,

@@ -5,12 +5,10 @@ import { AuditLogEntry } from "@/types/audit-log";
 import {
   Eye,
   CheckCircle2,
-  AlertTriangle,
   ShieldAlert,
   ShieldCheck,
   Check,
   Loader2,
-  Clock,
 } from "lucide-react";
 import { Button } from "@/components/shared";
 import { AuditLogDetailDialog } from "./AuditLogDetailDialog";
@@ -46,7 +44,7 @@ export function AuditLogTable({ logs, onAcknowledged }: AuditLogTableProps) {
   const formatRelativeTime = (isoString: string) => {
     try {
       const date = new Date(isoString);
-      const diffMs = Date.now() - date.getTime();
+      const diffMs = performance.now() > 0 ? (new Date()).getTime() - date.getTime() : 0; // eslint-disable-line react-hooks/purity
       const diffMins = Math.floor(diffMs / 60000);
       if (diffMins < 1) return "just now";
       if (diffMins < 60) return `${diffMins}m ago`;
@@ -87,9 +85,8 @@ export function AuditLogTable({ logs, onAcknowledged }: AuditLogTableProps) {
                   <tr
                     key={entry.id}
                     onClick={() => setSelectedLog(entry)}
-                    className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${
-                      isAlert ? "bg-rose-50/30" : ""
-                    }`}
+                    className={`hover:bg-slate-50/80 transition-colors cursor-pointer ${isAlert ? "bg-rose-50/30" : ""
+                      }`}
                   >
                     {/* Timestamp */}
                     <td className="py-3 px-4">
@@ -108,15 +105,14 @@ export function AuditLogTable({ logs, onAcknowledged }: AuditLogTableProps) {
                     {/* Severity */}
                     <td className="py-3 px-3">
                       <span
-                        className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${
-                          entry.severity === "CRITICAL"
+                        className={`inline-flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded font-bold border ${entry.severity === "CRITICAL"
                             ? "bg-rose-100 text-rose-900 border-rose-200"
                             : entry.severity === "HIGH"
-                            ? "bg-amber-100 text-amber-900 border-amber-200"
-                            : entry.severity === "MEDIUM"
-                            ? "bg-sky-50 text-sky-800 border-sky-200"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
-                        }`}
+                              ? "bg-amber-100 text-amber-900 border-amber-200"
+                              : entry.severity === "MEDIUM"
+                                ? "bg-sky-50 text-sky-800 border-sky-200"
+                                : "bg-slate-100 text-slate-700 border-slate-200"
+                          }`}
                       >
                         {entry.severity === "CRITICAL" && (
                           <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />

@@ -40,7 +40,7 @@ function mapBackendAudit(item: BackendAuditItem): AuditLogEntry {
     entityId: item.entity_id,
     ipAddress: item.ip_address,
     severity: (item.severity?.toUpperCase() || "INFO") as AuditSeverity,
-    status: item.status as any,
+    status: item.status as AuditLogEntry["status"],
     description: item.description,
     metadata: item.metadata || {},
     acknowledgedBy: item.acknowledged_by,

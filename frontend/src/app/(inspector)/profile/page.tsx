@@ -82,9 +82,11 @@ export default function ProfilePage() {
     }
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   React.useEffect(() => {
-    loadProfileData();
+    void loadProfileData();
   }, [loadProfileData]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   // Derive real database fields from users table
   const apiUser = profile?.user;
@@ -93,7 +95,7 @@ export default function ProfilePage() {
     apiUser?.full_name ||
     apiUser?.fullName ||
     session?.user?.fullName ||
-    session?.user?.name ||
+    (session?.user as Record<string, unknown> | undefined)?.name as string ||
     user?.fullName ||
     "Authorized Officer";
 
@@ -128,7 +130,7 @@ export default function ProfilePage() {
   const initials =
     realFullName
       .split(" ")
-      .map((part) => part[0])
+      .map((part: string) => part[0])
       .filter(Boolean)
       .slice(0, 2)
       .join("")

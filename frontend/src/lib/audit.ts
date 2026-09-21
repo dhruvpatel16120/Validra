@@ -37,7 +37,7 @@ export async function recordAuditLog(params: RecordAuditLogParams) {
         severity: params.severity || "INFO",
         status: params.status || "SUCCESS",
         description: params.description,
-        metadata: (params.metadata || {}) as any,
+        metadata: (params.metadata || {}) as object,
       },
     });
   } catch (error) {

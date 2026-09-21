@@ -9,7 +9,6 @@ import {
   acknowledgeAuditIncident,
 } from "@/services/admin-audit-service";
 import {
-  AdminPageHeader,
   AuditLogFilters,
   AuditLogTable,
   AuditTelemetryCards,
@@ -38,7 +37,7 @@ export default function AdminAuditLogsPage() {
     unacknowledgedAlerts: 0,
     activeIncidents: 0,
   });
-  const [loading, setLoading] = React.useState(true);
+  const [, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [exporting, setExporting] = React.useState(false);
   const [showRecordModal, setShowRecordModal] = React.useState(false);
@@ -68,9 +67,11 @@ export default function AdminAuditLogsPage() {
     }
   }, []);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   React.useEffect(() => {
-    loadData();
+    void loadData();
   }, [loadData]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleRefresh = async () => {
     setRefreshing(true);

@@ -49,8 +49,8 @@ export function LogSecurityEventDialog({
 
       onSuccess(entry);
       onClose();
-    } catch (err: any) {
-      setError(err?.message || "Failed to record audit event.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to record audit event.");
     } finally {
       setLoading(false);
     }
