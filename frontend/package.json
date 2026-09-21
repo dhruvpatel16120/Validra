@@ -21,7 +21,11 @@
     "inspector:approve": "node scripts/manage-inspector.js approve",
     "inspector:pending": "node scripts/manage-inspector.js list-pending",
     "inspector:list": "node scripts/manage-inspector.js list",
-    "email:test": "node scripts/test-email.js"
+    "email:test": "node scripts/test-email.js",
+    "logs:manage": "node scripts/manage-logs.js",
+    "logs:list": "node scripts/manage-logs.js list",
+    "logs:stats": "node scripts/manage-logs.js stats",
+    "logs:clear": "node scripts/manage-logs.js truncate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",

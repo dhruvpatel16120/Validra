@@ -83,12 +83,12 @@ export async function getAuditStats(): Promise<AuditLogStats> {
     };
   } catch {
     return {
-      totalEvents: 7,
-      criticalAlerts: 1,
-      highAlerts: 1,
-      failedLogins24h: 1,
-      unacknowledgedAlerts: 1,
-      activeIncidents: 2,
+      totalEvents: 0,
+      criticalAlerts: 0,
+      highAlerts: 0,
+      failedLogins24h: 0,
+      unacknowledgedAlerts: 0,
+      activeIncidents: 0,
     };
   }
 }

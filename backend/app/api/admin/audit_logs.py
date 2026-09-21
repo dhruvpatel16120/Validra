@@ -1,10 +1,10 @@
 """Security Audit Logs & Incident Monitoring API for Administrative Oversight.
 
-Provides immutable audit trail, security incident tracking, alert acknowledgment,
-and CSV export compliance.
+Stores and queries immutable audit records directly in PostgreSQL.
+Zero dummy data.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import io
 import csv
 import logging
@@ -12,8 +12,11 @@ from typing import Any, Dict, List, Optional
 import uuid
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, Field
+from sqlalchemy import desc, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_admin
+from app.api.deps import get_db, require_admin
+from app.models.audit_log import AuditLog
 
 logger = logging.getLogger("validra.audit")
 router = APIRouter(prefix="/audit-logs", tags=["Admin Audit Logs"])
@@ -57,164 +60,25 @@ class AuditLogCreateRequest(BaseModel):
     ip_address: Optional[str] = None
 
 
-# Persistent in-memory audit store seeded with real statutory events
-_AUDIT_STORE: List[Dict[str, Any]] = [
-    {
-        "id": "AUD-2026-0091",
-        "timestamp": "2026-09-21T17:15:30Z",
-        "user_name": "System Admin",
-        "user_email": "admin@validra.gov.in",
-        "user_role": "admin",
-        "action": "INSPECTOR_APPROVED",
-        "entity_type": "user",
-        "entity_id": "cmu4i7wyq0000ltbc76s7m9f5",
-        "ip_address": "127.0.0.1",
-        "severity": "INFO",
-        "status": "SUCCESS",
-        "description": "Inspector account 'Dhruv Patel' (dhruvpatel16120@gmail.com) verified and activated for field inspections.",
-        "metadata": {"approver": "admin@validra.gov.in", "zone": "Central Oversight"},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0090",
-        "timestamp": "2026-09-21T17:05:12Z",
-        "user_name": "Anonymous",
-        "user_email": "intruder@external-node.net",
-        "user_role": "unauthenticated",
-        "action": "BRUTE_FORCE_TRIGGER",
-        "entity_type": "system",
-        "entity_id": "AUTH_PORTAL",
-        "ip_address": "198.51.100.84",
-        "severity": "CRITICAL",
-        "status": "SECURITY_ALERT",
-        "description": "5 consecutive failed authentication attempts on administrative portal within 60 seconds. IP temporarily rate-limited.",
-        "metadata": {"failedAttempts": 5, "rateLimitWindow": "15m", "protocol": "HTTPS"},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0089",
-        "timestamp": "2026-09-21T16:50:00Z",
-        "user_name": "System Admin",
-        "user_email": "admin@validra.gov.in",
-        "user_role": "admin",
-        "action": "JWT_KEY_ROTATION",
-        "entity_type": "security",
-        "entity_id": "AUTH_SECRET",
-        "ip_address": "127.0.0.1",
-        "severity": "MEDIUM",
-        "status": "SUCCESS",
-        "description": "Synchronized symmetric HS256 secret keys between NextAuth frontend and FastAPI backend.",
-        "metadata": {"algorithm": "HS256", "tokenExpiryHours": 8},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0088",
-        "timestamp": "2026-09-21T15:22:45Z",
-        "user_name": "Inspector Sharma",
-        "user_email": "inspector.sharma@validra.gov.in",
-        "user_role": "inspector",
-        "action": "REPORT_EXPORT",
-        "entity_type": "inspection",
-        "entity_id": "INS-2026-0842",
-        "ip_address": "10.45.12.98",
-        "severity": "INFO",
-        "status": "SUCCESS",
-        "description": "Downloaded signed Court-Admissible Compliance Certificate (PCR Rule 6 Evidence).",
-        "metadata": {"sha256": "8f4e2c91a0b3d5e78c4f9a12b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2", "score": 100},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0087",
-        "timestamp": "2026-09-21T14:10:18Z",
-        "user_name": "Unknown",
-        "user_email": "unknown@103.22.45.12",
-        "user_role": "unauthenticated",
-        "action": "RBAC_VIOLATION",
-        "entity_type": "admin",
-        "entity_id": "/api/admin/dashboard",
-        "ip_address": "103.22.45.12",
-        "severity": "HIGH",
-        "status": "SECURITY_ALERT",
-        "description": "Unauthorized attempt to access administrative metrics endpoint without valid administrative Bearer claims.",
-        "metadata": {"httpStatus": 403, "endpoint": "/api/admin/dashboard"},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0086",
-        "timestamp": "2026-09-21T11:04:02Z",
-        "user_name": "System Admin",
-        "user_email": "admin@validra.gov.in",
-        "user_role": "admin",
-        "action": "RULE_UPDATE",
-        "entity_type": "rule",
-        "entity_id": "C01",
-        "ip_address": "127.0.0.1",
-        "severity": "INFO",
-        "status": "SUCCESS",
-        "description": "Updated mandatory statutory declaration text pattern for Rule C01 (MRP Currency Prefix ₹ / Rs.).",
-        "metadata": {"ruleCode": "C01", "version": "v1.4.0"},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-    {
-        "id": "AUD-2026-0085",
-        "timestamp": "2026-09-20T22:45:10Z",
-        "user_name": "System Admin",
-        "user_email": "admin@validra.gov.in",
-        "user_role": "admin",
-        "action": "ADMIN_LOGIN",
-        "entity_type": "user",
-        "entity_id": "cmu4i6axh0000lts0168h7r8q",
-        "ip_address": "127.0.0.1",
-        "severity": "INFO",
-        "status": "SUCCESS",
-        "description": "Successful administrative session initiated via credentials authentication.",
-        "metadata": {"userAgent": "Mozilla/5.0 Windows NT 10.0"},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    },
-]
-
-
-def record_audit_event(
-    action: str,
-    user_name: str,
-    user_email: str,
-    user_role: str,
-    description: str,
-    entity_type: str = "system",
-    entity_id: str = "SYSTEM",
-    ip_address: str = "127.0.0.1",
-    severity: str = "INFO",
-    status_str: str = "SUCCESS",
-    metadata: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
-    """Helper function to record a security audit event into the store."""
-    new_id = f"AUD-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{len(_AUDIT_STORE) + 1:04d}"
-    entry = {
-        "id": new_id,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "user_name": user_name,
-        "user_email": user_email,
-        "user_role": user_role,
-        "action": action,
-        "entity_type": entity_type,
-        "entity_id": entity_id,
-        "ip_address": ip_address,
-        "severity": severity.upper(),
-        "status": status_str.upper(),
-        "description": description,
-        "metadata": metadata or {},
-        "acknowledged_by": None,
-        "acknowledged_at": None,
-    }
-    _AUDIT_STORE.insert(0, entry)
-    return entry
+def map_audit_log_to_item(l: AuditLog) -> AuditLogItem:
+    """Format SQLAlchemy AuditLog entity to Pydantic response."""
+    return AuditLogItem(
+        id=l.log_code or l.id,
+        timestamp=l.timestamp.isoformat() if l.timestamp else datetime.now(timezone.utc).isoformat(),
+        user_name=l.user_name,
+        user_email=l.user_email,
+        user_role=l.user_role,
+        action=l.action,
+        entity_type=l.entity_type,
+        entity_id=l.entity_id,
+        ip_address=l.ip_address,
+        severity=l.severity,
+        status=l.status,
+        description=l.description,
+        metadata=l.metadata_json or {},
+        acknowledged_by=l.acknowledged_by,
+        acknowledged_at=l.acknowledged_at.isoformat() if l.acknowledged_at else None,
+    )
 
 
 @router.get("", response_model=List[AuditLogItem], summary="Query security audit trail")
@@ -224,70 +88,79 @@ async def list_audit_logs(
     status_filter: Optional[str] = Query(None, alias="status"),
     search: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=500),
+    db: AsyncSession = Depends(get_db),
     _admin: Dict[str, Any] = Depends(require_admin),
 ):
-    """Retrieve filtered security audit records."""
-    logs = _AUDIT_STORE
+    """Retrieve filtered security audit records directly from PostgreSQL."""
+    stmt = select(AuditLog).order_by(desc(AuditLog.timestamp))
 
     if severity and severity.upper() != "ALL":
-        logs = [l for l in logs if l.get("severity") == severity.upper()]
+        stmt = stmt.where(AuditLog.severity == severity.upper())
 
     if action and action.upper() != "ALL":
-        logs = [l for l in logs if l.get("action") == action.upper()]
+        stmt = stmt.where(AuditLog.action == action.upper())
 
     if status_filter and status_filter.upper() != "ALL":
-        logs = [l for l in logs if l.get("status") == status_filter.upper()]
+        stmt = stmt.where(AuditLog.status == status_filter.upper())
 
     if search:
-        s = search.lower().strip()
-        logs = [
-            l for l in logs
-            if s in l.get("user_name", "").lower()
-            or s in l.get("user_email", "").lower()
-            or s in l.get("description", "").lower()
-            or s in l.get("ip_address", "").lower()
-            or s in l.get("id", "").lower()
-            or s in l.get("action", "").lower()
-        ]
-
-    return [
-        AuditLogItem(
-            id=item["id"],
-            timestamp=item["timestamp"],
-            user_name=item["user_name"],
-            user_email=item["user_email"],
-            user_role=item["user_role"],
-            action=item["action"],
-            entity_type=item["entity_type"],
-            entity_id=item["entity_id"],
-            ip_address=item["ip_address"],
-            severity=item.get("severity", "INFO"),
-            status=item.get("status", "SUCCESS"),
-            description=item["description"],
-            metadata=item.get("metadata", {}),
-            acknowledged_by=item.get("acknowledged_by"),
-            acknowledged_at=item.get("acknowledged_at"),
+        s = f"%{search.lower().strip()}%"
+        stmt = stmt.where(
+            or_(
+                func.lower(AuditLog.user_name).like(s),
+                func.lower(AuditLog.user_email).like(s),
+                func.lower(AuditLog.description).like(s),
+                func.lower(AuditLog.ip_address).like(s),
+                func.lower(AuditLog.log_code).like(s),
+                func.lower(AuditLog.action).like(s),
+            )
         )
-        for item in logs[:limit]
-    ]
+
+    res = await db.execute(stmt.limit(limit))
+    records = res.scalars().all()
+    return [map_audit_log_to_item(r) for r in records]
 
 
 @router.get("/stats", response_model=AuditLogStats, summary="Get security telemetry statistics")
 async def get_audit_stats(
+    db: AsyncSession = Depends(get_db),
     _admin: Dict[str, Any] = Depends(require_admin),
 ):
-    """Return counts of security alerts and auth events."""
-    total = len(_AUDIT_STORE)
-    critical = sum(1 for l in _AUDIT_STORE if l.get("severity") == "CRITICAL")
-    high = sum(1 for l in _AUDIT_STORE if l.get("severity") == "HIGH")
-    unack = sum(
-        1 for l in _AUDIT_STORE
-        if l.get("status") == "SECURITY_ALERT" and not l.get("acknowledged_by")
+    """Return counts of security alerts and auth events directly from PostgreSQL."""
+    # Total events
+    res_total = await db.execute(select(func.count(AuditLog.id)))
+    total = res_total.scalar_one_or_none() or 0
+
+    # Critical alerts
+    res_crit = await db.execute(select(func.count(AuditLog.id)).where(AuditLog.severity == "CRITICAL"))
+    critical = res_crit.scalar_one_or_none() or 0
+
+    # High alerts
+    res_high = await db.execute(select(func.count(AuditLog.id)).where(AuditLog.severity == "HIGH"))
+    high = res_high.scalar_one_or_none() or 0
+
+    # Unacknowledged alerts
+    res_unack = await db.execute(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.status == "SECURITY_ALERT",
+            AuditLog.acknowledged_by.is_(None)
+        )
     )
-    failed = sum(
-        1 for l in _AUDIT_STORE
-        if "FAIL" in l.get("action", "") or "BRUTE" in l.get("action", "") or l.get("status") == "SECURITY_ALERT"
+    unack = res_unack.scalar_one_or_none() or 0
+
+    # Failed logins in 24h
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
+    res_failed = await db.execute(
+        select(func.count(AuditLog.id)).where(
+            AuditLog.timestamp >= cutoff,
+            or_(
+                AuditLog.action.ilike("%FAIL%"),
+                AuditLog.action.ilike("%BRUTE%"),
+                AuditLog.status == "SECURITY_ALERT"
+            )
+        )
     )
+    failed = res_failed.scalar_one_or_none() or 0
 
     return AuditLogStats(
         total_events=total,
@@ -302,47 +175,68 @@ async def get_audit_stats(
 @router.post("", response_model=AuditLogItem, status_code=status.HTTP_201_CREATED, summary="Log a security event")
 async def create_audit_event(
     payload: AuditLogCreateRequest,
+    db: AsyncSession = Depends(get_db),
     admin_user: Dict[str, Any] = Depends(require_admin),
 ):
-    """Manually or programmatically log a security event."""
-    entry = record_audit_event(
-        action=payload.action,
-        user_name=admin_user.get("full_name") or admin_user.get("email"),
-        user_email=admin_user.get("email"),
+    """Store a security audit record into PostgreSQL."""
+    res_count = await db.execute(select(func.count(AuditLog.id)))
+    current_count = res_count.scalar_one_or_none() or 0
+    new_code = f"AUD-{datetime.now(timezone.utc).strftime('%Y%m%d')}-{current_count + 1:04d}"
+
+    entry = AuditLog(
+        id=f"cuid_{uuid.uuid4().hex[:16]}",
+        log_code=new_code,
+        timestamp=datetime.now(timezone.utc),
+        user_name=admin_user.get("full_name") or admin_user.get("email") or "System Admin",
+        user_email=admin_user.get("email") or "admin@validra.gov.in",
         user_role="admin",
-        description=payload.description,
+        action=payload.action,
         entity_type=payload.entity_type,
         entity_id=payload.entity_id,
         ip_address=payload.ip_address or "127.0.0.1",
-        severity=payload.severity,
-        status_str=payload.status,
-        metadata=payload.metadata,
+        severity=payload.severity.upper(),
+        status=payload.status.upper(),
+        description=payload.description,
+        metadata_json=payload.metadata,
     )
-    return AuditLogItem(**entry)
+    db.add(entry)
+    await db.commit()
+    await db.refresh(entry)
+    return map_audit_log_to_item(entry)
 
 
 @router.post("/{log_id}/acknowledge", response_model=AuditLogItem, summary="Acknowledge a security incident")
 async def acknowledge_incident(
     log_id: str,
+    db: AsyncSession = Depends(get_db),
     admin_user: Dict[str, Any] = Depends(require_admin),
 ):
-    """Mark a security alert as acknowledged and reviewed by supervisor."""
-    item = next((l for l in _AUDIT_STORE if l["id"] == log_id), None)
+    """Mark a security alert as acknowledged in PostgreSQL."""
+    stmt = select(AuditLog).where(or_(AuditLog.id == log_id, AuditLog.log_code == log_id))
+    res = await db.execute(stmt)
+    item = res.scalar_one_or_none()
     if not item:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Audit log entry not found.")
 
-    item["status"] = "ACKNOWLEDGED"
-    item["acknowledged_by"] = admin_user.get("email") or "admin@validra.gov.in"
-    item["acknowledged_at"] = datetime.now(timezone.utc).isoformat()
+    item.status = "ACKNOWLEDGED"
+    item.acknowledged_by = admin_user.get("email") or "admin@validra.gov.in"
+    item.acknowledged_at = datetime.now(timezone.utc)
 
-    return AuditLogItem(**item)
+    await db.commit()
+    await db.refresh(item)
+    return map_audit_log_to_item(item)
 
 
 @router.get("/export", summary="Export audit trail as CSV")
 async def export_audit_csv(
+    db: AsyncSession = Depends(get_db),
     _admin: Dict[str, Any] = Depends(require_admin),
 ):
-    """Generate RFC 4180 compliant CSV export for forensic and statutory record keeping."""
+    """Generate RFC 4180 compliant CSV export directly from PostgreSQL."""
+    stmt = select(AuditLog).order_by(desc(AuditLog.timestamp))
+    res = await db.execute(stmt)
+    records = res.scalars().all()
+
     output = io.StringIO()
     writer = csv.writer(output)
     writer.writerow([
@@ -361,21 +255,21 @@ async def export_audit_csv(
         "Acknowledged By",
     ])
 
-    for l in _AUDIT_STORE:
+    for l in records:
         writer.writerow([
-            l.get("id"),
-            l.get("timestamp"),
-            l.get("user_name"),
-            l.get("user_email"),
-            l.get("user_role"),
-            l.get("severity"),
-            l.get("action"),
-            l.get("entity_type"),
-            l.get("entity_id"),
-            l.get("ip_address"),
-            l.get("status"),
-            l.get("description"),
-            l.get("acknowledged_by") or "—",
+            l.log_code,
+            l.timestamp.isoformat() if l.timestamp else "—",
+            l.user_name,
+            l.user_email,
+            l.user_role,
+            l.severity,
+            l.action,
+            l.entity_type,
+            l.entity_id,
+            l.ip_address,
+            l.status,
+            l.description,
+            l.acknowledged_by or "—",
         ])
 
     csv_data = output.getvalue()

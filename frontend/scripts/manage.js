@@ -13,6 +13,7 @@ async function main() {
   const options = [
     { label: "👑 Admin Management (Create, List, Passwords, Access)", value: "admin" },
     { label: "👮 Inspector Management (Approve, List, Create, Reject)", value: "inspector" },
+    { label: "📜 Security Audit Logs (List, Stats, Truncate, Alerts)", value: "logs" },
     { label: "📋 Quick Overview (All Users Summary)", value: "summary" },
     { label: "🚪 Exit", value: "exit" },
   ];
@@ -39,6 +40,14 @@ async function main() {
         // Execute inspector CLI
         process.argv = [process.argv[0], process.argv[1]];
         require("./manage-inspector");
+        break;
+      }
+
+      if (choice === "logs") {
+        delete require.cache[require.resolve("./manage-logs")];
+        // Execute audit logs CLI
+        process.argv = [process.argv[0], process.argv[1]];
+        require("./manage-logs");
         break;
       }
 

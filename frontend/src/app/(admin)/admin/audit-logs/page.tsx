@@ -31,12 +31,12 @@ import { Button } from "@/components/shared";
 export default function AdminAuditLogsPage() {
   const [logs, setLogs] = React.useState<AuditLogEntry[]>([]);
   const [stats, setStats] = React.useState<AuditLogStats>({
-    totalEvents: 7,
-    criticalAlerts: 1,
-    highAlerts: 1,
-    failedLogins24h: 1,
-    unacknowledgedAlerts: 1,
-    activeIncidents: 2,
+    totalEvents: 0,
+    criticalAlerts: 0,
+    highAlerts: 0,
+    failedLogins24h: 0,
+    unacknowledgedAlerts: 0,
+    activeIncidents: 0,
   });
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);

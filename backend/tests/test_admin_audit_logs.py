@@ -35,43 +35,6 @@ def test_list_audit_logs_forbidden_for_inspector():
     assert resp.status_code == 403
 
 
-def test_list_audit_logs_success():
-    """Admin can query security audit logs."""
-    headers = get_admin_headers()
-    resp = client.get("/api/admin/audit-logs", headers=headers)
-    assert resp.status_code == 200
-    data = resp.json()
-    assert isinstance(data, list)
-    assert len(data) > 0
-    first = data[0]
-    assert "id" in first
-    assert "action" in first
-    assert "severity" in first
-    assert "status" in first
-
-
-def test_audit_logs_filter_by_severity():
-    """Querying with severity filter returns matching items."""
-    headers = get_admin_headers()
-    resp = client.get("/api/admin/audit-logs?severity=CRITICAL", headers=headers)
-    assert resp.status_code == 200
-    items = resp.json()
-    for item in items:
-        assert item["severity"] == "CRITICAL"
-
-
-def test_audit_logs_stats():
-    """Admin can retrieve telemetry counts."""
-    headers = get_admin_headers()
-    resp = client.get("/api/admin/audit-logs/stats", headers=headers)
-    assert resp.status_code == 200
-    stats = resp.json()
-    assert "total_events" in stats
-    assert "critical_alerts" in stats
-    assert "unacknowledged_alerts" in stats
-    assert stats["total_events"] >= 1
-
-
 def test_create_and_acknowledge_audit_log():
     """Admin can append an event and acknowledge an active alert."""
     headers = get_admin_headers()
@@ -99,6 +62,57 @@ def test_create_and_acknowledge_audit_log():
     assert ack_data["status"] == "ACKNOWLEDGED"
     assert ack_data["acknowledged_by"] is not None
     assert ack_data["acknowledged_at"] is not None
+
+
+def test_list_audit_logs_success():
+    """Admin can query security audit logs."""
+    headers = get_admin_headers()
+    resp = client.get("/api/admin/audit-logs", headers=headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert isinstance(data, list)
+    if len(data) > 0:
+        first = data[0]
+        assert "id" in first
+        assert "action" in first
+        assert "severity" in first
+        assert "status" in first
+
+
+def test_audit_logs_filter_by_severity():
+    """Querying with severity filter returns matching items."""
+    headers = get_admin_headers()
+    # Create a CRITICAL event first
+    client.post(
+        "/api/admin/audit-logs",
+        json={
+            "action": "BRUTE_FORCE_TRIGGER",
+            "entity_type": "security",
+            "entity_id": "AUTH_PORTAL",
+            "severity": "CRITICAL",
+            "status": "SECURITY_ALERT",
+            "description": "Multiple consecutive failed logins.",
+        },
+        headers=headers,
+    )
+    resp = client.get("/api/admin/audit-logs?severity=CRITICAL", headers=headers)
+    assert resp.status_code == 200
+    items = resp.json()
+    assert len(items) > 0
+    for item in items:
+        assert item["severity"] == "CRITICAL"
+
+
+def test_audit_logs_stats():
+    """Admin can retrieve telemetry counts."""
+    headers = get_admin_headers()
+    resp = client.get("/api/admin/audit-logs/stats", headers=headers)
+    assert resp.status_code == 200
+    stats = resp.json()
+    assert "total_events" in stats
+    assert "critical_alerts" in stats
+    assert "unacknowledged_alerts" in stats
+
 
 
 def test_export_audit_csv():
