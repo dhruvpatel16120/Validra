@@ -34,6 +34,12 @@ export default function InspectorLayout({
         return;
       }
 
+      // Check if email is verified
+      if (!session.user.isVerified) {
+        router.replace("/verify-email");
+        return;
+      }
+
       // Check if account is approved
       if (!session.user.isActive) {
         router.replace("/pending-approval");
@@ -49,6 +55,16 @@ export default function InspectorLayout({
 
   // Prevent flash of protected content while redirecting unauthenticated users
   if (!isBypass && (status === "unauthenticated" || !session?.user)) {
+    return null;
+  }
+
+  // If user is an admin, do not render inspector interface
+  if (!isBypass && session?.user && session.user.role === "ADMIN") {
+    return null;
+  }
+
+  // If email is not verified, do not render inspector interface
+  if (!isBypass && session?.user && !session.user.isVerified) {
     return null;
   }
 

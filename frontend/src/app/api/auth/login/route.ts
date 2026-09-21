@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { recordAuditLog } from "@/lib/audit";
 
 /**
  * POST /api/auth/login
@@ -28,6 +29,15 @@ export async function POST(request: Request) {
     });
 
     if (!user) {
+      await recordAuditLog({
+        userName: "Unregistered / Unknown",
+        userEmail: normalizedEmail,
+        userRole: "inspector",
+        action: "AUTH_FAILURE",
+        severity: "HIGH",
+        status: "FAILURE",
+        description: `API login failed: Account ${normalizedEmail} not found.`,
+      });
       return NextResponse.json(
         { message: "Invalid email address or password.", detail: "INVALID_CREDENTIALS" },
         { status: 401 }
@@ -36,6 +46,15 @@ export async function POST(request: Request) {
 
     const isValid = await verifyPassword(password, user.passwordHash);
     if (!isValid) {
+      await recordAuditLog({
+        userName: user.fullName,
+        userEmail: user.email,
+        userRole: user.role.toLowerCase(),
+        action: "AUTH_FAILURE",
+        severity: "HIGH",
+        status: "FAILURE",
+        description: `API login failed: Incorrect password attempt for ${user.email}.`,
+      });
       return NextResponse.json(
         { message: "Invalid email address or password.", detail: "INVALID_CREDENTIALS" },
         { status: 401 }
@@ -43,6 +62,15 @@ export async function POST(request: Request) {
     }
 
     if (!user.isVerified) {
+      await recordAuditLog({
+        userName: user.fullName,
+        userEmail: user.email,
+        userRole: user.role.toLowerCase(),
+        action: "AUTH_FAILURE",
+        severity: "MEDIUM",
+        status: "FAILURE",
+        description: `API login blocked for ${user.email}: Email not verified.`,
+      });
       return NextResponse.json(
         { message: "Email address has not been verified.", detail: "EMAIL_NOT_VERIFIED" },
         { status: 403 }
@@ -50,6 +78,15 @@ export async function POST(request: Request) {
     }
 
     if (!user.isActive) {
+      await recordAuditLog({
+        userName: user.fullName,
+        userEmail: user.email,
+        userRole: user.role.toLowerCase(),
+        action: "AUTH_FAILURE",
+        severity: "MEDIUM",
+        status: "FAILURE",
+        description: `API login blocked for ${user.email}: Account pending admin approval.`,
+      });
       return NextResponse.json(
         { message: "Account is pending admin approval.", detail: "ACCOUNT_NOT_APPROVED" },
         { status: 403 }
@@ -81,6 +118,16 @@ export async function POST(request: Request) {
 
     const userRole: "inspector" | "admin" =
       user.role === "ADMIN" || role === "admin" ? "admin" : "inspector";
+
+    await recordAuditLog({
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole,
+      action: userRole === "admin" ? "ADMIN_LOGIN" : "USER_LOGIN",
+      severity: "INFO",
+      status: "SUCCESS",
+      description: `${userRole === "admin" ? "Administrator" : "Field Inspector"} ${user.fullName} (${user.email}) logged in via API.`,
+    });
 
     const clientUser = {
       id: user.id,

@@ -69,6 +69,14 @@ function setStore(updater: Partial<AuthStore>) {
   notify();
 }
 
+export function setAuthUser(user: User | null) {
+  setStore({
+    user,
+    isLoading: false,
+    hasChecked: true,
+  });
+}
+
 let checkPromise: Promise<User | null> | null = null;
 
 /**
@@ -95,7 +103,7 @@ export async function checkAuth(): Promise<User | null> {
       let token = getAuthToken();
       let currentUser: User | null = null;
 
-      if (!token && typeof window !== "undefined") {
+      if (typeof window !== "undefined") {
         try {
           const res = await fetch("/api/auth/token", { credentials: "same-origin" });
           if (res.ok) {
@@ -104,13 +112,25 @@ export async function checkAuth(): Promise<User | null> {
               setAuthToken(data.accessToken);
               token = data.accessToken;
             }
+            if (data?.user) {
+              currentUser = {
+                id: data.user.id,
+                email: data.user.email,
+                fullName: data.user.fullName || data.user.email.split("@")[0],
+                role: (data.user.role || "inspector").toLowerCase() === "admin" ? "admin" : "inspector",
+                isActive: data.user.isActive ?? true,
+                isVerified: data.user.isVerified ?? true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+            }
           }
         } catch {
           // Ignore fetch error
         }
       }
 
-      if (token) {
+      if (!currentUser && token) {
         try {
           currentUser = await authService.verifyToken(token);
         } catch {

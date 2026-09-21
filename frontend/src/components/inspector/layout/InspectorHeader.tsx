@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   User as UserIcon,
 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +44,7 @@ export function InspectorHeader({
   className,
 }: InspectorHeaderProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const { user, logout } = useAuth();
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = React.useState(false);
@@ -82,8 +84,8 @@ export function InspectorHeader({
     };
   }, []);
 
-  const displayName = user?.fullName || "Field Inspector";
-  const displayEmail = user?.email || "officer@nic.in";
+  const displayName = session?.user?.fullName || user?.fullName || "Field Inspector";
+  const displayEmail = session?.user?.email || user?.email || "officer@nic.in";
   const initials = displayName
     .split(" ")
     .map((part) => part[0])
@@ -219,7 +221,12 @@ export function InspectorHeader({
                   role="menuitem"
                   onClick={async () => {
                     setIsUserMenuOpen(false);
-                    await logout();
+                    try {
+                      await logout();
+                    } catch {
+                      // ignore
+                    }
+                    await signOut({ callbackUrl: "/login" });
                   }}
                   className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-rose-600 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition-colors text-left cursor-pointer"
                 >

@@ -2,16 +2,18 @@
 
 import * as React from "react";
 import { ShieldCheck, Mail, MapPin, Building, LogOut, CheckCircle2 } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { PageHeader } from "@/components/inspector/common";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/shared/ui/button";
 import { Badge } from "@/components/shared/ui/badge";
 
 export default function ProfilePage() {
+  const { data: session } = useSession();
   const { user, logout } = useAuth();
 
-  const fullName = user?.fullName || "Field Inspector Officer";
-  const email = user?.email || "officer@nic.in";
+  const fullName = session?.user?.fullName || user?.fullName || "Field Inspector Officer";
+  const email = session?.user?.email || user?.email || "officer@nic.in";
   const initials = fullName
     .split(" ")
     .map((p) => p[0])
@@ -122,7 +124,14 @@ export default function ProfilePage() {
           type="button"
           variant="destructive"
           size="sm"
-          onClick={() => logout()}
+          onClick={async () => {
+            try {
+              await logout();
+            } catch {
+              // ignore
+            }
+            await signOut({ callbackUrl: "/login" });
+          }}
           className="gap-2 text-xs font-semibold cursor-pointer shrink-0"
         >
           <LogOut className="w-3.5 h-3.5" />
