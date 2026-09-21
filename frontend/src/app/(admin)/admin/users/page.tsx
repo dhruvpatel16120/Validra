@@ -6,6 +6,7 @@ import {
   getAdminUsers,
   toggleUserStatus,
   bulkUpdateUserStatus,
+  approveInspector,
 } from "@/services/admin-user-service";
 import {
   AdminPageHeader,
@@ -33,6 +34,11 @@ export default function AdminUsersPage() {
 
   const handleStatusToggle = async (id: string, newStatus: UserStatus) => {
     await toggleUserStatus(id, newStatus);
+    refreshUsers();
+  };
+
+  const handleApprove = async (id: string) => {
+    await approveInspector(id);
     refreshUsers();
   };
 
@@ -85,6 +91,7 @@ export default function AdminUsersPage() {
           users={filteredUsers}
           onStatusToggle={handleStatusToggle}
           onBulkStatusUpdate={handleBulkStatusUpdate}
+          onApprove={handleApprove}
         />
       ) : (
         <AdminEmptyState

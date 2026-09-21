@@ -1,12 +1,6 @@
-/**
- * Email Testing & Diagnostics Tool for Validra
- * Usage:
- *   npx tsx scripts/test-email.ts [recipient-email]
- */
-
-import dotenv from "dotenv";
-import path from "path";
-import nodemailer from "nodemailer";
+const dotenv = require("dotenv");
+const path = require("path");
+const nodemailer = require("nodemailer");
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
@@ -24,7 +18,7 @@ console.log("-------------------------------------------------------");
 
 async function run() {
   console.log("1. Testing connection to Gmail SMTP service...");
-  
+
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -36,7 +30,7 @@ async function run() {
   try {
     const verified = await transporter.verify();
     console.log("   ✅ SMTP Server Connection: VERIFIED & READY!", verified);
-  } catch (err: any) {
+  } catch (err) {
     console.error("   ❌ Connection Failed!");
     console.error(`      Message: ${err.message}`);
     if (err.responseCode === 535 || err.code === "EAUTH") {
@@ -52,13 +46,16 @@ async function run() {
     return;
   }
 
-  console.log(`\n2. Sending test template to ${recipient}...`);
+  console.log(`\n2. Attempting test message delivery to ${recipient}...`);
   try {
-    const { sendVerificationEmail } = await import("../src/lib/email");
-    await sendVerificationEmail(recipient, "test-diagnostic-token-123456", "Test Inspector");
-    console.log(`   ✅ Test verification email dispatched successfully to ${recipient}!`);
-    console.log("   Check your inbox/spam folder to see the template.");
-  } catch (sendErr: any) {
+    const info = await transporter.sendMail({
+      from: `Validra Diagnostics <${rawEmail}>`,
+      to: recipient,
+      subject: "Validra Diagnostic Test Email",
+      text: "This is a test email sent from the Validra diagnostic script.",
+    });
+    console.log(`   ✅ Test email dispatched successfully! Message ID: ${info.messageId}`);
+  } catch (sendErr) {
     console.error("   ❌ Failed to send email:", sendErr.message);
   }
   console.log("=======================================================\n");

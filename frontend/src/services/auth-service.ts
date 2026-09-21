@@ -111,10 +111,35 @@ export const authService = {
    * Validate session / bearer token and return user profile details.
    */
   async verifyToken(token: string): Promise<User> {
-    return apiClient.post<User>(
+    const res = await apiClient.post<{
+      valid: boolean;
+      user_id?: string;
+      email?: string;
+      role?: string;
+      full_name?: string;
+      message?: string;
+    }>(
       AUTH_ENDPOINTS.VERIFY_TOKEN,
-      {},
+      { token },
       { token }
     );
+
+    if (!res.valid) {
+      throw new Error(res.message || "Invalid or expired token.");
+    }
+
+    const userRole: "inspector" | "admin" =
+      res.role?.toLowerCase() === "admin" ? "admin" : "inspector";
+
+    return {
+      id: res.user_id || "",
+      email: res.email || "",
+      fullName: res.full_name || res.email?.split("@")[0] || "User",
+      role: userRole,
+      isActive: true,
+      isVerified: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
   },
 };

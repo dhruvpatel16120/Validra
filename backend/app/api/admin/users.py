@@ -150,3 +150,52 @@ async def admin_update_user(
         jurisdiction=user.jurisdiction,
         created_at=user.created_at,
     )
+
+
+@router.post("/{user_id}/approve", response_model=UserProfileResponse, summary="Approve inspector account")
+async def admin_approve_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(require_admin),
+):
+    """Approve a pending inspector account, activating and verifying them."""
+    stmt = select(User).where(User.id == user_id)
+    res = await db.execute(stmt)
+    user = res.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    user.is_active = True
+    user.is_verified = True
+    await db.commit()
+    await db.refresh(user)
+
+    return UserProfileResponse(
+        id=user.id,
+        email=user.email,
+        full_name=user.full_name,
+        role=user.role,
+        is_active=user.is_active,
+        is_verified=user.is_verified,
+        badge_number=user.badge_number,
+        jurisdiction=user.jurisdiction,
+        created_at=user.created_at,
+    )
+
+
+@router.delete("/{user_id}", summary="Delete user account")
+async def admin_delete_user(
+    user_id: str,
+    db: AsyncSession = Depends(get_db),
+    _admin=Depends(require_admin),
+):
+    """Delete a user account from PostgreSQL."""
+    stmt = select(User).where(User.id == user_id)
+    res = await db.execute(stmt)
+    user = res.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found.")
+
+    await db.delete(user)
+    await db.commit()
+    return {"status": "ok", "message": f"User {user.email} deleted successfully."}

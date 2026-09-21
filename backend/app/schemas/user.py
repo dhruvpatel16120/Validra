@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class TokenVerifyRequest(BaseModel):
-    token: str
+    token: Optional[str] = None
 
 
 class TokenVerifyResponse(BaseModel):

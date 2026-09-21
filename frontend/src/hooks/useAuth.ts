@@ -92,8 +92,23 @@ export async function checkAuth(): Promise<User | null> {
 
   checkPromise = (async () => {
     try {
-      const token = getAuthToken();
+      let token = getAuthToken();
       let currentUser: User | null = null;
+
+      if (!token && typeof window !== "undefined") {
+        try {
+          const res = await fetch("/api/auth/token", { credentials: "same-origin" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.accessToken) {
+              setAuthToken(data.accessToken);
+              token = data.accessToken;
+            }
+          }
+        } catch {
+          // Ignore fetch error
+        }
+      }
 
       if (token) {
         try {
@@ -103,7 +118,7 @@ export async function checkAuth(): Promise<User | null> {
         }
       }
 
-      if (!currentUser) {
+      if (!currentUser && token) {
         try {
           // If HTTP-only session cookie is available, check current user profile
           currentUser = await apiClient.get<User>("/api/users/me");

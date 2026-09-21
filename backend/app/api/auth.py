@@ -1,11 +1,12 @@
 """Authentication and token validation routes."""
 
 import logging
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import get_db
+from app.api.deps import extract_bearer_token, get_db
 from app.core.security import decode_and_verify_jwt
 from app.models.user import User
 from app.schemas.user import TokenVerifyRequest, TokenVerifyResponse
@@ -20,17 +21,23 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
     summary="Validate NextAuth JWT token and extract user claims"
 )
 async def verify_token(
-    payload: TokenVerifyRequest,
+    payload: Optional[TokenVerifyRequest] = None,
+    authorization: Optional[str] = Header(default=None),
     db: AsyncSession = Depends(get_db)
 ):
     """Dual-security token verification endpoint.
     
     Validates token cryptographic signature against AUTH_SECRET and ensures
-    user account is active in PostgreSQL.
+    user account is active in PostgreSQL. Accepts token in JSON body or Authorization header.
     """
-    token = payload.token.strip()
+    token = ""
+    if payload and payload.token:
+        token = payload.token.strip()
+    elif authorization:
+        token = extract_bearer_token(authorization) or ""
+
     if not token:
-        return TokenVerifyResponse(valid=False, message="Empty token provided.")
+        return TokenVerifyResponse(valid=False, message="Empty token provided in body or Authorization header.")
 
     try:
         claims = decode_and_verify_jwt(token)

@@ -110,15 +110,65 @@ export function getUserFriendlyErrorMessage(error: unknown): string {
   return "An unexpected error occurred. Please try again.";
 }
 
-// In-memory token storage (preserves security without uncoordinated localStorage usage)
+// In-memory token storage (with sessionStorage persistence for seamless page reload)
 let inMemoryToken: string | null = null;
 
 export function setAuthToken(token: string | null): void {
   inMemoryToken = token;
+  if (typeof window !== "undefined") {
+    if (token) {
+      sessionStorage.setItem("validra_jwt_token", token);
+    } else {
+      sessionStorage.removeItem("validra_jwt_token");
+    }
+  }
 }
 
 export function getAuthToken(): string | null {
-  return inMemoryToken;
+  if (inMemoryToken) return inMemoryToken;
+  if (typeof window !== "undefined") {
+    const cached = sessionStorage.getItem("validra_jwt_token");
+    if (cached) {
+      inMemoryToken = cached;
+      return cached;
+    }
+  }
+  return null;
+}
+
+let tokenFetchPromise: Promise<string | null> | null = null;
+
+/**
+ * Attempt to retrieve a valid JWT token from the Next.js session route
+ * if not already present in memory or session storage.
+ */
+async function resolveAuthToken(): Promise<string | null> {
+  const current = getAuthToken();
+  if (current) return current;
+
+  if (typeof window === "undefined") return null;
+
+  if (tokenFetchPromise) return tokenFetchPromise;
+
+  tokenFetchPromise = (async () => {
+    try {
+      const res = await fetch("/api/auth/token", { credentials: "same-origin" });
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.accessToken) {
+          setAuthToken(data.accessToken);
+          return data.accessToken;
+        }
+      }
+    } catch {
+      // Ignore background fetch error
+    } finally {
+      tokenFetchPromise = null;
+    }
+    return null;
+  })();
+
+  return tokenFetchPromise;
 }
 
 export interface RequestOptions extends Omit<RequestInit, "body"> {
@@ -145,7 +195,11 @@ export async function apiRequest<T>(
     ...(headers as Record<string, string>),
   };
 
-  const effectiveToken = token || inMemoryToken;
+  let effectiveToken = token || getAuthToken();
+  if (!effectiveToken && typeof window !== "undefined" && !cleanEndpoint.includes("/auth/login")) {
+    effectiveToken = await resolveAuthToken();
+  }
+
   if (effectiveToken) {
     requestHeaders.Authorization = `Bearer ${effectiveToken}`;
   }
