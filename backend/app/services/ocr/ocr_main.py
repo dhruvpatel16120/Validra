@@ -56,7 +56,7 @@ logger = logging.getLogger("validra.ocr")
 class OCRPipeline:
     """Production OCR Pipeline coordinator with RGB upscale processing."""
 
-    def __init__(self, engine_name: str = "paddleocr"):
+    def __init__(self, engine_name: str = "easyocr"):
         self.engine_name = engine_name
 
     async def process_image(

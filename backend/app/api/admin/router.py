@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter
 
+from app.api.admin.audit_logs import router as audit_router
 from app.api.admin.dashboard import router as dashboard_router
 from app.api.admin.reports import router as reports_router
 from app.api.admin.rules import router as rules_router
@@ -15,3 +16,4 @@ admin_router.include_router(users_router)
 admin_router.include_router(rules_router)
 admin_router.include_router(scans_router)
 admin_router.include_router(reports_router)
+admin_router.include_router(audit_router)
