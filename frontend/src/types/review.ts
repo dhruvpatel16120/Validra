@@ -1,4 +1,12 @@
-import { ScanStatus } from "./scan";
+/**
+ * Compliance-review view models for a single scan.
+ *
+ * Derived entirely from GET /api/scans/{scan_id}: each rule result becomes either a
+ * passed check, an applicable violation ("finding"), or an intentionally
+ * skipped check (an exemption, e.g. FSSAI on a non-food product).
+ */
+
+import type { ScanStatus } from "./scan";
 
 export type FindingSeverity = "high" | "medium" | "low";
 
@@ -13,33 +21,45 @@ export interface Finding {
   evidenceSnippet?: string;
 }
 
+export type ExtractedFieldStatus = "verified" | "missing" | "skipped";
+
 export interface ExtractedField {
   id: string;
   label: string;
   value: string | null;
-  confidence?: number | null; // e.g., 0.94 for 94%
+  confidence: number | null;
   isMandatory: boolean;
-  status: "verified" | "flagged" | "missing";
+  status: ExtractedFieldStatus;
+  clauseReference: string;
+  ruleReference?: string;
 }
 
 export interface EvidenceItem {
   id: string;
   title: string;
-  type: "original" | "processed" | "evidence_crop";
+  type: "original" | "processed" | "annotated";
   imageUrl: string;
-  description?: string;
+  description: string;
 }
 
-export type InspectorDecisionType = "Compliant" | "Non-compliant" | "Needs Review";
+export interface ReviewCounts {
+  passed: number;
+  violations: number;
+  skipped: number;
+  total: number;
+}
 
 export interface ReviewData {
   scanId: string;
+  productName: string;
+  brand: string | null;
+  category: string;
   status: ScanStatus;
-  complianceScore: number | null;
-  confidenceScore: number | null; // e.g., 0.92
+  /** 0-100 share of applicable checks that passed. */
+  complianceScore: number;
+  counts: ReviewCounts;
   extractedFields: ExtractedField[];
   evidenceImages: EvidenceItem[];
   findings: Finding[];
-  inspectorRemarks?: string | null;
-  createdAt: string;
+  scannedAt: string;
 }
