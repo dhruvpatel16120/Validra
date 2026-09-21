@@ -3,7 +3,6 @@ export * from "./common";
 export * from "./dashboard";
 export * from "./users";
 export * from "./rules";
-export * from "./legal-documents";
 export * from "./inspections";
 export * from "./audit-logs";
 export * from "./settings";

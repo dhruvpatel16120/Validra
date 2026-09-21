@@ -34,16 +34,14 @@ const IS_DEV_BYPASS_ACTIVE =
   process.env.NEXT_PUBLIC_INSPECTOR_BYPASS === "true";
 
 const DEV_INSPECTOR_USER: User = {
-  id: "dev-inspector-01",
-  email: "inspector.sharma@validra.gov.in",
-  fullName: "Inspector Sharma",
+  id: "cmu4i7wyq0000ltbc76s7m9f5",
+  email: "dhruvpatel16120@gmail.com",
+  fullName: "Dhruv Patel",
   role: "inspector",
   isActive: true,
   isVerified: true,
-  badgeNumber: "LM-DEL-2024-089",
-  jurisdiction: "Delhi NCR - Central Zone",
-  createdAt: "2024-01-01T00:00:00Z",
-  updatedAt: "2024-01-01T00:00:00Z",
+  createdAt: "2026-09-16T19:39:07.298Z",
+  updatedAt: "2026-09-16T19:39:07.298Z",
 };
 
 // Module-level reactive store shared across components without wrapping root layout
@@ -69,6 +67,22 @@ function setStore(updater: Partial<AuthStore>) {
   notify();
 }
 
+export function setAuthUser(user: User | null) {
+  setStore({
+    user,
+    isLoading: false,
+    hasChecked: true,
+  });
+}
+
+export function updateAuthUser(patch: Partial<User>) {
+  if (authStore.user) {
+    setStore({
+      user: { ...authStore.user, ...patch },
+    });
+  }
+}
+
 let checkPromise: Promise<User | null> | null = null;
 
 /**
@@ -92,10 +106,37 @@ export async function checkAuth(): Promise<User | null> {
 
   checkPromise = (async () => {
     try {
-      const token = getAuthToken();
+      let token = getAuthToken();
       let currentUser: User | null = null;
 
-      if (token) {
+      if (typeof window !== "undefined") {
+        try {
+          const res = await fetch("/api/auth/token", { credentials: "same-origin" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.accessToken) {
+              setAuthToken(data.accessToken);
+              token = data.accessToken;
+            }
+            if (data?.user) {
+              currentUser = {
+                id: data.user.id,
+                email: data.user.email,
+                fullName: data.user.fullName || data.user.email.split("@")[0],
+                role: (data.user.role || "inspector").toLowerCase() === "admin" ? "admin" : "inspector",
+                isActive: data.user.isActive ?? true,
+                isVerified: data.user.isVerified ?? true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+            }
+          }
+        } catch {
+          // Ignore fetch error
+        }
+      }
+
+      if (!currentUser && token) {
         try {
           currentUser = await authService.verifyToken(token);
         } catch {
@@ -103,7 +144,7 @@ export async function checkAuth(): Promise<User | null> {
         }
       }
 
-      if (!currentUser) {
+      if (!currentUser && token) {
         try {
           // If HTTP-only session cookie is available, check current user profile
           currentUser = await apiClient.get<User>("/api/users/me");
@@ -139,6 +180,8 @@ export interface UseAuthReturn {
   isAuthenticated: boolean;
   error: string | null;
   checkAuth: () => Promise<User | null>;
+  refreshAuth: () => Promise<User | null>;
+  updateUser: (patch: Partial<User>) => void;
   login: (credentials: LoginRequest) => Promise<LoginResponse>;
   register: (data: RegisterRequest) => Promise<RegisterResponse>;
   logout: () => Promise<void>;
@@ -251,6 +294,8 @@ export function useAuth(): UseAuthReturn {
     isAuthenticated: Boolean(store.user),
     error: store.error,
     checkAuth,
+    refreshAuth: checkAuth,
+    updateUser: updateAuthUser,
     login,
     register,
     logout,

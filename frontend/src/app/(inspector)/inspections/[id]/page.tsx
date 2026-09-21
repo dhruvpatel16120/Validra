@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download, Loader2 } from "lucide-react";
 import { PageHeader, LoadingState, ErrorState } from "@/components/inspector/common";
 import { InspectionDetailView } from "@/components/inspector/inspections";
 import { inspectionService } from "@/services/inspection-service";
+import { getUserFriendlyErrorMessage } from "@/services/api";
 import { InspectionDetail } from "@/types/inspection";
 import { Button } from "@/components/shared/ui/button";
 
@@ -23,6 +24,7 @@ export default function InspectionDetailPage({
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
   const [retryCount, setRetryCount] = React.useState(0);
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
   React.useEffect(() => {
     let isMounted = true;
@@ -36,9 +38,7 @@ export default function InspectionDetailPage({
       })
       .catch((err: unknown) => {
         if (!isMounted) return;
-        const msg =
-          err instanceof Error ? err.message : "Failed to load inspection.";
-        setError(msg);
+        setError(getUserFriendlyErrorMessage(err));
         setIsLoading(false);
       });
 
@@ -53,18 +53,47 @@ export default function InspectionDetailPage({
     setRetryCount((prev) => prev + 1);
   };
 
+  const handleDownloadPdf = async () => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    try {
+      await inspectionService.downloadInspectionPdf(inspectionId);
+    } catch {
+      alert("Unable to generate inspection PDF certificate. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8 max-w-5xl mx-auto">
       <PageHeader
         title="Inspection Audit Detail"
         description={`Record identifier: ${inspection?.code || inspectionId}`}
         actions={
-          <Link href="/inspections">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Inspections</span>
+          <div className="flex items-center gap-2.5">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleDownloadPdf}
+              disabled={isDownloading || !inspection}
+              className="gap-1.5 text-xs font-semibold cursor-pointer"
+            >
+              {isDownloading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              <span>Download Certificate</span>
             </Button>
-          </Link>
+            <Link href="/inspections">
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>Back to Inspections</span>
+              </Button>
+            </Link>
+          </div>
         }
       />
 

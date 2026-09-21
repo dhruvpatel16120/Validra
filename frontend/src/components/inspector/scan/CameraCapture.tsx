@@ -6,6 +6,9 @@ import { cn } from "@/lib/utils";
 export interface CameraCaptureProps {
   onCapture: (file: File) => void;
   onCancel?: () => void;
+  /** 1-based slot the next capture will fill (max 4 photos per scan). */
+  photoNumber?: number;
+  maxPhotos?: number;
   className?: string;
 }
 
@@ -16,6 +19,8 @@ export interface CameraCaptureProps {
 export function CameraCapture({
   onCapture,
   onCancel,
+  photoNumber = 1,
+  maxPhotos = 4,
   className,
 }: CameraCaptureProps) {
   const [stream, setStream] = React.useState<MediaStream | null>(null);
@@ -165,6 +170,23 @@ export function CameraCapture({
       )}
     >
       <canvas ref={canvasRef} className="hidden" aria-hidden="true" />
+
+      {/* Capture header with the current photo slot */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+        <div>
+          <h2 className="text-base sm:text-lg font-semibold text-slate-900 tracking-tight">
+            Live Label Capture
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Align the mandatory declarations inside the frame
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-50 text-[11px] font-mono text-slate-500 border border-slate-200 shadow-2xs">
+          <span>
+            Photo {Math.min(photoNumber, maxPhotos)} of {maxPhotos}
+          </span>
+        </span>
+      </div>
 
       {/* Error state */}
       {cameraError ? (

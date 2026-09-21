@@ -1,27 +1,39 @@
-import { Finding, EvidenceItem, ExtractedField } from "./review";
+/**
+ * Scan-history ("Inspections") view models.
+ *
+ * The backend calls these "scans"; the UI presents them as inspections.
+ * This is the presentation shape derived from the real API.
+ */
 
-export type InspectionStatusType =
-  | "all"
-  | "compliant"
-  | "needs_review"
-  | "violation"
-  | "pending";
+import type { ScanResultRule, ScanStatus } from "./scan";
+
+export type InspectionStatusType = "all" | ScanStatus;
 
 export interface InspectionListItem {
   id: string;
+  /** Display code, e.g. "SCAN-1A2B3C". */
   code: string;
   productName: string;
+  brand: string | null;
   category: string;
-  status: "Compliant" | "Review" | "Violation" | "Pending";
+  status: string;
+  /** Pre-formatted date for display. */
   date: string;
+  /** ISO timestamp from the API. */
+  scannedAt: string;
+  /** 0-100 share of applicable checks that passed. */
   score: number;
-  scanId?: string;
-  reportId?: string | null;
+  scanId: string;
+  violations: number;
+  passed: number;
+  skipped: number;
+  imageUrl: string | null;
 }
 
 export interface InspectionFilterState {
   search: string;
-  status: InspectionStatusType;
+  status: "all" | ScanStatus;
+  category: string;
 }
 
 export interface InspectionPaginationState {
@@ -31,20 +43,14 @@ export interface InspectionPaginationState {
   totalPages: number;
 }
 
-export interface InspectionDetail {
-  id: string;
-  code: string;
-  productName: string;
-  category: string;
-  status: "Compliant" | "Review" | "Violation" | "Pending" | "Finalized";
-  score: number | null;
-  date: string;
-  completedAt?: string | null;
-  inspectorName?: string;
-  scanId?: string;
-  reportId?: string | null;
-  remarks?: string;
-  findings: Finding[];
-  evidenceImages: EvidenceItem[];
-  extractedFields: ExtractedField[];
+export interface InspectionDetail extends InspectionListItem {
+  results: ScanResultRule[];
+  images: string[];
+  rawOcrText: string | null;
 }
+
+export const DEFAULT_INSPECTION_FILTERS: InspectionFilterState = {
+  search: "",
+  status: "all",
+  category: "all",
+};

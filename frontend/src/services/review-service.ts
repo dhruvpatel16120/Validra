@@ -1,192 +1,121 @@
+/**
+ * Review service - turns a real scan into the compliance-review view model.
+ *
+ * Everything here is derived from GET /api/scans/{scan_id}:
+ *  - each applicable, non-compliant rule becomes a "finding" (violation)
+ *  - each applicable rule's extracted value becomes an extracted field
+ *  - rules excluded by an exemption are surfaced as "skipped", not as failures
+ */
+
 import { scanService } from "./scan-service";
-import { ReviewData, InspectorDecisionType, ExtractedField, Finding, EvidenceItem } from "@/types/review";
+import { humanizeField } from "./dashboard-service";
+import { complianceScore } from "@/types/scan";
+import type { Finding, FindingSeverity, ExtractedField, ReviewData } from "@/types/review";
+import type { ScanResultRule } from "@/types/scan";
 import { API_BASE_URL } from "./api";
 
-/**
- * Structured presentation fallback data for package review.
- * Used when backend scan record has not yet populated granular rule-engine findings.
- * 
- * PENDING BACKEND CONTRACT:
- * Endpoint: GET /api/scans/{scan_id}/review or GET /api/scans/{scan_id}
- * Finalize: POST /api/scans/{scan_id}/decision
- */
-export const DEFAULT_EXTRACTED_FIELDS: ExtractedField[] = [
-  {
-    id: "f-1",
-    label: "Product Common Name",
-    value: "Sunburst Natural Cold-Pressed Sesame Oil",
-    confidence: 0.98,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-2",
-    label: "Net Quantity / Weight",
-    value: "1 Litre / 910 g",
-    confidence: 0.95,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-3",
-    label: "Maximum Retail Price (MRP)",
-    value: "₹ 340.00 (Inclusive of all taxes)",
-    confidence: 0.96,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-4",
-    label: "Unit Sale Price (USP)",
-    value: "₹ 0.34 per ml",
-    confidence: 0.91,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-5",
-    label: "Manufacturing & Packing Date",
-    value: "08/2026",
-    confidence: 0.89,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-6",
-    label: "Batch / Lot Number",
-    value: "LOT-SS26-0819",
-    confidence: 0.94,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-7",
-    label: "Manufacturer & Packer Details",
-    value: "Sunburst Agri Foods Pvt. Ltd., Plot 14, MIDC Industrial Area, Pune 411018",
-    confidence: 0.92,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-8",
-    label: "Consumer Care Contact",
-    value: "customercare@sunburstagri.in | Toll-Free: 1800-209-4455",
-    confidence: 0.88,
-    isMandatory: true,
-    status: "verified",
-  },
-  {
-    id: "f-9",
-    label: "Country of Origin",
-    value: null,
-    confidence: null,
-    isMandatory: true,
-    status: "missing",
-  },
-];
+/** Which declarations matter most when a violation is surfaced to a user. */
+const SEVERITY_BY_FIELD: Record<string, FindingSeverity> = {
+  mrp: "high",
+  net_quantity: "high",
+  mfg_date: "high",
+  manufacturer_address: "high",
+  commodity_name: "high",
+  fssai_number: "medium",
+  consumer_care: "medium",
+  language: "medium",
+  dimensions: "low",
+};
 
-export const DEFAULT_FINDINGS: Finding[] = [
-  {
-    id: "violation-1",
-    title: "Missing Country of Origin Declaration",
-    severity: "high",
-    detectedIssue: "Country of origin label not identified anywhere on the visible package surface.",
-    relatedField: "Country of Origin",
-    ruleReference: "Legal Metrology (Packaged Commodities) Rules, 2011 — Rule 6(1)(e)",
-    explanation: "Rule 6(1)(e) requires every pre-packaged commodity to conspicuously mention the name of the country of origin or manufacturer.",
-    evidenceSnippet: "OCR Scan Pass Complete: 0 bounding boxes matched Country of Origin patterns.",
-  },
-];
+function severityFor(field: string): FindingSeverity {
+  return SEVERITY_BY_FIELD[field] || "medium";
+}
+
+function toFinding(result: ScanResultRule): Finding {
+  const label = humanizeField(result.field_name || "declaration");
+  return {
+    id: `violation-${result.rule_id}`,
+    title: `Missing or invalid ${label}`,
+    severity: severityFor(result.field_name || ""),
+    detectedIssue:
+      result.extracted_value && result.extracted_value !== "not automatically assessed"
+        ? `Read from the label as "${result.extracted_value}", which does not satisfy the requirement.`
+        : "This mandatory declaration could not be found anywhere on the uploaded label panels.",
+    relatedField: label,
+    ruleReference: result.clause_reference || "PCR, 2011",
+    explanation:
+      result.description ||
+      `Rule ${result.clause_reference || "PCR"} requires this declaration on every pre-packaged commodity.`,
+    evidenceSnippet: `Automated check: ${result.field_name || "field"} — not compliant.`,
+  };
+}
+
+function toExtractedField(result: ScanResultRule): ExtractedField {
+  const skipped = !result.is_applicable;
+  const missing = !skipped && result.is_compliant === false;
+  const notAssessed = result.extracted_value === "not automatically assessed";
+
+  return {
+    id: `field-${result.rule_id}`,
+    label: humanizeField(result.field_name || "declaration"),
+    value: notAssessed ? null : result.extracted_value,
+    confidence: null,
+    isMandatory: !skipped,
+    status: skipped ? "skipped" : missing ? "missing" : "verified",
+    clauseReference: result.clause_reference || "",
+    ruleReference: result.description || undefined,
+  };
+}
 
 class ReviewService {
-  /**
-   * Retrieves review data for a given scan ID.
-   * Merges real backend scan details with fallback fields where rule evaluations are pending.
-   */
+  /** Build the compliance-review view model for one scan. */
   async getReviewData(scanId: string): Promise<ReviewData> {
-    try {
-      const scanDetail = await scanService.getScanById(scanId);
+    const detail = await scanService.getScanById(scanId);
+    const results = detail.results ?? [];
 
-      // Build evidence image URLs from backend image records if present
-      const evidenceImages: EvidenceItem[] =
-        scanDetail.images && scanDetail.images.length > 0
-          ? scanDetail.images.map((img) => ({
-              id: img.image_id,
-              title: img.file_name || `Package Image (${img.type})`,
-              type: (img.type as EvidenceItem["type"]) || "original",
-              imageUrl: img.storage_path.startsWith("http")
-                ? img.storage_path
-                : `${API_BASE_URL}/${img.storage_path.replace(/^\/+/, "")}`,
-              description: `Uploaded on ${new Date(img.created_at).toLocaleDateString()}`,
-            }))
-          : [
-              {
-                id: "img-fallback",
-                title: "Submitted Package Front Label",
-                type: "original",
-                imageUrl: "",
-                description: "Primary scanned commodity label",
-              },
-            ];
+    const violations = results.filter((r) => r.is_applicable && r.is_compliant === false).length;
+    const passed = results.filter((r) => r.is_applicable && r.is_compliant === true).length;
+    const skipped = results.filter((r) => !r.is_applicable).length;
+    const counts = { violations, passed, skipped };
 
-      return {
-        scanId: scanDetail.scan_id,
-        status: scanDetail.status,
-        complianceScore:
-          scanDetail.compliance_score !== null && scanDetail.compliance_score !== undefined
-            ? Number(scanDetail.compliance_score)
-            : 88, // Presentation fallback score when backend calculation is pending
-        confidenceScore: 0.94,
-        extractedFields: DEFAULT_EXTRACTED_FIELDS,
-        evidenceImages,
-        findings: DEFAULT_FINDINGS,
-        inspectorRemarks: scanDetail.inspector_remarks,
-        createdAt: scanDetail.created_at,
-      };
-    } catch {
-      // Fallback for visual review when backend scan ID is temporary/demo
-      return {
-        scanId,
-        status: "needs_review",
-        complianceScore: 88,
-        confidenceScore: 0.94,
-        extractedFields: DEFAULT_EXTRACTED_FIELDS,
-        evidenceImages: [
-          {
-            id: "img-fallback",
-            title: "Submitted Package Front Label",
-            type: "original",
-            imageUrl: "",
-            description: "Primary scanned commodity label",
-          },
-        ],
-        findings: DEFAULT_FINDINGS,
-        inspectorRemarks: "",
-        createdAt: new Date().toISOString(),
-      };
-    }
-  }
+    const findings = results
+      .filter((r) => r.is_applicable && r.is_compliant === false)
+      .map(toFinding);
 
-  /**
-   * Records inspector's final determination and notes.
-   * 
-   * PENDING BACKEND CONTRACT:
-   * Endpoint: POST /api/scans/{scan_id}/decision
-   * Payload: { decision: InspectorDecisionType, remarks: string }
-   */
-  async submitDecision(
-    scanId: string,
-    decision: InspectorDecisionType,
-    remarks: string
-  ): Promise<{ success: boolean; finalizedAt: string }> {
-    void scanId;
-    void decision;
-    void remarks;
-    // In future: await apiClient.post(`/api/scans/${scanId}/decision`, { decision, remarks });
-    return Promise.resolve({
-      success: true,
-      finalizedAt: new Date().toISOString(),
-    });
+    const extractedFields = results.map(toExtractedField);
+
+    const evidenceImages = (detail.images || []).map((img, index) => ({
+      id: `evidence-${index}`,
+      title: `Label Panel ${index + 1}`,
+      type: "original" as const,
+      imageUrl: img.url
+        ? img.url.startsWith("http")
+          ? img.url
+          : `${API_BASE_URL}${img.url}`
+        : "",
+      description: `Uploaded ${new Date(detail.created_at).toLocaleString("en-IN")}`,
+    }));
+
+    return {
+      scanId: detail.scan_id,
+      productName: detail.product_name || "Unidentified product",
+      brand: detail.brand,
+      category: detail.category || "general",
+      status: detail.overall_status as ReviewData["status"],
+      complianceScore: detail.compliance_score !== null
+        ? Math.round(detail.compliance_score)
+        : complianceScore(counts),
+      counts: {
+        passed: counts.passed,
+        violations: counts.violations,
+        skipped: counts.skipped,
+        total: results.length,
+      },
+      extractedFields,
+      evidenceImages,
+      findings,
+      scannedAt: detail.created_at,
+    };
   }
 }
 

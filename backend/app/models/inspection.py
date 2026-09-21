@@ -4,12 +4,12 @@ import uuid
 from datetime import datetime, timezone
 from sqlalchemy import (
     Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
     String,
     Text,
-    Numeric,
-    DateTime,
-    Integer,
-    ForeignKey,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
@@ -27,15 +27,24 @@ class Inspection(Base):
         index=True
     )
     product_id = Column(UUID(as_uuid=True), nullable=True)
-    inspector_id = Column(UUID(as_uuid=True), nullable=True, index=True)
+    product_name = Column(String(255), nullable=True)
+    brand = Column(String(255), nullable=True)
+    category = Column(String(50), default="general", nullable=False, index=True)
+    
+    # User who conducted the scan
+    inspector_id = Column(String(64), nullable=True, index=True)
+    
+    # Lifecycle and verdict status: pending, processing, compliant, flagged, needs_review, finalized
     status = Column(
         String(50),
         nullable=False,
         default="pending",
         index=True
-    )  # pending, processing, quality_failed, completed, needs_review, finalized
+    )
+    overall_status = Column(String(50), default="pending", nullable=False, index=True)
     compliance_score = Column(Numeric(5, 2), nullable=True)
     inspector_remarks = Column(Text, nullable=True)
+    
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -45,8 +54,10 @@ class Inspection(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
     finalized_at = Column(DateTime(timezone=True), nullable=True)
 
-    # Relationship to images
-    images = relationship("Image", back_populates="inspection", cascade="all, delete-orphan")
+    # Relationships
+    images = relationship("Image", back_populates="inspection", cascade="all, delete-orphan", order_by="Image.panel_index")
+    scan_results = relationship("ScanResult", back_populates="inspection", cascade="all, delete-orphan")
+    reports = relationship("Report", back_populates="inspection", cascade="all, delete-orphan")
 
 
 class Image(Base):
@@ -64,11 +75,12 @@ class Image(Base):
         nullable=False,
         index=True
     )
+    panel_index = Column(Integer, default=0, nullable=False)
     type = Column(
         String(50),
         default="original",
         nullable=False
-    )  # original, processed, evidence_crop
+    )  # original, processed, evidence_crop, annotated
     storage_path = Column(Text, nullable=False)
     file_name = Column(String(255), nullable=True)
     file_size = Column(Integer, nullable=True)

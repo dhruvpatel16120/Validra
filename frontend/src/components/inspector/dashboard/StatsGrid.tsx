@@ -1,50 +1,18 @@
 import * as React from "react";
 import { ClipboardCheck, Clock3, CircleCheck, TriangleAlert, LucideIcon } from "lucide-react";
+import { DashboardStatData } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
-export interface StatItem {
-  id: string;
-  label: string;
-  value: string | number;
-  description: string;
-  icon: LucideIcon;
-  variant: "primary" | "warning" | "success" | "error";
-}
-
-const STATS: StatItem[] = [
-  {
-    id: "total-inspections",
-    label: "Total Inspections",
-    value: 128,
-    description: "All inspections",
-    icon: ClipboardCheck,
-    variant: "primary",
-  },
-  {
-    id: "pending-reviews",
-    label: "Pending Reviews",
-    value: 12,
-    description: "Awaiting review",
-    icon: Clock3,
-    variant: "warning",
-  },
-  {
-    id: "compliant",
-    label: "Compliant",
-    value: 94,
-    description: "Passed inspections",
-    icon: CircleCheck,
-    variant: "success",
-  },
-  {
-    id: "violations-found",
-    label: "Violations Found",
-    value: 34,
-    description: "Issues detected",
-    icon: TriangleAlert,
-    variant: "error",
-  },
-];
+/**
+ * Icon per card variant. The backend's stat cards carry no icon, so the
+ * existing four-metric visual language is preserved by variant.
+ */
+const ICON_BY_VARIANT: Record<DashboardStatData["variant"], LucideIcon> = {
+  primary: ClipboardCheck,
+  warning: Clock3,
+  success: CircleCheck,
+  error: TriangleAlert,
+};
 
 const VARIANT_STYLES = {
   primary: {
@@ -62,15 +30,17 @@ const VARIANT_STYLES = {
 };
 
 export interface StatsGridProps {
+  /** Ready-to-render cards from GET /api/dashboard. */
+  statCards: DashboardStatData[];
   className?: string;
 }
 
 /**
  * Reusable StatCard component for dashboard metrics.
  */
-export function StatCard({ item }: { item: StatItem }) {
-  const Icon = item.icon;
-  const styles = VARIANT_STYLES[item.variant];
+export function StatCard({ item }: { item: DashboardStatData }) {
+  const Icon = ICON_BY_VARIANT[item.variant] ?? ClipboardCheck;
+  const styles = VARIANT_STYLES[item.variant] ?? VARIANT_STYLES.primary;
 
   return (
     <article
@@ -103,10 +73,10 @@ export function StatCard({ item }: { item: StatItem }) {
 }
 
 /**
- * Responsive StatsGrid displaying four key inspector metrics.
- * 4 columns on desktop, 2 on tablet, 1 on mobile.
+ * Responsive StatsGrid displaying the key compliance metrics returned by
+ * GET /api/dashboard. 4 columns on desktop, 2 on tablet, 1 on mobile.
  */
-export function StatsGrid({ className }: StatsGridProps) {
+export function StatsGrid({ statCards, className }: StatsGridProps) {
   return (
     <section aria-label="Inspection Metrics Overview">
       <div
@@ -115,7 +85,7 @@ export function StatsGrid({ className }: StatsGridProps) {
           className
         )}
       >
-        {STATS.map((stat) => (
+        {statCards.map((stat) => (
           <StatCard key={stat.id} item={stat} />
         ))}
       </div>

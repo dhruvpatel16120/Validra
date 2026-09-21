@@ -33,6 +33,24 @@ class Settings(BaseSettings):
         "image/bmp",
     ]
 
+    # ─── Auth & Security ───
+    AUTH_SECRET: str = "validra-default-jwt-secret-key-change-in-production"
+    NEXTAUTH_SECRET: str = ""
+    JWT_ALGORITHM: str = "HS256"
+
+    # ─── OCR & Extraction ───
+    OCR_SPACE_API_KEY: str = ""
+    GROQ_API_KEY: str = ""
+    GROQ_MODEL: str = "openai/gpt-oss-120b"
+
+    # ─── Email & Notifications (SMTP / Nodemailer compatible) ───
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "noreply@validra.gov.in"
+    REPORT_RECIPIENT_EMAIL: str = "complaints.metrology@gov.in"
+
     @field_validator("ALLOWED_IMAGE_TYPES", mode="before")
     @classmethod
     def parse_allowed_image_types(cls, v: Union[List[str], str]) -> List[str]:

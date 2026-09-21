@@ -46,3 +46,30 @@ model User {
   @@index([role, isActive])
   @@map("users")
 }
+
+/// Security Audit Logs and court-verifiable incident trail.
+model AuditLog {
+  id              String    @id @default(cuid())
+  logCode         String    @unique @map("log_code")
+  timestamp       DateTime  @default(now()) @map("timestamp")
+  userName        String    @map("user_name")
+  userEmail       String    @map("user_email")
+  userRole        String    @default("admin") @map("user_role")
+  action          String
+  entityType      String    @default("system") @map("entity_type")
+  entityId        String    @default("SYSTEM") @map("entity_id")
+  ipAddress       String    @default("127.0.0.1") @map("ip_address")
+  severity        String    @default("INFO") // CRITICAL, HIGH, MEDIUM, INFO
+  status          String    @default("SUCCESS") // SUCCESS, FAILURE, SECURITY_ALERT, ACKNOWLEDGED
+  description     String
+  metadata        Json      @default("{}")
+  acknowledgedBy  String?   @map("acknowledged_by")
+  acknowledgedAt  DateTime? @map("acknowledged_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([severity, status])
+  @@index([timestamp])
+  @@index([action])
+  @@map("audit_logs")
+}

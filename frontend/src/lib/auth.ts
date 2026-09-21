@@ -11,6 +11,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
+import { recordAuditLog } from "@/lib/audit";
 import type { UserRole } from "@prisma/client";
 
 // Extend the NextAuth session and JWT types
@@ -44,6 +45,11 @@ declare module "@auth/core/jwt" {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  secret:
+    process.env.AUTH_SECRET ||
+    process.env.NEXTAUTH_SECRET ||
+    "validra-default-jwt-secret-key-change-in-production",
+  trustHost: true,
   pages: {
     signIn: "/login",
     error: "/login",
@@ -72,21 +78,57 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
 
         if (!user) {
+          await recordAuditLog({
+            userName: "Unregistered / Unknown",
+            userEmail: email,
+            userRole: "inspector",
+            action: "AUTH_FAILURE",
+            severity: "HIGH",
+            status: "FAILURE",
+            description: `Authentication failed: Account with email ${email} not found.`,
+          });
           throw new Error("INVALID_CREDENTIALS");
         }
 
         const isValid = await verifyPassword(password, user.passwordHash);
         if (!isValid) {
+          await recordAuditLog({
+            userName: user.fullName,
+            userEmail: user.email,
+            userRole: user.role.toLowerCase(),
+            action: "AUTH_FAILURE",
+            severity: "HIGH",
+            status: "FAILURE",
+            description: `Authentication failed: Incorrect password attempt for ${user.email}.`,
+          });
           throw new Error("INVALID_CREDENTIALS");
         }
 
         // Check email verification
         if (!user.isVerified) {
+          await recordAuditLog({
+            userName: user.fullName,
+            userEmail: user.email,
+            userRole: user.role.toLowerCase(),
+            action: "AUTH_FAILURE",
+            severity: "MEDIUM",
+            status: "FAILURE",
+            description: `Authentication blocked for ${user.email}: Email address not verified.`,
+          });
           throw new Error("EMAIL_NOT_VERIFIED");
         }
 
         // Check admin approval (inspectors must be approved)
         if (!user.isActive) {
+          await recordAuditLog({
+            userName: user.fullName,
+            userEmail: user.email,
+            userRole: user.role.toLowerCase(),
+            action: "AUTH_FAILURE",
+            severity: "MEDIUM",
+            status: "FAILURE",
+            description: `Authentication blocked for ${user.email}: Inspector account pending administrative approval.`,
+          });
           throw new Error("ACCOUNT_NOT_APPROVED");
         }
 
@@ -102,6 +144,35 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
+  events: {
+    async signIn({ user }) {
+      if (user?.email) {
+        await recordAuditLog({
+          userName: user.fullName || user.name || "Officer",
+          userEmail: user.email,
+          userRole: ((user.role as string) || "INSPECTOR").toLowerCase(),
+          action: (user.role as string) === "ADMIN" ? "ADMIN_LOGIN" : "USER_LOGIN",
+          severity: "INFO",
+          status: "SUCCESS",
+          description: `${(user.role as string) === "ADMIN" ? "Administrator" : "Field Inspector"} ${user.fullName || user.email} signed in successfully.`,
+        });
+      }
+    },
+    async signOut(message) {
+      if ("token" in message && message.token?.email) {
+        const token = message.token;
+        await recordAuditLog({
+          userName: (token.fullName as string) || (token.name as string) || "Officer",
+          userEmail: (token.email as string) || "",
+          userRole: ((token.role as string) || "INSPECTOR").toLowerCase(),
+          action: "USER_LOGOUT",
+          severity: "INFO",
+          status: "SUCCESS",
+          description: `User ${(token.fullName as string) || token.email} signed out from session.`,
+        });
+      }
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

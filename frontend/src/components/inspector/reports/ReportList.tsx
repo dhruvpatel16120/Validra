@@ -1,12 +1,14 @@
 import * as React from "react";
-import { FileText } from "lucide-react";
-import { ReportListItem } from "@/types/report";
+import Link from "next/link";
+import { FileWarning, ScanLine } from "lucide-react";
+import { ReportItem } from "@/types/report";
 import { ReportCard } from "./ReportCard";
 import { LoadingState, EmptyState, ErrorState } from "@/components/inspector/common";
+import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
 
 export interface ReportListProps {
-  reports: ReportListItem[];
+  reports: ReportItem[];
   isLoading: boolean;
   error: string | null;
   onRetry?: () => void;
@@ -26,7 +28,7 @@ export function ReportList({
   if (isLoading) {
     return (
       <div className="py-12">
-        <LoadingState message="Loading statutory inspection reports and certificates..." />
+        <LoadingState message="Loading your violation reports..." />
       </div>
     );
   }
@@ -35,7 +37,7 @@ export function ReportList({
     return (
       <div className="py-8 max-w-lg mx-auto">
         <ErrorState
-          title="Unable to load inspection reports"
+          title="Unable to load your violation reports"
           description={error}
           onRetry={onRetry}
         />
@@ -47,9 +49,22 @@ export function ReportList({
     return (
       <div className="py-8 max-w-lg mx-auto">
         <EmptyState
-          icon={FileText}
-          title="No inspection reports found"
-          description="Generated compliance certificates and statutory audit reports will appear here once inspections are finalized."
+          icon={FileWarning}
+          title="You have not reported any violations yet"
+          description="When a scan flags a non-compliant product, you can escalate it to Consumer Affairs and track its review status and official PDF certificates here."
+          action={
+            <Link href="/scan/new">
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                className="gap-1.5 text-xs"
+              >
+                <ScanLine className="w-3.5 h-3.5" />
+                <span>Start a scan</span>
+              </Button>
+            </Link>
+          }
         />
       </div>
     );
@@ -63,7 +78,7 @@ export function ReportList({
       )}
     >
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} />
+        <ReportCard key={report.report_id} report={report} />
       ))}
     </div>
   );

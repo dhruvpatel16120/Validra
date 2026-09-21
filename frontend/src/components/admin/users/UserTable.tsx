@@ -9,6 +9,7 @@ import {
   CheckSquare,
   Square,
   ArrowRight,
+  Check,
 } from "lucide-react";
 import { BulkActionBar } from "../common/BulkActionBar";
 import { Button } from "@/components/shared";
@@ -17,11 +18,12 @@ interface UserTableProps {
   users: AdminUser[];
   onStatusToggle: (id: string, newStatus: UserStatus) => void;
   onBulkStatusUpdate: (ids: string[], newStatus: UserStatus) => void;
+  onApprove?: (id: string) => void;
 }
 
 type SortField = "name" | "role" | "inspectionsCount" | "lastActive";
 
-export function UserTable({ users, onStatusToggle, onBulkStatusUpdate }: UserTableProps) {
+export function UserTable({ users, onStatusToggle, onBulkStatusUpdate, onApprove }: UserTableProps) {
   const [sortField, setSortField] = React.useState<SortField>("inspectionsCount");
   const [sortAsc, setSortAsc] = React.useState<boolean>(false);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
@@ -218,6 +220,17 @@ export function UserTable({ users, onStatusToggle, onBulkStatusUpdate }: UserTab
 
                     <td className="py-3 px-3 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {onApprove && user.status !== "active" && (
+                          <button
+                            onClick={() => onApprove(user.id)}
+                            className="px-2.5 py-1 rounded text-[11px] font-semibold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors cursor-pointer shadow-xs inline-flex items-center gap-1"
+                            title="Approve and activate officer"
+                          >
+                            <Check className="w-3 h-3" />
+                            <span>Approve</span>
+                          </button>
+                        )}
+
                         <button
                           onClick={() =>
                             onStatusToggle(

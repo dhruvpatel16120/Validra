@@ -1,5 +1,5 @@
 import * as React from "react";
-import { CheckCircle2, AlertTriangle, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Badge } from "@/components/shared/ui/badge";
 import { ScanStatus } from "@/types/scan";
 import { cn } from "@/lib/utils";
@@ -39,32 +39,18 @@ export function ComplianceScoreRing({
 
   const getStatusBadge = () => {
     switch (status) {
-      case "completed":
+      case "compliant":
         return (
           <Badge variant="success" className="gap-1 text-xs">
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Compliant</span>
           </Badge>
         );
-      case "needs_review":
-        return (
-          <Badge variant="warning" className="gap-1 text-xs">
-            <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Needs Review</span>
-          </Badge>
-        );
-      case "quality_failed":
+      case "flagged":
         return (
           <Badge variant="destructive" className="gap-1 text-xs">
             <XCircle className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Quality Failed</span>
-          </Badge>
-        );
-      case "finalized":
-        return (
-          <Badge variant="accent" className="gap-1 text-xs">
-            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Finalized</span>
+            <span>Flagged</span>
           </Badge>
         );
       default:
@@ -153,7 +139,7 @@ export function ComplianceScoreRing({
         </h3>
 
         <p className="text-xs text-slate-500 leading-relaxed max-w-md">
-          Evaluated according to the Legal Metrology (Packaged Commodities) Rules, 2011. Inspect mandatory fields below before making a final determination.
+          Evaluated according to the Legal Metrology (Packaged Commodities) Rules, 2011. Exempt declarations are shown as not applicable and never counted as failures.
         </p>
       </div>
     </div>

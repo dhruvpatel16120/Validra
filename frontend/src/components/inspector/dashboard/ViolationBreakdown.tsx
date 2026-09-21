@@ -4,17 +4,10 @@ import { ViolationBreakdownItem } from "@/types/dashboard";
 import { cn } from "@/lib/utils";
 
 export interface ViolationBreakdownProps {
-  data?: ViolationBreakdownItem[];
+  /** Violation counts per rule field from GET /api/dashboard. */
+  data: ViolationBreakdownItem[];
   className?: string;
 }
-
-const DEFAULT_BREAKDOWN_DATA: ViolationBreakdownItem[] = [
-  { category: "Missing declaration", count: 14, percentage: 41, severity: "high" },
-  { category: "Incorrect quantity", count: 9, percentage: 26, severity: "medium" },
-  { category: "Incorrect MRP format", count: 6, percentage: 18, severity: "medium" },
-  { category: "Manufacturer details", count: 3, percentage: 9, severity: "low" },
-  { category: "Other non-compliances", count: 2, percentage: 6, severity: "low" },
-];
 
 const SEVERITY_COLORS = {
   high: {
@@ -38,10 +31,10 @@ const SEVERITY_COLORS = {
  * Breakdown of detected statutory violations by rule category and severity.
  */
 export function ViolationBreakdown({
-  data = DEFAULT_BREAKDOWN_DATA,
+  data = [],
   className,
 }: ViolationBreakdownProps) {
-  const items = data.length > 0 ? data : DEFAULT_BREAKDOWN_DATA;
+  const items = data || [];
   const totalViolations = items.reduce((sum, item) => sum + item.count, 0);
 
   return (
@@ -66,52 +59,66 @@ export function ViolationBreakdown({
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
-          <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
-          <span>{totalViolations} Total Issues</span>
-        </div>
+        {items.length > 0 && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
+            <AlertCircle className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>{totalViolations} Total Issues</span>
+          </div>
+        )}
       </div>
 
       {/* Progress Breakdown List */}
-      <div className="py-4 space-y-3.5">
-        {items.map((item) => {
-          const colors = SEVERITY_COLORS[item.severity];
+      {items.length === 0 ? (
+        <div className="my-4 flex flex-col items-center justify-center p-8 sm:p-10 text-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 space-y-2">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mb-1">
+            <AlertCircle className="w-5 h-5" aria-hidden="true" />
+          </div>
+          <h3 className="text-sm font-semibold text-slate-900">No violations recorded</h3>
+          <p className="text-xs text-slate-500 max-w-sm leading-relaxed">
+            None of your scans have returned an applicable, non-compliant declaration yet.
+          </p>
+        </div>
+      ) : (
+        <div className="py-4 space-y-3.5">
+          {items.map((item) => {
+            const colors = SEVERITY_COLORS[item.severity];
 
-          return (
-            <div key={item.category} className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-slate-800">
-                    {item.category}
-                  </span>
-                  <span
-                    className={cn(
-                      "px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold border",
-                      colors.badge
-                    )}
-                  >
-                    {item.severity}
-                  </span>
+            return (
+              <div key={item.category} className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-800">
+                      {item.category}
+                    </span>
+                    <span
+                      className={cn(
+                        "px-1.5 py-0.5 rounded text-[10px] uppercase font-semibold border",
+                        colors.badge
+                      )}
+                    >
+                      {item.severity}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 font-mono">
+                    <span className="text-slate-500">{item.count} items</span>
+                    <span className={cn("font-semibold", colors.text)}>
+                      {Math.round(item.percentage)}%
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 font-mono">
-                  <span className="text-slate-500">{item.count} items</span>
-                  <span className={cn("font-semibold", colors.text)}>
-                    {item.percentage}%
-                  </span>
+
+                {/* Progress bar */}
+                <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-300", colors.bar)}
+                    style={{ width: `${Math.min(Math.max(item.percentage, 0), 100)}%` }}
+                  />
                 </div>
               </div>
-
-              {/* Progress bar */}
-              <div className="h-2 w-full rounded-full bg-slate-100 overflow-hidden">
-                <div
-                  className={cn("h-full rounded-full transition-all duration-300", colors.bar)}
-                  style={{ width: `${item.percentage}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Footer Legend */}
       <div className="flex items-center justify-between text-xs text-slate-500 pt-3 border-t border-slate-100">

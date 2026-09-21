@@ -14,10 +14,11 @@ export interface InspectionFiltersProps {
 const STATUS_OPTIONS: { label: string; value: InspectionStatusType }[] = [
   { label: "All Statuses", value: "all" },
   { label: "Compliant", value: "compliant" },
-  { label: "Needs Review", value: "needs_review" },
-  { label: "Violation", value: "violation" },
+  { label: "Flagged", value: "flagged" },
   { label: "Pending", value: "pending" },
+  { label: "Needs Review", value: "needs_review" },
 ];
+
 
 /**
  * Filter and search controls for inspection history.

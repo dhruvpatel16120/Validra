@@ -1,117 +1,142 @@
-import { AuditLogEntry } from "@/types/audit-log";
+import { AuditLogEntry, AuditLogStats, AuditSeverity } from "@/types/audit-log";
+import { apiClient, API_BASE_URL, getAuthToken } from "@/services/api";
 
-const MOCK_AUDIT_LOGS: AuditLogEntry[] = [
-  {
-    id: "aud-901",
-    timestamp: "2026-09-16 10:14:22",
-    userName: "Dhruv Patel",
-    userEmail: "admin@validra.gov.in",
-    userRole: "admin",
-    action: "RULE_UPDATE",
-    entityType: "rule",
-    entityId: "C01",
-    ipAddress: "192.168.1.45",
-    status: "SUCCESS",
-    description: "Updated validation logic condition for Rule C01 (MRP currency prefix standardization)",
-    metadata: {
-      previousVersion: "v1.3.0",
-      newVersion: "v1.4.0",
-      modifiedFields: ["validationLogic", "applicablePackageTypes"],
-    },
-  },
-  {
-    id: "aud-902",
-    timestamp: "2026-09-16 09:45:00",
-    userName: "Rajesh Sharma",
-    userEmail: "rajesh.sharma@lm.gov.in",
-    userRole: "inspector",
-    action: "REPORT_EXPORT",
-    entityType: "inspection",
-    entityId: "INS-2026-0842",
-    ipAddress: "10.45.12.98",
-    status: "SUCCESS",
-    description: "Signed and downloaded Court-Admissible Evidence Certificate for Basmati Rice",
-    metadata: {
-      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      complianceScore: 100,
-    },
-  },
-  {
-    id: "aud-903",
-    timestamp: "2026-09-16 08:37:10",
-    userName: "Sunita Deshmukh",
-    userEmail: "sunita.deshmukh@lm.gov.in",
-    userRole: "inspector",
-    action: "INSPECTION_REVIEW_OVERRIDE",
-    entityType: "inspection",
-    entityId: "INS-2026-0841",
-    ipAddress: "10.45.14.110",
-    status: "SUCCESS",
-    description: "Confirmed Non-Compliance finding for non-standard unit 'mls' on shampoo carton",
-    metadata: {
-      overriddenRule: "C02",
-      previousStatus: "NEEDS_REVIEW",
-      finalStatus: "NON_COMPLIANT",
-    },
-  },
-  {
-    id: "aud-904",
-    timestamp: "2026-09-15 16:30:15",
-    userName: "Dhruv Patel",
-    userEmail: "admin@validra.gov.in",
-    userRole: "admin",
-    action: "USER_INVITED",
-    entityType: "user",
-    entityId: "usr-06",
-    ipAddress: "192.168.1.45",
-    status: "SUCCESS",
-    description: "Dispatched statutory onboarding email invite to field inspector Manoj Chawla",
-    metadata: {
-      jurisdiction: "Punjab - Ludhiana",
-      roleAssigned: "inspector",
-    },
-  },
-  {
-    id: "aud-905",
-    timestamp: "2026-09-15 14:15:00",
-    userName: "System Daemon",
-    userEmail: "system@validra.internal",
-    userRole: "system",
-    action: "DOCUMENT_UPLOAD",
-    entityType: "document",
-    entityId: "doc-04",
-    ipAddress: "127.0.0.1",
-    status: "SUCCESS",
-    description: "Uploaded statutory circular 'QR Code Traceability for Seeds 2026'",
-    metadata: {
-      fileSize: 3100000,
-      mimeType: "application/pdf",
-    },
-  },
-  {
-    id: "aud-906",
-    timestamp: "2026-09-14 23:04:12",
-    userName: "Unknown",
-    userEmail: "guest@unauthorized.net",
-    userRole: "unauthenticated",
-    action: "USER_LOGIN",
-    entityType: "system",
-    entityId: "AUTH_GATE",
-    ipAddress: "203.0.113.195",
-    status: "SECURITY_ALERT",
-    description: "Repeated failed login attempts on admin supervisory portal",
-    metadata: {
-      attempts: 5,
-      blockedDurationSeconds: 900,
-    },
-  },
-];
-
-export async function getAuditLogs(): Promise<AuditLogEntry[]> {
-  return [...MOCK_AUDIT_LOGS];
+export interface BackendAuditItem {
+  id: string;
+  timestamp: string;
+  user_name: string;
+  user_email: string;
+  user_role: string;
+  action: string;
+  entity_type: string;
+  entity_id: string;
+  ip_address: string;
+  severity: string;
+  status: string;
+  description: string;
+  metadata: Record<string, unknown>;
+  acknowledged_by?: string | null;
+  acknowledged_at?: string | null;
 }
 
-export async function getAuditLogById(id: string): Promise<AuditLogEntry | null> {
-  const log = MOCK_AUDIT_LOGS.find((l) => l.id === id);
-  return log ? { ...log } : null;
+export interface BackendAuditStats {
+  total_events: number;
+  critical_alerts: number;
+  high_alerts: number;
+  failed_logins_24h: number;
+  unacknowledged_alerts: number;
+  active_incidents: number;
+}
+
+function mapBackendAudit(item: BackendAuditItem): AuditLogEntry {
+  return {
+    id: item.id,
+    timestamp: item.timestamp,
+    userName: item.user_name,
+    userEmail: item.user_email,
+    userRole: item.user_role,
+    action: item.action,
+    entityType: item.entity_type,
+    entityId: item.entity_id,
+    ipAddress: item.ip_address,
+    severity: (item.severity?.toUpperCase() || "INFO") as AuditSeverity,
+    status: item.status as AuditLogEntry["status"],
+    description: item.description,
+    metadata: item.metadata || {},
+    acknowledgedBy: item.acknowledged_by,
+    acknowledgedAt: item.acknowledged_at,
+  };
+}
+
+export async function getAuditLogs(filters?: {
+  severity?: string;
+  action?: string;
+  status?: string;
+  search?: string;
+}): Promise<AuditLogEntry[]> {
+  try {
+    const params = new URLSearchParams();
+    if (filters?.severity && filters.severity !== "ALL") params.append("severity", filters.severity);
+    if (filters?.action && filters.action !== "ALL") params.append("action", filters.action);
+    if (filters?.status && filters.status !== "ALL") params.append("status", filters.status);
+    if (filters?.search) params.append("search", filters.search);
+
+    const query = params.toString() ? `?${params.toString()}` : "";
+    const res = await apiClient.get<BackendAuditItem[]>(`/api/admin/audit-logs${query}`);
+    return (res || []).map(mapBackendAudit);
+  } catch (err) {
+    console.warn("Failed to fetch audit logs from backend, using fallback:", err);
+    return [];
+  }
+}
+
+export async function getAuditStats(): Promise<AuditLogStats> {
+  try {
+    const res = await apiClient.get<BackendAuditStats>("/api/admin/audit-logs/stats");
+    return {
+      totalEvents: res.total_events,
+      criticalAlerts: res.critical_alerts,
+      highAlerts: res.high_alerts,
+      failedLogins24h: res.failed_logins_24h,
+      unacknowledgedAlerts: res.unacknowledged_alerts,
+      activeIncidents: res.active_incidents,
+    };
+  } catch {
+    return {
+      totalEvents: 0,
+      criticalAlerts: 0,
+      highAlerts: 0,
+      failedLogins24h: 0,
+      unacknowledgedAlerts: 0,
+      activeIncidents: 0,
+    };
+  }
+}
+
+export async function acknowledgeAuditIncident(id: string): Promise<AuditLogEntry> {
+  const res = await apiClient.post<BackendAuditItem>(`/api/admin/audit-logs/${id}/acknowledge`);
+  return mapBackendAudit(res);
+}
+
+export async function logSecurityEvent(payload: {
+  action: string;
+  description: string;
+  severity?: AuditSeverity;
+  status?: string;
+  entityType?: string;
+  entityId?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<AuditLogEntry> {
+  const res = await apiClient.post<BackendAuditItem>("/api/admin/audit-logs", {
+    action: payload.action,
+    description: payload.description,
+    severity: payload.severity || "INFO",
+    status: payload.status || "SUCCESS",
+    entity_type: payload.entityType || "system",
+    entity_id: payload.entityId || "SYSTEM",
+    metadata: payload.metadata || {},
+  });
+  return mapBackendAudit(res);
+}
+
+export async function downloadAuditCsv(): Promise<void> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {};
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const res = await fetch(`${API_BASE_URL}/api/admin/audit-logs/export`, {
+    headers,
+  });
+
+  if (!res.ok) throw new Error("Failed to export audit logs CSV");
+
+  const blob = await res.blob();
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `validra-security-audit-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.URL.revokeObjectURL(url);
 }

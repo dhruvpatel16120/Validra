@@ -49,7 +49,7 @@ export function EvidenceViewer({ images, className }: EvidenceViewerProps) {
             Package Evidence Viewer
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Original scan and cropped declaration bounding boxes
+            Original label panels stored for this scan
           </p>
         </div>
 
@@ -102,10 +102,14 @@ export function EvidenceViewer({ images, className }: EvidenceViewerProps) {
               <ImageOff className="w-5 h-5" aria-hidden="true" />
             </div>
             <p className="text-xs font-medium text-slate-800">
-              Evidence Image Preview Unavailable
+              {!activeImage
+                ? "No Evidence Images Captured"
+                : "Evidence Image Preview Unavailable"}
             </p>
             <p className="text-[11px] text-slate-500 max-w-xs leading-relaxed">
-              Original scan image stored on server disk. Check server upload storage.
+              {!activeImage
+                ? "No label panels were stored for this scan."
+                : "The stored label panel could not be loaded from the server."}
             </p>
           </div>
         ) : (

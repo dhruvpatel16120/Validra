@@ -1,0 +1,142 @@
+[
+  {
+    "id": "AUD-2026-0091",
+    "timestamp": "2026-09-21T17:15:30Z",
+    "user_name": "System Admin",
+    "user_email": "admin@validra.gov.in",
+    "user_role": "admin",
+    "action": "INSPECTOR_APPROVED",
+    "entity_type": "user",
+    "entity_id": "cmu4i7wyq0000ltbc76s7m9f5",
+    "ip_address": "127.0.0.1",
+    "severity": "INFO",
+    "status": "SUCCESS",
+    "description": "Inspector account 'Dhruv Patel' (dhruvpatel16120@gmail.com) verified and activated for field inspections.",
+    "metadata": {
+      "approver": "admin@validra.gov.in",
+      "zone": "Central Oversight"
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0090",
+    "timestamp": "2026-09-21T17:05:12Z",
+    "user_name": "Anonymous",
+    "user_email": "intruder@external-node.net",
+    "user_role": "unauthenticated",
+    "action": "BRUTE_FORCE_TRIGGER",
+    "entity_type": "system",
+    "entity_id": "AUTH_PORTAL",
+    "ip_address": "198.51.100.84",
+    "severity": "CRITICAL",
+    "status": "SECURITY_ALERT",
+    "description": "5 consecutive failed authentication attempts on administrative portal within 60 seconds. IP temporarily rate-limited.",
+    "metadata": {
+      "failedAttempts": 5,
+      "rateLimitWindow": "15m",
+      "protocol": "HTTPS"
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0089",
+    "timestamp": "2026-09-21T16:50:00Z",
+    "user_name": "System Admin",
+    "user_email": "admin@validra.gov.in",
+    "user_role": "admin",
+    "action": "JWT_KEY_ROTATION",
+    "entity_type": "security",
+    "entity_id": "AUTH_SECRET",
+    "ip_address": "127.0.0.1",
+    "severity": "MEDIUM",
+    "status": "SUCCESS",
+    "description": "Synchronized symmetric HS256 secret keys between NextAuth frontend and FastAPI backend.",
+    "metadata": {
+      "algorithm": "HS256",
+      "tokenExpiryHours": 8
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0088",
+    "timestamp": "2026-09-21T15:22:45Z",
+    "user_name": "Inspector Sharma",
+    "user_email": "inspector.sharma@validra.gov.in",
+    "user_role": "inspector",
+    "action": "REPORT_EXPORT",
+    "entity_type": "inspection",
+    "entity_id": "INS-2026-0842",
+    "ip_address": "10.45.12.98",
+    "severity": "INFO",
+    "status": "SUCCESS",
+    "description": "Downloaded signed Court-Admissible Compliance Certificate (PCR Rule 6 Evidence).",
+    "metadata": {
+      "sha256": "8f4e2c91a0b3d5e78c4f9a12b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2",
+      "score": 100
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0087",
+    "timestamp": "2026-09-21T14:10:18Z",
+    "user_name": "Unknown",
+    "user_email": "unknown@103.22.45.12",
+    "user_role": "unauthenticated",
+    "action": "RBAC_VIOLATION",
+    "entity_type": "admin",
+    "entity_id": "/api/admin/dashboard",
+    "ip_address": "103.22.45.12",
+    "severity": "HIGH",
+    "status": "SECURITY_ALERT",
+    "description": "Unauthorized attempt to access administrative metrics endpoint without valid administrative Bearer claims.",
+    "metadata": {
+      "httpStatus": 403,
+      "endpoint": "/api/admin/dashboard"
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0086",
+    "timestamp": "2026-09-21T11:04:02Z",
+    "user_name": "System Admin",
+    "user_email": "admin@validra.gov.in",
+    "user_role": "admin",
+    "action": "RULE_UPDATE",
+    "entity_type": "rule",
+    "entity_id": "C01",
+    "ip_address": "127.0.0.1",
+    "severity": "INFO",
+    "status": "SUCCESS",
+    "description": "Updated mandatory statutory declaration text pattern for Rule C01 (MRP Currency Prefix \u20b9 / Rs.).",
+    "metadata": {
+      "ruleCode": "C01",
+      "version": "v1.4.0"
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  },
+  {
+    "id": "AUD-2026-0085",
+    "timestamp": "2026-09-20T22:45:10Z",
+    "user_name": "System Admin",
+    "user_email": "admin@validra.gov.in",
+    "user_role": "admin",
+    "action": "ADMIN_LOGIN",
+    "entity_type": "user",
+    "entity_id": "cmu4i6axh0000lts0168h7r8q",
+    "ip_address": "127.0.0.1",
+    "severity": "INFO",
+    "status": "SUCCESS",
+    "description": "Successful administrative session initiated via credentials authentication.",
+    "metadata": {
+      "userAgent": "Mozilla/5.0 Windows NT 10.0"
+    },
+    "acknowledged_by": null,
+    "acknowledged_at": null
+  }
+]

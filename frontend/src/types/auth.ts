@@ -25,6 +25,55 @@ export interface User {
 }
 
 /**
+ * Compliance statistics for the user profile.
+ */
+export interface UserStats {
+  total_scans: number;
+  compliant: number;
+  flagged: number;
+  needs_review?: number;
+  reports: number;
+  avg_compliance_score?: number;
+}
+
+export interface RecentScanItem {
+  inspection_id: string;
+  product_name?: string | null;
+  brand?: string | null;
+  category: string;
+  overall_status: string;
+  compliance_score?: number | null;
+  created_at: string;
+}
+
+/**
+ * Serialized user object returned by profile endpoints matching users DB table.
+ */
+export interface ProfileUser {
+  id: string;
+  email: string;
+  full_name: string;
+  fullName?: string;
+  role: UserRole | string;
+  is_active?: boolean;
+  is_verified?: boolean;
+  badge_number?: string | null;
+  badgeNumber?: string | null;
+  jurisdiction?: string | null;
+  created_at?: string;
+  updated_at?: string | null;
+}
+
+/**
+ * Profile response payload including user details and compliance metrics.
+ */
+export interface ProfileResponse {
+  user: ProfileUser;
+  stats: UserStats;
+  recent_scans?: RecentScanItem[];
+}
+
+/**
  * Authentication session payload.
  */
 export interface AuthSession {

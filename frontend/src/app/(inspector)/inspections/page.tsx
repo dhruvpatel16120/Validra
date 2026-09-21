@@ -8,12 +8,20 @@ import {
   InspectionTable,
 } from "@/components/inspector/inspections";
 import { inspectionService } from "@/services/inspection-service";
+import { getUserFriendlyErrorMessage } from "@/services/api";
 import {
   InspectionFilterState,
   InspectionListItem,
   InspectionPaginationState,
-  InspectionStatusType,
 } from "@/types/inspection";
+
+const VALID_STATUSES = ["compliant", "flagged", "pending"] as const;
+
+function parseStatusParam(value: string | null): InspectionFilterState["status"] {
+  return value && (VALID_STATUSES as readonly string[]).includes(value)
+    ? (value as InspectionFilterState["status"])
+    : "all";
+}
 
 function InspectionsContent() {
   const router = useRouter();
@@ -22,12 +30,14 @@ function InspectionsContent() {
 
   // Read initial filter values from URL params
   const initialSearch = searchParams.get("search") || "";
-  const initialStatus = (searchParams.get("status") as InspectionStatusType) || "all";
+  const initialStatus = parseStatusParam(searchParams.get("status"));
+  const initialCategory = searchParams.get("category") || "all";
   const initialPage = parseInt(searchParams.get("page") || "1", 10);
 
   const [filters, setFilters] = React.useState<InspectionFilterState>({
     search: initialSearch,
     status: initialStatus,
+    category: initialCategory,
   });
 
   const [page, setPage] = React.useState<number>(initialPage || 1);
@@ -47,6 +57,7 @@ function InspectionsContent() {
       const params = new URLSearchParams();
       if (newFilters.search.trim()) params.set("search", newFilters.search.trim());
       if (newFilters.status !== "all") params.set("status", newFilters.status);
+      if (newFilters.category && newFilters.category !== "all") params.set("category", newFilters.category);
       if (newPage > 1) params.set("page", String(newPage));
 
       const query = params.toString();
@@ -63,9 +74,7 @@ function InspectionsContent() {
       setItems(result.items);
       setPagination(result.pagination);
     } catch (err: unknown) {
-      const msg =
-        err instanceof Error ? err.message : "Failed to load inspections.";
-      setError(msg);
+      setError(getUserFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -85,9 +94,7 @@ function InspectionsContent() {
       })
       .catch((err: unknown) => {
         if (isMounted) {
-          const msg =
-            err instanceof Error ? err.message : "Failed to load inspections.";
-          setError(msg);
+          setError(getUserFriendlyErrorMessage(err));
           setIsLoading(false);
         }
       });
@@ -105,7 +112,11 @@ function InspectionsContent() {
   };
 
   const handleResetFilters = () => {
-    const resetState: InspectionFilterState = { search: "", status: "all" };
+    const resetState: InspectionFilterState = {
+      search: "",
+      status: "all",
+      category: "all",
+    };
     setFilters(resetState);
     setPage(1);
     setIsLoading(true);
