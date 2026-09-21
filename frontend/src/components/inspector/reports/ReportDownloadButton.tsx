@@ -32,15 +32,13 @@ export function ReportDownloadButton({
     setNotice(null);
 
     try {
-      const result = await reportService.downloadReport(reportId);
-      if (!result.supported) {
-        setNotice(result.message);
-      }
+      await reportService.downloadReportPdf(reportId);
     } catch {
       setNotice("Download request failed. Please check server connection.");
     } finally {
       setIsDownloading(false);
     }
+
   };
 
   return (

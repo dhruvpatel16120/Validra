@@ -1,207 +1,173 @@
-import {
-  InspectionListItem,
-  InspectionFilterState,
-  InspectionPaginationState,
-  InspectionDetail,
-} from "@/types/inspection";
-import { DEFAULT_EXTRACTED_FIELDS, DEFAULT_FINDINGS } from "./review-service";
-
 /**
- * Temporary presentation dataset for inspections.
- * 
- * PENDING BACKEND CONTRACT:
- * Endpoint: GET /api/inspections?search=&status=&page=&limit=
- * Detail: GET /api/inspections/{id}
- * Backend Model: app.models.inspection.Inspection
+ * Scan-history service.
+ *
+ * The UI calls these "inspections"; the backend calls them "scans". This maps
+ * the real GET /api/scans response into the presentation shape used by the
+ * inspection table and detail views.
  */
-export const SAMPLE_INSPECTION_LIST: InspectionListItem[] = [
-  {
-    id: "ins-001",
-    code: "INS-1024",
-    productName: "Premium Basmati Rice 5kg",
-    category: "Packaged Food",
-    status: "Compliant",
-    date: "Sep 16, 2026",
-    score: 96,
-    scanId: "scan-1024",
-    reportId: "rep-1024",
-  },
-  {
-    id: "ins-002",
-    code: "INS-1023",
-    productName: "Floor Disinfectant Surface Cleaner 1L",
-    category: "Household Chemicals",
-    status: "Review",
-    date: "Sep 15, 2026",
-    score: 78,
-    scanId: "scan-1023",
-    reportId: null,
-  },
-  {
-    id: "ins-003",
-    code: "INS-1022",
-    productName: "Hydrating Moisturizer Cream 100g",
-    category: "Cosmetics",
-    status: "Violation",
-    date: "Sep 14, 2026",
-    score: 61,
-    scanId: "scan-1022",
-    reportId: "rep-1022",
-  },
-  {
-    id: "ins-004",
-    code: "INS-1021",
-    productName: "Sparkling Apple Juice 750ml",
-    category: "Packaged Beverage",
-    status: "Compliant",
-    date: "Sep 13, 2026",
-    score: 92,
-    scanId: "scan-1021",
-    reportId: "rep-1021",
-  },
-  {
-    id: "ins-005",
-    code: "INS-1020",
-    productName: "Whole Wheat Flour 10kg",
-    category: "Packaged Food",
-    status: "Compliant",
-    date: "Sep 12, 2026",
-    score: 95,
-    scanId: "scan-1020",
-    reportId: "rep-1020",
-  },
-  {
-    id: "ins-006",
-    code: "INS-1019",
-    productName: "Antiseptic Hand Wash 250ml",
-    category: "Personal Care",
-    status: "Review",
-    date: "Sep 11, 2026",
-    score: 74,
-    scanId: "scan-1019",
-    reportId: null,
-  },
-  {
-    id: "ins-007",
-    code: "INS-1018",
-    productName: "Refined Sunflower Oil 1L",
-    category: "Packaged Food",
-    status: "Violation",
-    date: "Sep 10, 2026",
-    score: 58,
-    scanId: "scan-1018",
-    reportId: "rep-1018",
-  },
-  {
-    id: "ins-008",
-    code: "INS-1017",
-    productName: "Herbal Green Tea 50 Bags",
-    category: "Beverages",
-    status: "Compliant",
-    date: "Sep 09, 2026",
-    score: 98,
-    scanId: "scan-1017",
-    reportId: "rep-1017",
-  },
-];
+
+import { scanService } from "./scan-service";
+import { complianceScore, scanCode, type ScanSummary } from "@/types/scan";
+import type {
+  InspectionDetail,
+  InspectionFilterState,
+  InspectionListItem,
+  InspectionPaginationState,
+} from "@/types/inspection";
+
+export function toInspectionListItem(scan: ScanSummary): InspectionListItem {
+  const score = complianceScore({
+    passed: scan.passed_count ?? 0,
+    violations: scan.violations_count ?? 0,
+    skipped: scan.skipped_count ?? 0,
+  });
+
+  return {
+    id: scan.scan_id,
+    code: scanCode(scan.scan_id),
+    productName: scan.product_name || "Unidentified product",
+    brand: scan.brand,
+    category: scan.category || "general",
+    status: scan.overall_status,
+    date: formatScanDate(scan.created_at),
+    scannedAt: scan.created_at,
+    score,
+    scanId: scan.scan_id,
+    violations: scan.violations_count ?? 0,
+    passed: scan.passed_count ?? 0,
+    skipped: scan.skipped_count ?? 0,
+    imageUrl: null,
+  };
+}
+
+export function formatScanDate(value: string): string {
+  if (!value) return "—";
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 class InspectionService {
   /**
-   * Retrieves a filtered and paginated list of inspections.
+   * The user's own scan history, filtered and paginated client-side.
+   *
+   * Filtering/pagination happens here rather than on the server so the status
+   * and category filters can be applied against the same loaded snapshot.
    */
   async getInspections(
-    filters: InspectionFilterState,
+    filters: InspectionFilterState = { search: "", status: "all", category: "all" },
     page: number = 1,
-    pageSize: number = 5
-  ): Promise<{
-    items: InspectionListItem[];
-    pagination: InspectionPaginationState;
-  }> {
-    let filtered = [...SAMPLE_INSPECTION_LIST];
+    pageSize: number = 10
+  ): Promise<{ items: InspectionListItem[]; pagination: InspectionPaginationState }> {
+    const response = await scanService.listMyScans({ limit: 100 });
+    let items = (response.items || []).map(toInspectionListItem);
 
-    // Apply text search
-    if (filters.search.trim()) {
-      const q = filters.search.toLowerCase();
-      filtered = filtered.filter(
+    const query = filters.search.trim().toLowerCase();
+    if (query) {
+      items = items.filter(
         (item) =>
-          item.productName.toLowerCase().includes(q) ||
-          item.code.toLowerCase().includes(q) ||
-          item.category.toLowerCase().includes(q)
+          item.productName.toLowerCase().includes(query) ||
+          item.code.toLowerCase().includes(query) ||
+          (item.brand || "").toLowerCase().includes(query) ||
+          item.category.toLowerCase().includes(query)
       );
     }
 
-    // Apply status filter
     if (filters.status && filters.status !== "all") {
-      filtered = filtered.filter((item) => {
-        if (filters.status === "compliant") return item.status === "Compliant";
-        if (filters.status === "needs_review") return item.status === "Review";
-        if (filters.status === "violation") return item.status === "Violation";
-        if (filters.status === "pending") return item.status === "Pending";
-        return true;
-      });
+      items = items.filter((item) => item.status === filters.status);
     }
 
-    const totalItems = filtered.length;
+    if (filters.category && filters.category !== "all") {
+      items = items.filter((item) => item.category === filters.category);
+    }
+
+    const totalItems = items.length;
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     const currentPage = Math.min(Math.max(1, page), totalPages);
-    const startIndex = (currentPage - 1) * pageSize;
-    const paginatedItems = filtered.slice(startIndex, startIndex + pageSize);
+    const start = (currentPage - 1) * pageSize;
 
     return {
-      items: paginatedItems,
-      pagination: {
-        currentPage,
-        pageSize,
-        totalItems,
-        totalPages,
-      },
+      items: items.slice(start, start + pageSize),
+      pagination: { currentPage, pageSize, totalItems, totalPages },
     };
   }
 
-  /**
-   * Retrieves full details for a single inspection by reference ID.
-   */
-  async getInspectionById(id: string): Promise<InspectionDetail> {
-    const item = SAMPLE_INSPECTION_LIST.find(
-      (insp) => insp.id === id || insp.code.toLowerCase() === id.toLowerCase()
+  /** Full detail for one scan, shaped for the inspection detail view. */
+  async getInspectionById(scanId: string): Promise<InspectionDetail> {
+    const detail = await scanService.getScanById(scanId);
+
+    const violations = detail.results.filter((r) => r.is_applicable && r.is_compliant === false).length;
+    const passed = detail.results.filter((r) => r.is_applicable && r.is_compliant === true).length;
+    const skipped = detail.results.filter((r) => !r.is_applicable).length;
+
+    const base: InspectionListItem = {
+      id: detail.scan_id,
+      code: scanCode(detail.scan_id),
+      productName: detail.product_name || "Unidentified product",
+      brand: detail.brand,
+      category: detail.category || "general",
+      status: detail.overall_status,
+      date: formatScanDate(detail.created_at),
+      scannedAt: detail.created_at,
+      score: complianceScore({ violations, passed, skipped }),
+      scanId: detail.scan_id,
+      violations,
+      passed,
+      skipped,
+      imageUrl: detail.images?.[0]?.url ?? null,
+    };
+
+    const imageUrls = (detail.images || []).map((img) =>
+      img.url
+        ? img.url.startsWith("http")
+          ? img.url
+          : `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}${img.url}`
+        : ""
     );
 
-    if (!item) {
-      // If requested ID is unknown, throw a not found error
-      throw new Error(`Inspection record with ID "${id}" was not found.`);
+    return {
+      ...base,
+      results: detail.results ?? [],
+      images: imageUrls,
+      rawOcrText: null,
+    };
+  }
+
+  /** Download inspection PDF report certificate. */
+  async downloadInspectionPdf(inspectionId: string): Promise<void> {
+    const { API_BASE_URL, getAuthToken } = await import("./api");
+    const token = getAuthToken();
+    const url = `${API_BASE_URL}/api/inspections/${inspectionId}/pdf`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      credentials: "include",
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to generate inspection PDF certificate.");
     }
 
-    return {
-      id: item.id,
-      code: item.code,
-      productName: item.productName,
-      category: item.category,
-      status: item.status,
-      score: item.score,
-      date: item.date,
-      completedAt: `${item.date} 14:30 IST`,
-      inspectorName: "Senior Metrology Inspector #IND-409",
-      scanId: item.scanId,
-      reportId: item.reportId,
-      remarks:
-        item.status === "Violation"
-          ? "Statutory violation recorded under LM Rules 2011 Rule 6(1)(e). Mandatory declarations missing from primary package display panel."
-          : item.status === "Review"
-          ? "Borderline declaration visibility. Secondary confirmation recommended prior to certificate clearance."
-          : "All mandatory statutory declarations verified and fully compliant with Packaged Commodities regulations.",
-      findings: item.status === "Violation" ? DEFAULT_FINDINGS : [],
-      evidenceImages: [
-        {
-          id: "ev-1",
-          title: "Primary Front Label Capture",
-          type: "original",
-          imageUrl: "",
-          description: "Full frontal packaging surface area",
-        },
-      ],
-      extractedFields: DEFAULT_EXTRACTED_FIELDS,
-    };
+    const blob = await response.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = `validra_inspection_${inspectionId.slice(0, 8)}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(blobUrl);
   }
 }
 
 export const inspectionService = new InspectionService();
+

@@ -235,3 +235,75 @@ async def finalize_inspection(
 
     await db.commit()
     return {"message": "Inspection finalized successfully.", "status": "finalized"}
+
+
+@router.get(
+    "/{inspection_id}/pdf",
+    summary="Download inspection certificate as PDF"
+)
+async def download_inspection_pdf(
+    inspection_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user),
+):
+    """Generate and return an official ReportLab PDF inspection audit certificate."""
+    from fastapi.responses import Response
+    from sqlalchemy.orm import selectinload
+    from app.models.scan_result import ScanResult
+    from app.services.report_service import generate_pdf_report
+
+    try:
+        insp_uuid = uuid.UUID(inspection_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid inspection ID.")
+
+    stmt = (
+        select(Inspection)
+        .options(selectinload(Inspection.scan_results).selectinload(ScanResult.rule))
+        .where(Inspection.inspection_id == insp_uuid)
+    )
+    res = await db.execute(stmt)
+    insp = res.scalar_one_or_none()
+
+    if not insp:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Inspection not found.")
+
+    violations = []
+    all_results = []
+    for sr in insp.scan_results:
+        result_dict = {
+            "field_name": sr.rule.field_name if sr.rule else None,
+            "clause_reference": sr.rule.clause_reference if sr.rule else None,
+            "extracted_value": sr.extracted_value,
+            "is_applicable": sr.is_applicable,
+            "is_compliant": sr.is_compliant,
+            "description": sr.rule.description if sr.rule else None,
+        }
+        all_results.append(result_dict)
+        if sr.is_applicable and sr.is_compliant is False:
+            violations.append(result_dict)
+
+    pdf_bytes = generate_pdf_report(
+        report_id=str(insp.inspection_id),
+        scan_id=str(insp.inspection_id),
+        product_name=insp.product_name or "Unspecified Product",
+        brand=insp.brand,
+        category=insp.category,
+        status="compliant" if (insp.status == "compliant" or len(violations) == 0) else "flagged",
+        reported_by=insp.inspector_id or "Inspector",
+        reported_at=insp.created_at,
+        violations=violations,
+        all_results=all_results,
+        compliance_score=insp.compliance_score,
+    )
+
+    filename = f"validra_inspection_{str(insp.inspection_id)[:8]}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache",
+        },
+    )
+

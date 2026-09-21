@@ -7,7 +7,7 @@
 
 import type { ScanResultRule, ScanStatus } from "./scan";
 
-export type InspectionStatusType = ScanStatus;
+export type InspectionStatusType = "all" | ScanStatus;
 
 export interface InspectionListItem {
   id: string;

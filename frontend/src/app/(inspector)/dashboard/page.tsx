@@ -9,6 +9,7 @@ import {
   ViolationBreakdown,
 } from "@/components/inspector/dashboard";
 import { dashboardService } from "@/services/dashboard-service";
+import { getUserFriendlyErrorMessage } from "@/services/api";
 import { DashboardData } from "@/types/dashboard";
 
 export default function DashboardPage() {
@@ -23,9 +24,7 @@ export default function DashboardPage() {
       const result = await dashboardService.getDashboardData();
       setData(result);
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load dashboard metrics.";
-      setError(message);
+      setError(getUserFriendlyErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -44,9 +43,7 @@ export default function DashboardPage() {
       })
       .catch((err: unknown) => {
         if (isMounted) {
-          const message =
-            err instanceof Error ? err.message : "Failed to load dashboard metrics.";
-          setError(message);
+          setError(getUserFriendlyErrorMessage(err));
           setIsLoading(false);
         }
       });
@@ -72,7 +69,8 @@ export default function DashboardPage() {
           description={error}
           onRetry={handleReload}
         />
-      ) : !data || (data.stats.length === 0 && data.recentInspections.length === 0) ? (
+      ) : !data ||
+        (data.stats.total_scans === 0 && data.recentScans.length === 0) ? (
         <EmptyState
           title="No inspection records found"
           description="Your dashboard metrics and analytics will appear here as soon as product scans are executed."
@@ -80,7 +78,7 @@ export default function DashboardPage() {
       ) : (
         <>
           {/* Key Metric Counters */}
-          <StatsGrid />
+          <StatsGrid statCards={data.statCards} />
 
           {/* Analytics Grid: Compliance Trend & Violation Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -89,7 +87,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Inspections Table */}
-          <RecentInspections inspections={data.recentInspections} />
+          <RecentInspections inspections={data.recentScans} />
         </>
       )}
     </div>

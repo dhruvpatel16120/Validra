@@ -8,23 +8,47 @@ import {
   ImageUploader,
   CameraCapture,
   UploadProgress,
+  MAX_SCAN_IMAGES,
 } from "@/components/inspector/scan";
 import { Button } from "@/components/shared/ui/button";
 import { scanService } from "@/services/scan-service";
+import { getUserFriendlyErrorMessage } from "@/services/api";
 import { ScanUploadState } from "@/types/scan";
 import { cn } from "@/lib/utils";
 
 type InputMode = "upload" | "camera";
 
+const MAX_PHOTOS = MAX_SCAN_IMAGES;
+
 export default function NewScanPage() {
   const router = useRouter();
   const [mode, setMode] = React.useState<InputMode>("upload");
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const [photos, setPhotos] = React.useState<File[]>([]);
   const [uploadState, setUploadState] = React.useState<ScanUploadState>("idle");
   const [uploadError, setUploadError] = React.useState<string | null>(null);
 
-  const handleFileSelect = (file: File | null) => {
-    setSelectedFile(file);
+  const redirectTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (redirectTimer.current) clearTimeout(redirectTimer.current);
+    };
+  }, []);
+
+  const isUploading = uploadState === "uploading";
+  const totalSize = photos.reduce((sum, file) => sum + file.size, 0);
+  const isAtLimit = photos.length >= MAX_PHOTOS;
+
+  const handleFilesSelected = (files: File[]) => {
+    setPhotos((prev) => [...prev, ...files].slice(0, MAX_PHOTOS));
+    if (uploadState === "error") {
+      setUploadState("idle");
+      setUploadError(null);
+    }
+  };
+
+  const handleRemoveFile = (index: number) => {
+    setPhotos((prev) => prev.filter((_, i) => i !== index));
     if (uploadState === "error") {
       setUploadState("idle");
       setUploadError(null);
@@ -32,32 +56,28 @@ export default function NewScanPage() {
   };
 
   const handleCameraCapture = (file: File) => {
-    setSelectedFile(file);
+    handleFilesSelected([file]);
     setMode("upload"); // Switch to preview mode once captured
   };
 
   const handleStartScan = async () => {
-    if (!selectedFile) return;
+    if (!photos.length || isUploading) return;
 
     setUploadState("uploading");
     setUploadError(null);
 
     try {
-      const response = await scanService.uploadScan(selectedFile);
+      const response = await scanService.uploadScan(photos);
       setUploadState("complete");
-      // Short delay for user to register upload completion before transition
-      setTimeout(() => {
+      // Short delay for the user to register completion before the transition.
+      redirectTimer.current = setTimeout(() => {
         router.push(`/scan/${response.scan_id}/processing`);
       }, 500);
     } catch (err: unknown) {
       setUploadState("error");
-      const message =
-        err instanceof Error ? err.message : "Failed to initiate package scan.";
-      setUploadError(message);
+      setUploadError(getUserFriendlyErrorMessage(err));
     }
   };
-
-  const isUploading = uploadState === "preparing" || uploadState === "uploading";
 
   return (
     <div className="space-y-6 sm:space-y-8 max-w-4xl mx-auto">
@@ -76,7 +96,7 @@ export default function NewScanPage() {
             <span className="font-semibold text-slate-900 block mb-0.5">
               Legal Metrology (Packaged Commodities) Guidelines
             </span>
-            Capture a well-lit, non-blurry image. Ensure mandatory declarations (MRP, Net Quantity, Mfg/Pack Date, Batch No, and Manufacturer Address) are squarely visible.
+            Capture 1 to 4 well-lit, non-blurry images. Ensure mandatory declarations (MRP, Net Quantity, Mfg/Pack Date, Batch No, and Manufacturer Address) are squarely visible.
           </div>
         </div>
 
@@ -99,12 +119,14 @@ export default function NewScanPage() {
           <button
             type="button"
             onClick={() => setMode("camera")}
-            disabled={isUploading}
+            disabled={isUploading || isAtLimit}
+            title={isAtLimit ? `Maximum ${MAX_PHOTOS} photos per scan` : undefined}
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer",
               mode === "camera"
                 ? "bg-white text-emerald-800 font-semibold shadow-xs border border-slate-200/60"
-                : "text-slate-600 hover:text-slate-900"
+                : "text-slate-600 hover:text-slate-900",
+              isAtLimit && "opacity-50 cursor-not-allowed"
             )}
           >
             <Camera className="w-3.5 h-3.5" />
@@ -118,36 +140,46 @@ export default function NewScanPage() {
         <CameraCapture
           onCapture={handleCameraCapture}
           onCancel={() => setMode("upload")}
+          photoNumber={Math.min(photos.length + 1, MAX_PHOTOS)}
+          maxPhotos={MAX_PHOTOS}
         />
       ) : (
         <div className="space-y-4">
           <ImageUploader
-            selectedFile={selectedFile}
-            onFileSelect={handleFileSelect}
+            selectedFiles={photos}
+            onFilesSelected={handleFilesSelected}
+            onRemoveFile={handleRemoveFile}
+            maxFiles={MAX_PHOTOS}
             disabled={isUploading}
           />
 
           {/* Upload Progress Status */}
           <UploadProgress
             state={uploadState}
-            fileName={selectedFile?.name}
-            fileSize={selectedFile?.size}
+            fileName={photos[0]?.name}
+            fileSize={totalSize}
+            fileCount={photos.length}
             error={uploadError}
             onRetry={handleStartScan}
           />
 
           {/* Action Trigger */}
-          {selectedFile && uploadState !== "complete" && (
-            <div className="flex items-center justify-end pt-2">
+          {photos.length > 0 && uploadState !== "complete" && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+              <p className="text-xs text-slate-500">
+                {photos.length} of {MAX_PHOTOS} photos selected &bull; OCR evaluation takes 5-20 seconds.
+              </p>
               <Button
                 type="button"
                 variant="default"
                 size="md"
                 onClick={handleStartScan}
                 disabled={isUploading}
-                className="gap-2 font-semibold"
+                className="gap-2 font-semibold shrink-0"
               >
-                <span>Initiate Compliance Scan</span>
+                <span>
+                  {isUploading ? "Running Compliance Scan..." : "Initiate Compliance Scan"}
+                </span>
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>

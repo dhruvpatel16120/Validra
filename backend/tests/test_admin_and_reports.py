@@ -124,3 +124,53 @@ def test_admin_reports_queue(client, admin_token):
     res = client.get("/api/admin/reports", headers=headers)
     assert res.status_code == 200
     assert "items" in res.json()
+
+
+def test_reportlab_pdf_generation_direct():
+    """Test generating ReportLab PDF certificate directly."""
+    from app.services.report_service import generate_pdf_report
+
+    pdf_bytes = generate_pdf_report(
+        report_id="11111111-2222-3333-4444-555555555555",
+        scan_id="66666666-7777-8888-9999-000000000000",
+        product_name="Wheat Flour 5kg",
+        brand="Aashirvaad",
+        category="food",
+        status="compliant",
+        reported_by="Inspector Sharma",
+        reported_at=None,
+        violations=[],
+        all_results=[
+            {
+                "field_name": "mrp",
+                "clause_reference": "Rule 6(1)(e)",
+                "extracted_value": "Rs. 240",
+                "is_applicable": True,
+                "is_compliant": True,
+            },
+            {
+                "field_name": "net_quantity",
+                "clause_reference": "Rule 6(1)(f)",
+                "extracted_value": "5 kg",
+                "is_applicable": True,
+                "is_compliant": True,
+            },
+        ],
+        compliance_score=100.0,
+    )
+    assert isinstance(pdf_bytes, bytes)
+    assert len(pdf_bytes) > 500
+    assert pdf_bytes.startswith(b"%PDF")
+
+
+def test_report_pdf_endpoint_not_found(client):
+    """Test GET /api/reports/{id}/pdf returns 404 for nonexistent report."""
+    res = client.get("/api/reports/00000000-0000-0000-0000-000000000000/pdf")
+    assert res.status_code == 404
+
+
+def test_inspection_pdf_endpoint_not_found(client):
+    """Test GET /api/inspections/{id}/pdf returns 404 for nonexistent inspection."""
+    res = client.get("/api/inspections/00000000-0000-0000-0000-000000000000/pdf")
+    assert res.status_code == 404
+

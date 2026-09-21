@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { LoadingState, ErrorState, EmptyState } from "@/components/inspector/common";
 import { ReviewPage } from "@/components/inspector/review";
 import { reviewService } from "@/services/review-service";
+import { getUserFriendlyErrorMessage } from "@/services/api";
 import { ReviewData } from "@/types/review";
 import { Button } from "@/components/shared/ui/button";
 
@@ -35,9 +36,7 @@ export default function ScanReviewRoute({ params }: ReviewRouteProps) {
       })
       .catch((err: unknown) => {
         if (!isMounted) return;
-        const msg =
-          err instanceof Error ? err.message : "Failed to load review data.";
-        setError(msg);
+        setError(getUserFriendlyErrorMessage(err));
         setIsLoading(false);
       });
 

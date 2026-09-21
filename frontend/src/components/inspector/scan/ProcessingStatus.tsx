@@ -1,7 +1,10 @@
 import * as React from "react";
 import { CheckCircle2, Loader2, AlertCircle, Sparkles, Scale, FileText } from "lucide-react";
-import { ScanStatus, ProcessingStage } from "@/types/scan";
+import { ScanStatus } from "@/types/scan";
 import { cn } from "@/lib/utils";
+
+/** Visual stages of the OCR -> rules pipeline, local to this progress view. */
+export type ProcessingStage = "received" | "ocr" | "rules" | "ready";
 
 export interface ProcessingStatusProps {
   status: ScanStatus;
@@ -61,7 +64,9 @@ export function ProcessingStatus({
   className,
 }: ProcessingStatusProps) {
   const currentStepNum = STAGE_ORDER[currentStage] || 1;
-  const isFailed = status === "quality_failed";
+  // The pipeline reports a final verdict (compliant/flagged) once it is done.
+  const isComplete = status === "compliant" || status === "flagged";
+  const isFailed = Boolean(error);
 
   return (
     <div
@@ -83,8 +88,12 @@ export function ProcessingStatus({
         </div>
 
         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-          <span>Stage {currentStepNum} of 4</span>
+          {isComplete ? (
+            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />
+          ) : (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+          )}
+          <span>{isComplete ? "Analysis complete" : `Stage ${currentStepNum} of 4`}</span>
         </div>
       </div>
 
@@ -102,7 +111,7 @@ export function ProcessingStatus({
       <div className="space-y-4">
         {STEPS.map((step) => {
           const stepNum = STAGE_ORDER[step.id];
-          const isDone = stepNum < currentStepNum || status === "completed" || status === "needs_review";
+          const isDone = stepNum < currentStepNum || isComplete;
           const isCurrent = stepNum === currentStepNum && !isDone && !isFailed;
           const Icon = step.icon;
 

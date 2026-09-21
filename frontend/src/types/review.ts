@@ -22,6 +22,14 @@ export interface Finding {
 }
 
 export type ExtractedFieldStatus = "verified" | "missing" | "skipped";
+export type InspectorDecisionType =
+  | "Compliant"
+  | "Needs Review"
+  | "Non-compliant"
+  | "compliant"
+  | "flagged"
+  | "escalate"
+  | "needs_review";
 
 export interface ExtractedField {
   id: string;

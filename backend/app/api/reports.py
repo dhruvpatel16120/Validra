@@ -235,3 +235,75 @@ async def get_report(
         category=report.inspection.category if report.inspection else None,
         violations=violations,
     )
+
+
+@router.get(
+    "/{report_id}/pdf",
+    summary="Download statutory violation report certificate as PDF"
+)
+async def download_report_pdf(
+    report_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[Dict[str, Any]] = Depends(get_optional_user),
+):
+    """Generate and return an official ReportLab PDF compliance audit certificate."""
+    from fastapi.responses import Response
+    from app.services.report_service import generate_pdf_report
+
+    try:
+        rep_uuid = uuid.UUID(report_id)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid report ID.")
+
+    stmt = (
+        select(Report)
+        .options(
+            selectinload(Report.inspection).selectinload(Inspection.scan_results).selectinload(ScanResult.rule)
+        )
+        .where(Report.report_id == rep_uuid)
+    )
+    res = await db.execute(stmt)
+    report = res.scalar_one_or_none()
+
+    if not report:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Report not found.")
+
+    violations = []
+    all_results = []
+    if report.inspection:
+        for sr in report.inspection.scan_results:
+            result_dict = {
+                "field_name": sr.rule.field_name if sr.rule else None,
+                "clause_reference": sr.rule.clause_reference if sr.rule else None,
+                "extracted_value": sr.extracted_value,
+                "is_applicable": sr.is_applicable,
+                "is_compliant": sr.is_compliant,
+                "description": sr.rule.description if sr.rule else None,
+            }
+            all_results.append(result_dict)
+            if sr.is_applicable and sr.is_compliant is False:
+                violations.append(result_dict)
+
+    pdf_bytes = generate_pdf_report(
+        report_id=str(report.report_id),
+        scan_id=str(report.scan_id),
+        product_name=report.inspection.product_name if report.inspection else "Unspecified Product",
+        brand=report.inspection.brand if report.inspection else None,
+        category=report.inspection.category if report.inspection else None,
+        status=report.status,
+        reported_by=report.reported_by,
+        reported_at=report.created_at,
+        violations=violations,
+        all_results=all_results,
+    )
+
+    filename = f"validra_report_{str(report.report_id)[:8]}.pdf"
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-cache",
+        },
+    )
+

@@ -8,6 +8,8 @@ export interface UploadProgressProps {
   state: ScanUploadState;
   fileName?: string;
   fileSize?: number;
+  /** Number of photos in the upload; drives the "N photos" label. */
+  fileCount?: number;
   error?: string | null;
   onRetry?: () => void;
   className?: string;
@@ -22,17 +24,24 @@ function formatBytes(bytes?: number): string {
 }
 
 /**
- * Upload progress indicator showing explicit states: preparing, uploading, complete, error.
+ * Upload progress indicator showing explicit states: uploading, complete, error.
+ * OCR + LLM evaluation takes 5-20 seconds, so the uploading state is explicit.
  */
 export function UploadProgress({
   state,
   fileName,
   fileSize,
+  fileCount,
   error,
   onRetry,
   className,
 }: UploadProgressProps) {
   if (state === "idle") return null;
+
+  const fileLabel =
+    fileCount && fileCount > 1
+      ? `${fileCount} photos`
+      : fileName ?? "Package image";
 
   return (
     <div
@@ -50,7 +59,7 @@ export function UploadProgress({
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          {state === "preparing" || state === "uploading" ? (
+          {state === "uploading" ? (
             <Loader2 className="w-5 h-5 text-emerald-600 animate-spin shrink-0" aria-hidden="true" />
           ) : state === "complete" ? (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" aria-hidden="true" />
@@ -60,17 +69,20 @@ export function UploadProgress({
 
           <div className="min-w-0">
             <p className="text-sm font-medium text-slate-900 truncate">
-              {state === "preparing"
-                ? "Preparing image for upload..."
-                : state === "uploading"
-                ? "Uploading package image to inspection engine..."
+              {state === "uploading"
+                ? "Running OCR and Legal Metrology checks on your photos..."
                 : state === "complete"
-                ? "Upload complete. Initializing analysis pipeline..."
-                : "Upload failed"}
+                ? "Analysis complete. Opening the inspection review..."
+                : "Scan failed"}
             </p>
-            {fileName && (
+            {(fileName || fileCount) && (
               <p className="text-xs text-slate-500 truncate mt-0.5">
-                {fileName} {fileSize ? `(${formatBytes(fileSize)})` : ""}
+                {fileLabel} {fileSize ? `(${formatBytes(fileSize)})` : ""}
+              </p>
+            )}
+            {state === "uploading" && (
+              <p className="text-xs text-slate-500 mt-1">
+                This usually takes 5-20 seconds. Please keep this page open.
               </p>
             )}
             {state === "error" && error && (
