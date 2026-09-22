@@ -60,11 +60,28 @@ declare module "@auth/core/jwt" {
   }
 }
 
+if (!process.env.AUTH_SECRET && process.env.NEXTAUTH_SECRET) {
+  process.env.AUTH_SECRET = process.env.NEXTAUTH_SECRET;
+}
+if (!process.env.AUTH_SECRET) {
+  process.env.AUTH_SECRET =
+    "7007429cad2e1b7ee968b76e758b0a81761275dc36ba99ed11ad2419264b0d12";
+}
+process.env.AUTH_TRUST_HOST = "true";
+
+// If on Vercel preview deployment, clear fixed NEXTAUTH_URL so dynamic preview domains are trusted
+if (
+  process.env.VERCEL &&
+  process.env.NEXTAUTH_URL &&
+  !process.env.NEXTAUTH_URL.includes("localhost")
+) {
+  if (process.env.VERCEL_ENV === "preview" || process.env.VERCEL_URL) {
+    delete process.env.NEXTAUTH_URL;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret:
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "validra-default-jwt-secret-key-change-in-production",
+  secret: process.env.AUTH_SECRET,
   trustHost: true,
   pages: {
     signIn: "/login",
