@@ -12,14 +12,6 @@
   ],
   "rewrites": [
     {
-      "source": "/api/auth/verify-token",
-      "destination": "/backend/main.py"
-    },
-    {
-      "source": "/api/auth/:path*",
-      "destination": "/frontend/api/auth/:path*"
-    },
-    {
       "source": "/api/:path*",
       "destination": "/backend/main.py"
     },
@@ -34,17 +26,6 @@
     {
       "source": "/(.*)",
       "destination": "/frontend/$1"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
-      ]
     }
   ]
 }
