@@ -1,61 +1,46 @@
 @echo off
 setlocal enabledelayedexpansion
 
-echo ========================================
-echo  Validra Backend - Setup Environment
-echo ========================================
+echo ============================================================
+echo   🚀 VALIDRA BACKEND - SETUP ^& ENVIRONMENT BOOTSTRAPPER
+echo ============================================================
 
-:: 1. Create virtual environment (.venv) if missing
+:: 1. Check Python installation
+where python >nul 2>nul
+IF %ERRORLEVEL% NEQ 0 (
+    where py >nul 2>nul
+    IF %ERRORLEVEL% NEQ 0 (
+        echo [!] Python 3.10+ was not found on PATH.
+        echo     Please install Python from https://www.python.org/ and verify 'Add to PATH' is checked.
+        exit /b 1
+    )
+)
+
+:: 2. Create virtual environment if missing
 IF NOT EXIST .venv (
     echo [+] Creating Python virtual environment (.venv)...
     python -m venv .venv
     IF %ERRORLEVEL% NEQ 0 (
-        echo [!] Failed to create virtual environment. Please ensure Python 3.10+ is installed and on PATH.
-        exit /b %ERRORLEVEL%
+        echo [!] Could not create .venv. Continuing with system Python...
     )
 ) ELSE (
-    echo [=] Virtual environment (.venv) already exists.
+    echo [=] Virtual environment (.venv) detected.
 )
 
-:: 2. Ensure .env exists from .env.example
-IF NOT EXIST .env (
-    IF EXIST .env.example (
-        echo [+] Copying .env.example -^> .env...
-        copy .env.example .env
-        echo [!] Please review and update DATABASE_URL credentials in .env if needed.
-    )
-) ELSE (
-    echo [=] Environment file (.env) already exists.
+set PYTHON_BIN=.\.venv\Scripts\python.exe
+IF NOT EXIST "%PYTHON_BIN%" (
+    set PYTHON_BIN=python
 )
 
-:: 3. Ensure uploads storage directory exists
-IF NOT EXIST uploads (
-    echo [+] Creating uploads directory...
-    mkdir uploads
-)
-
-:: 4. Install dependencies
-echo [+] Upgrading pip and installing dependencies from requirements.txt...
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\pip.exe install -r requirements.txt
-IF %ERRORLEVEL% NEQ 0 (
-    echo [!] Dependency installation failed.
+:: 3. Launch interactive Python setup
+IF EXIST "scripts\setup.py" (
+    "%PYTHON_BIN%" scripts\setup.py %*
     exit /b %ERRORLEVEL%
-)
-
-:: 5. Initialize database tables
-echo [+] Initializing database tables...
-.\.venv\Scripts\python.exe -c "import asyncio; from app.db.session import init_db; asyncio.run(init_db())" 2>nul
-IF %ERRORLEVEL% EQU 0 (
-    echo [✓] Database tables checked/initialized.
 ) ELSE (
-    echo [!] Notice: Could not connect to PostgreSQL to initialize tables. Ensure PostgreSQL is running with credentials from .env.
+    echo [!] Notice: scripts\setup.py not found. Running standalone fallback setup...
+    IF NOT EXIST .env IF EXIST .env.example copy .env.example .env
+    IF NOT EXIST uploads mkdir uploads
+    "%PYTHON_BIN%" -m pip install --upgrade pip
+    "%PYTHON_BIN%" -m pip install -r requirements.txt
+    echo [✓] Standalone fallback setup complete.
 )
-
-echo.
-echo ========================================
-echo [✓] Backend setup completed successfully!
-echo ========================================
-echo To start the development server, run:
-echo   .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-echo.

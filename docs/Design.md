@@ -107,7 +107,7 @@ The public landing page (`/`) is built using modular, self-contained containers:
 ├────────────────────────────────────────────────────────┤
 │  FeaturesContainer   — Key product capabilities        │
 ├────────────────────────────────────────────────────────┤
-│  TechStackContainer  — Next.js, FastAPI, PaddleOCR, PG │
+│  TechStackContainer  — Next.js, FastAPI, EasyOCR, Groq LLM, PG │
 ├────────────────────────────────────────────────────────┤
 │  TeamContainer       — VisionMinds team members        │
 ├────────────────────────────────────────────────────────┤

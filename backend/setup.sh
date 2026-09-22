@@ -1,52 +1,47 @@
 #!/usr/bin/env bash
 # Validra Backend Environment Setup Script (Bash)
+# Interactive environment bootstrapper with fallback recovery.
 
 set -e
 
-echo "========================================"
-echo " Validra Backend - Setup Environment"
-echo "========================================"
+echo "============================================================"
+echo "  🚀 VALIDRA BACKEND - SETUP & ENVIRONMENT BOOTSTRAPPER"
+echo "============================================================"
 
-# 1. Create .venv if it does not exist
+# 1. Detect Python
+PYTHON_CMD="python3"
+if ! command -v python3 &>/dev/null; then
+    if command -v python &>/dev/null; then
+        PYTHON_CMD="python"
+    else
+        echo "❌ Python 3.10+ was not found on PATH."
+        echo "   Please install Python 3 and verify it is available in your shell."
+        exit 1
+    fi
+fi
+
+# 2. Check / Create Virtual Environment (.venv)
 if [ ! -d ".venv" ]; then
     echo "[+] Creating Python virtual environment (.venv)..."
-    python3 -m venv .venv
+    "$PYTHON_CMD" -m venv .venv || echo "⚠️  Could not create .venv. Continuing with system Python..."
 else
-    echo "[=] Virtual environment (.venv) already exists."
+    echo "[=] Virtual environment (.venv) detected."
 fi
 
-# 2. Copy .env.example to .env if .env does not exist
-if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
-        echo "[+] Copying .env.example -> .env..."
-        cp .env.example .env
-        echo "[!] Please review and update DATABASE_URL credentials in .env if needed."
-    fi
-else
-    echo "[=] Environment file (.env) already exists."
+PYTHON_BIN=".venv/bin/python"
+if [ ! -f "$PYTHON_BIN" ]; then
+    PYTHON_BIN="$PYTHON_CMD"
 fi
 
-# 3. Ensure uploads storage directory exists
-if [ ! -d "uploads" ]; then
-    echo "[+] Creating uploads directory..."
+# 3. Launch interactive Python setup
+if [ -f "scripts/setup.py" ]; then
+    "$PYTHON_BIN" scripts/setup.py "$@"
+    exit $?
+else
+    echo "[!] Notice: scripts/setup.py not found. Running standalone fallback setup..."
+    [ ! -f .env ] && [ -f .env.example ] && cp .env.example .env
     mkdir -p uploads
+    "$PYTHON_BIN" -m pip install --upgrade pip
+    "$PYTHON_BIN" -m pip install -r requirements.txt
+    echo "[✓] Standalone fallback setup complete."
 fi
-
-# 4. Activate .venv & Install requirements
-echo "[+] Installing dependencies from requirements.txt..."
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-
-# 5. Initialize database tables
-echo "[+] Checking database initialization..."
-python -c "import asyncio; from app.db.session import init_db; asyncio.run(init_db())" 2>/dev/null || echo "[!] Notice: Database connection check skipped. Ensure PostgreSQL is running."
-
-echo ""
-echo "========================================"
-echo "[✓] Backend setup completed successfully!"
-echo "========================================"
-echo "To start the development server, run:"
-echo "  source .venv/bin/activate"
-echo "  uvicorn app.main:app --reload --host 127.0.0.1 --port 8000"
-echo ""

@@ -1,9 +1,4 @@
----
-title: "Backend Setup Guide"
-description: "Step-by-step instructions for setting up, configuring, and running the Validra FastAPI backend."
----
-
-# ⚙️ Validra — Backend Setup Guide
+# ⚙️ Validr a— Backend Setup Guide
 
 <p align="center">
   <a href="../../README.md">
@@ -34,34 +29,36 @@ description: "Step-by-step instructions for setting up, configuring, and running
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| FastAPI | ≥0.100.0 | Async REST API framework |
-| Uvicorn | ≥0.22.0 | ASGI server with hot reload |
-| Pydantic | ≥2.0.0 | Request/response schemas |
-| pydantic-settings | ≥2.0.0 | Environment-based config |
-| python-dotenv | ≥1.0.0 | .env file loading |
-| pytest | ≥7.4.0 | Unit testing |
-| httpx | ≥0.24.0 | Async HTTP client (for tests) |
-| SQLAlchemy[asyncio] | ≥2.0.0 | Async ORM for PostgreSQL |
-| asyncpg | ≥0.29.0 | High-performance async PostgreSQL driver |
-| pillow | ≥10.0.0 | Image processing, EXIF transposition & evidence crops |
-| paddlepaddle | ≥3.0.0 | Deep learning inference runtime for OCR |
-| paddleocr | ≥2.8.0 | Text detection, recognition, and layout analysis (PP-OCRv4) |
-| opencv-python-headless | ≥4.8.0 | Quality assessment, CLAHE contrast & spatial geometry |
+| [FastAPI](https://fastapi.tiangolo.com/) | ≥0.100.0 | High-performance async REST API framework |
+| [Uvicorn](https://www.uvicorn.org/) | ≥0.22.0 | ASGI web server with live reload |
+| [Pydantic](https://docs.pydantic.dev/) & [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) | ≥2.0.0 | Type validation & `.env` configuration management |
+| [SQLAlchemy[asyncio]](https://www.sqlalchemy.org/) | ≥2.0.0 | Async ORM for PostgreSQL persistence |
+| [asyncpg](https://github.com/MagicStack/asyncpg) | ≥0.29.0 | High-performance async PostgreSQL database driver |
+| [python-jose[cryptography]](https://github.com/mpdavis/python-jose) | ≥3.3.0 | NextAuth v5 JWT verification & cryptographic claims decoding |
+| [passlib[bcrypt]](https://passlib.readthedocs.io/) | ≥1.7.4 | Password hashing and verification utilities |
+| [EasyOCR](https://github.com/JaidedAI/EasyOCR) | ≥1.7.0 | Portable multi-language OCR engine for detection and recognition |
+| [OpenCV](https://opencv.org/) (`opencv-python-headless`) | ≥4.8.0 | Quality assessment (Laplacian blur, glare), CLAHE contrast & spatial geometry |
+| [Pillow (PIL)](https://python-pillow.org/) | ≥10.0.0 | Image processing, EXIF transposition, crops & evidence annotations |
+| [Groq](https://groq.com/) | ≥0.9.0 | High-speed LLM inference for statutory declaration field extraction |
+| [ReportLab](https://www.reportlab.com/) | ≥5.0.0 | Court-admissible statutory inspection audit PDF report compilation |
+| [aiosmtplib](https://github.com/cole/aiosmtplib) | ≥3.0.0 | Asynchronous SMTP client for dispatching email audit reports |
+| [python-multipart](https://github.com/Kludex/python-multipart) | ≥0.0.9 | Streaming multipart/form-data multi-panel image uploads |
+| [pytest](https://docs.pytest.org/) & [httpx](https://www.python-httpx.org/) | ≥7.4.0 / ≥0.24.0 | Unit, integration & async API testing suite |
 
 > [!TIP]
-> For platform-specific issues (e.g., Windows Smart App Control, oneDNN PIR configuration, or headless Linux container setup), refer to the dedicated **[PaddleOCR Setup & Troubleshooting Guide](./paddleocr_troubleshooting.mdx)**.
+> For OCR engine architecture, refer to the [Computer Vision & OCR Pipeline Architecture](../blueprints/backend/backend-blueprint.md#4-ocr--computer-vision-pipeline-architecture) in the backend blueprint.
 
-**Coming in Next Phase:**
-
-| Package | Purpose |
-|---------|---------|
-| Alembic | Database migrations |
-| python-jose[cryptography] | JWT token verification |
-| ReportLab | PDF report generation |
 
 ---
 
-## 🚀 Quick Setup (Automated)
+## 🚀 Quick Setup (Interactive Bootstrapper)
+
+The backend provides an interactive setup wizard matching the frontend setup experience:
+- **Interactive `.env` Wizard**: Offers options to keep, backup (`.env.backup.<timestamp>`), or overwrite; auto-detects existing configurations and synchronizes shared keys (PostgreSQL database, NextAuth JWT secret, SMTP settings) from `frontend/.env`.
+- **Automatic `.venv` Management**: Creates and verifies the Python virtual environment.
+- **Dependency Installation with Fallback**: Upgrades `pip`, installs `requirements.txt`, and features intelligent fallback to core API essentials if heavy OCR wheels encounter environment issues.
+- **Database Connectivity & Seeding with Fallback**: Non-blocking connectivity test that automatically initializes tables via `init_db()` and seeds default Legal Metrology rules (`C01`–`C26`).
+- **Non-Interactive Mode**: Pass `-NonInteractive` or `-y` for automated CI/CD pipelines.
 
 ### Windows (PowerShell)
 
@@ -69,6 +66,9 @@ description: "Step-by-step instructions for setting up, configuring, and running
 cd backend
 .\setup.ps1
 ```
+
+> [!TIP]
+> For silent / CI automated setup: `.\setup.ps1 -NonInteractive`
 
 ### Windows (CMD)
 
@@ -85,13 +85,17 @@ chmod +x setup.sh
 ./setup.sh
 ```
 
-The setup script will:
-1. Create a Python virtual environment (`.venv`)
-2. Activate the virtual environment
-3. Copy `.env.example` to `.env` (if not present)
-4. Install all dependencies from `requirements.txt`
+### Direct Python Invocation
+
+```bash
+cd backend
+python scripts/setup.py
+# Or non-interactive:
+python scripts/setup.py -y
+```
 
 ---
+
 
 ## 🛠️ Manual Setup (Step-by-Step)
 
@@ -129,25 +133,36 @@ cp .env.example .env
 Edit `.env` with your local configuration:
 
 ```env
-# ─── App ────────────────────────────────────
 PROJECT_NAME=Validra Base API
-API_V1_STR=/api/v1
+API_STR=/api
 ENV=development
 HOST=0.0.0.0
 PORT=8000
 
 # ─── Database (PostgreSQL via SQLAlchemy async) ───
-DATABASE_URL=postgresql+asyncpg://postgres:your_password@localhost:5432/validra
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/validra
 
-# ─── JWT (add when auth is integrated) ──────
-# JWT_SECRET_KEY=same-secret-as-nextauth
-# JWT_ALGORITHM=HS256
+# ─── Storage & File Constraints ───
+UPLOAD_DIR=uploads
+MAX_UPLOAD_SIZE_BYTES=5242880
+ALLOWED_IMAGE_TYPES=image/jpeg,image/png,image/webp,image/bmp
 
-# ─── Object Storage (add when ready) ────────
-# S3_ENDPOINT=http://localhost:9000
-# S3_ACCESS_KEY=minioadmin
-# S3_SECRET_KEY=minioadmin
-# S3_BUCKET=validra-evidence
+# ─── Auth & Security (NextAuth / JWT Shared Secret) ───
+AUTH_SECRET=validra-default-jwt-secret-key-change-in-production
+NEXTAUTH_SECRET=validra-default-jwt-secret-key-change-in-production
+
+# ─── OCR & Extraction (Groq LLM + OCR.space) ───
+OCR_SPACE_API_KEY=
+GROQ_API_KEY=your_groq_api_key_here
+GROQ_MODEL=openai/gpt-oss-120b
+
+# ─── Notifications & Email (SMTP / Nodemailer Compatible) ───
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=
+SMTP_PASSWORD=
+EMAIL_FROM=noreply@validra.gov.in
+REPORT_RECIPIENT_EMAIL=complaints.metrology@gov.in
 ```
 
 ### 5. Install Dependencies
@@ -156,9 +171,9 @@ DATABASE_URL=postgresql+asyncpg://postgres:your_password@localhost:5432/validra
 pip install -r requirements.txt
 ```
 
-### 6. Set Up PostgreSQL & SQLAlchemy (Database ORM)
+### 6. Set Up PostgreSQL & SQLAlchemy (Database Layer)
 
-SQLAlchemy 2.0 (async with `asyncpg`) is configured as the backend ORM for FastAPI, handling inspections, rules, violations, audit logs, and compliance records.
+SQLAlchemy 2.0 (async with `asyncpg`) is configured as the backend ORM for FastAPI, handling inspections, uploaded image panels, scan results, Legal Metrology rules, reports, and audit logs.
 
 #### 1. Create the PostgreSQL Database
 
@@ -175,12 +190,18 @@ CREATE DATABASE validra;
 \q
 ```
 
-#### 2. Database Connection Architecture
+#### 2. Database Connection Architecture & Lifespan Bootstrapping
 
 Validra organizes database management inside `app/db/`:
 
 - **[`app/db/base.py`](../../backend/app/db/base.py)**: Modern SQLAlchemy 2.0 `DeclarativeBase` (`Base`).
-- **[`app/db/session.py`](../../backend/app/db/session.py)**: Async engine (`create_async_engine`) and async session factory (`async_sessionmaker`).
+- **[`app/db/session.py`](../../backend/app/db/session.py)**: Async engine (`create_async_engine`), async session factory (`async_sessionmaker`), `get_db` dependency, and `init_db()`.
+- **Automatic Table Initialization & Seeding**:
+  When the FastAPI application boots, the lifespan hook in [`app/main.py`](../../backend/app/main.py) automatically:
+  1. Invokes `await init_db()`, executing `Base.metadata.create_all()` across all models (`User`, `Inspection`, `Image`, `ScanResult`, `Rule`, `Report`, `AuditLog`).
+  2. Invokes `await seed_default_rules(session)`, automatically populating default Legal Metrology rules (`C01`–`C26`) if the rules table is empty.
+  3. Ensures the local uploads folder (`uploads/`) exists and is mounted at `/uploads` for static panel evidence images.
+
 - **`get_db()` dependency**: Asynchronous generator yielding database sessions per API request with automatic commit/cleanup:
   ```python
   from fastapi import Depends
@@ -192,28 +213,18 @@ Validra organizes database management inside `app/db/`:
       ...
   ```
 
-#### 3. Test Database Configuration
+#### 3. Dual-ORM Architecture (Prisma + SQLAlchemy)
 
-Verify the database module setup without touching PostgreSQL tables:
+Validra uses a shared PostgreSQL database between the Next.js frontend (Prisma ORM) and the FastAPI backend (SQLAlchemy 2.0):
+- **User Accounts (`users`)**: Authenticated via NextAuth v5 in Next.js, verified cryptographically in FastAPI via [`app/core/security.py`](../../backend/app/core/security.py) using the shared `AUTH_SECRET` / `NEXTAUTH_SECRET`.
+- **Audit Logs (`audit_logs`)**: Tamper-evident activity logs written by both frontend actions and backend inspection events.
 
-```bash
-pytest -v tests/test_db.py
-```
+#### 4. Test Database Configuration
 
-> [!CAUTION]
-> **DO NOT CREATE TABLES YET**  
-> Do **NOT** invoke `Base.metadata.create_all()` or run uncoordinated migrations at this stage. Table models (inspections, violations, rules, audit logs) will be created by the team in the dedicated database schema milestone. Keep the database layer at connection-only stage until model schemas are finalized.
-
-#### 4. Future Step: Creating Tables & Migrations (When Models Are Defined)
-
-Once the team defines ORM models in `app/models/`, table creation and migrations will be executed via Alembic:
+Verify the database module and API endpoints:
 
 ```bash
-# Generate initial Alembic migration
-alembic revision --autogenerate -m "initial tables"
-
-# Apply migrations to PostgreSQL
-alembic upgrade head
+pytest -v tests/test_main.py
 ```
 
 ---
@@ -263,46 +274,64 @@ pytest tests/test_main.py -v
 ```text
 backend/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py                # FastAPI entrypoint + CORS + health
-│   ├── api/
-│   │   ├── __init__.py
-│   │   └── router.py          # APIRouter definitions & endpoints
-│   └── core/
-│       ├── __init__.py
-│       └── config.py          # Pydantic BaseSettings
-├── tests/
-│   ├── conftest.py            # Pytest fixtures
-│   └── test_main.py           # API tests
-├── .env
-├── .env.example
-├── .venv/                     # Virtual environment (git-ignored)
-├── requirements.txt
-├── setup.bat                  # Windows CMD setup
-├── setup.ps1                  # Windows PowerShell setup
-└── setup.sh                   # Linux/macOS setup
-```
-
-### Target Structure (After Blueprint Implementation)
-
-See [Backend Blueprint](../blueprints/backend/backend-blueprint.md) for the full target directory layout including:
-
-```text
-backend/app/
-├── api/v1/                    # Versioned API routes
-│   ├── scans.py               # POST /scans, GET /scans/{id}
-│   ├── inspections.py         # Inspection CRUD
-│   ├── reports.py             # Report generation
-│   ├── dashboard.py           # Dashboard stats
-│   └── admin/                 # Admin-only endpoints
-├── services/                  # Business logic
-│   ├── scan_orchestrator.py   # Pipeline orchestration
-│   ├── rule_engine.py         # Compliance evaluation
-│   └── rag_service.py         # Legal context retrieval
-├── models/                    # SQLAlchemy ORM models
-├── schemas/                   # Pydantic request/response
-├── reports/                   # PDF generation (ReportLab)
-└── utils/                     # Auth, storage, hashing
+│   ├── main.py                # FastAPI entrypoint + lifespan + CORS + /api mount + /uploads static
+│   ├── api/                   # API routers mounted under /api
+│   │   ├── admin/             # Admin endpoints (dashboard, users, rules, reports, scans, audit_logs)
+│   │   ├── auth.py            # POST /api/auth/verify-token (NextAuth JWT validation)
+│   │   ├── dashboard.py       # GET /api/dashboard (Inspector stats & compliance metrics)
+│   │   ├── deps.py            # NextAuth JWT extraction, get_current_user, require_role guards
+│   │   ├── inspections.py     # Inspection review, finding overrides & finalization
+│   │   ├── reports.py         # PDF report compilation, download & SHA-256 verification
+│   │   ├── router.py          # Central APIRouter mounting feature routers
+│   │   ├── rules.py           # GET /api/rules, GET /api/rules/{rule_id}
+│   │   ├── scans.py           # Multi-panel upload, OCR pipeline dispatch & progress retrieval
+│   │   └── users.py           # /api/users/me and /api/profile user endpoints
+│   ├── core/
+│   │   ├── config.py          # Pydantic BaseSettings (.env loading, JWT, SMTP, Groq keys)
+│   │   └── security.py        # NextAuth v5 HS256 JWT decoding & claims verification
+│   ├── db/
+│   │   ├── base.py            # DeclarativeBase (Base)
+│   │   └── session.py         # AsyncEngine, AsyncSessionLocal, get_db, init_db
+│   ├── models/                # SQLAlchemy 2.0 ORM models
+│   │   ├── audit_log.py       # AuditLog model (shared with frontend Prisma audit_logs)
+│   │   ├── inspection.py      # Inspection & Image models (multi-panel scan records)
+│   │   ├── report.py          # Report model (SHA-256 hash & PDF metadata)
+│   │   ├── rule.py            # Rule model (Legal Metrology C01–C26 clauses)
+│   │   ├── scan_result.py     # ScanResult model (findings per rule)
+│   │   └── user.py            # User model (shared with frontend Prisma users)
+│   ├── schemas/               # Pydantic v2 validation schemas
+│   │   ├── dashboard.py       # Dashboard metric responses
+│   │   ├── report.py          # Report creation & download schemas
+│   │   ├── rule.py            # Legal Metrology rule schemas
+│   │   ├── scan.py            # Multi-panel scan requests & inspection responses
+│   │   └── user.py            # User profiles & token verification schemas
+│   ├── services/              # Business logic & external service connectors
+│   │   ├── email_service.py   # Async SMTP dispatch via aiosmtplib
+│   │   ├── extraction_service.py # Groq LLM statutory declaration extractor
+│   │   ├── ocr_service.py     # Legacy OCR helper fallback
+│   │   ├── report_service.py  # ReportLab court-admissible PDF generation
+│   │   ├── rule_engine.py     # Deterministic Legal Metrology rule evaluation
+│   │   ├── seed_rules.py      # Startup rule seeder (C01–C26)
+│   │   └── ocr/               # Modular Computer Vision (M3) OCR Pipeline
+│   │       ├── engine.py      # EasyOCR portable singleton runtime
+│   │       ├── field_parser.py # Regex token extractor for MRP, FSSAI, net quantity, dates
+│   │       ├── geometry.py    # Bounding box polygons & visual evidence overlays
+│   │       ├── measurement.py # Font size & character height measurement
+│   │       ├── ocr_main.py    # OCRPipeline coordinator (single-pass RGB upscale)
+│   │       ├── preprocessor.py # CLAHE, deskew, upscale & multi-variant preprocessing
+│   │       ├── quality_gate.py # Laplacian blur, brightness & glare assessment
+│   │       ├── storage.py     # Local file persistence helper for scans
+│   │       └── variant_fusion.py # Deduplication & spatial IoU box clustering
+│   └── utils/
+│       └── image_validation.py # MIME type & image payload validation
+├── uploads/                   # Local static evidence & report storage
+├── tests/                     # Pytest suite
+│   ├── conftest.py            # Fixtures & mock client
+│   └── test_main.py           # API health & routing tests
+├── .env                       # Local secrets (git-ignored)
+├── .env.example               # Environment template
+├── requirements.txt           # Python dependencies
+├── setup.bat / setup.ps1 / setup.sh # Automated setup scripts
 ```
 
 ---
@@ -311,11 +340,12 @@ backend/app/
 
 | Module | Domain | Owner | Directory |
 |--------|--------|-------|-----------|
-| M2 | Backend APIs, orchestration | Backend Lead | `backend/app/api/`, `backend/app/services/` |
-| M3 | Database, Auth integration | Backend + Auth | `backend/app/models/`, `backend/app/utils/auth.py` |
-| M4 | Computer Vision + OCR | CV Lead | `cv/` (separate module, called by backend) |
-| M5 | Rule Engine | ML/Rules Lead | `rule-engine/` (separate module, called by backend) |
-| M6 | RAG + Legal Intelligence | RAG Lead | `rag/` (separate module, called by backend) |
+| M1 | Frontend | Frontend Lead | `frontend/` |
+| M2 | Backend & Infrastructure | Backend Lead | `backend/app/api/`, `backend/app/db/`, `backend/app/models/`, `backend/app/schemas/`, `backend/app/services/` |
+| M3 | Computer Vision & OCR | CV Lead | `backend/app/services/ocr/`, `cv/` |
+| M4 | Legal Metrology Rule Engine | Rules Lead | `backend/app/services/rule_engine.py`, `rule-engine/` |
+| M5 | Research & QA | QA Lead | `backend/tests/`, `qa/`, `research/` |
+
 
 ---
 
