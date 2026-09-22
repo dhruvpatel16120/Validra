@@ -2,28 +2,42 @@ import os
 from pathlib import Path
 from typing import List, Union
 from dotenv import load_dotenv
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Base directory of the backend project (where .env and uploads reside)
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-# Support custom env file location (e.g., .env.production, .env.staging) or default to BASE_DIR / .env
-ENV_FILE = os.getenv("ENV_FILE", str(BASE_DIR / ".env"))
+# Search order for .env files:
+# 1. Custom ENV_FILE environment variable (if specified)
+# 2. backend/.env
+# 3. frontend/.env (shared monorepo config)
+# 4. repository root .env
+env_candidates = [
+    Path(os.getenv("ENV_FILE")) if os.getenv("ENV_FILE") else None,
+    BASE_DIR / ".env",
+    BASE_DIR.parent / "frontend" / ".env",
+    BASE_DIR.parent / ".env",
+]
 
 # Explicitly load environment variables via python-dotenv
-# override=False ensures host/container system environment variables take precedence in production
-if os.path.exists(ENV_FILE):
-    load_dotenv(dotenv_path=ENV_FILE, override=False)
-else:
-    load_dotenv(override=False)
+# override=False ensures variables already in the host/container take precedence
+for env_path in env_candidates:
+    if env_path and env_path.is_file():
+        load_dotenv(dotenv_path=env_path, override=False)
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "Validra API"
+    PROJECT_NAME: str = "Validra Base API"
     API_STR: str = "/api"
-    ENV: str = "development"  # development | production | test
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:root@localhost:5432/validra"
+    ENV: str = Field(
+        default="development",
+        validation_alias=AliasChoices("ENV", "NEXT_PUBLIC_APP_ENV", "NODE_ENV", "env")
+    )
+    DATABASE_URL: str = Field(
+        default="postgresql+asyncpg://postgres:root@localhost:5432/validra",
+        validation_alias=AliasChoices("DATABASE_URL", "POSTGRES_URL", "POSTGRES_PRISMA_URL", "database_url")
+    )
     UPLOAD_DIR: str = "/tmp/uploads" if os.getenv("VERCEL") else str(BASE_DIR / "uploads")
     MAX_UPLOAD_SIZE_BYTES: int = 5 * 1024 * 1024  # 5 MB
     ALLOWED_IMAGE_TYPES: Union[List[str], str] = [
@@ -35,31 +49,81 @@ class Settings(BaseSettings):
     CORS_ORIGINS: Union[List[str], str] = ["*"]
 
     # ─── Auth & Security ───
-    AUTH_SECRET: str = "validra-default-jwt-secret-key-change-in-production"
-    NEXTAUTH_SECRET: str = ""
+    AUTH_SECRET: str = Field(
+        default="validra-default-jwt-secret-key-change-in-production",
+        validation_alias=AliasChoices("AUTH_SECRET", "NEXTAUTH_SECRET", "auth_secret", "nextauth_secret")
+    )
+    NEXTAUTH_SECRET: str = Field(
+        default="",
+        validation_alias=AliasChoices("NEXTAUTH_SECRET", "AUTH_SECRET", "nextauth_secret", "auth_secret")
+    )
     JWT_ALGORITHM: str = "HS256"
 
     # ─── OCR & Extraction ───
-    OCR_SPACE_API_KEY: str = ""
-    GROQ_API_KEY: str = ""
+    OCR_SPACE_API_KEY: str = Field(default="", validation_alias=AliasChoices("OCR_SPACE_API_KEY", "ocr_space_api_key"))
+    GROQ_API_KEY: str = Field(default="", validation_alias=AliasChoices("GROQ_API_KEY", "groq_api_key"))
     GROQ_MODEL: str = "openai/gpt-oss-120b"
 
     # ─── Email & Notifications (SMTP / Nodemailer compatible) ───
-    SMTP_HOST: str = "smtp.gmail.com"
-    SMTP_PORT: int = 587
-    SMTP_USER: str = ""
-    SMTP_PASSWORD: str = ""
-    EMAIL_FROM: str = "noreply@validra.gov.in"
+    SMTP_HOST: str = Field(
+        default="smtp.gmail.com",
+        validation_alias=AliasChoices("SMTP_HOST", "EMAIL_HOST", "smtp_host", "email_host")
+    )
+    SMTP_PORT: int = Field(
+        default=587,
+        validation_alias=AliasChoices("SMTP_PORT", "EMAIL_PORT", "smtp_port", "email_port")
+    )
+    SMTP_USER: str = Field(
+        default="",
+        validation_alias=AliasChoices("SMTP_USER", "EMAIL_USER", "EMAIL_FROM", "smtp_user", "email_user")
+    )
+    SMTP_PASSWORD: str = Field(
+        default="",
+        validation_alias=AliasChoices("SMTP_PASSWORD", "EMAIL_PASSWORD", "smtp_password", "email_password")
+    )
+    EMAIL_FROM: str = Field(
+        default="noreply@validra.gov.in",
+        validation_alias=AliasChoices("EMAIL_FROM", "SMTP_USER", "EMAIL_USER", "email_from")
+    )
     REPORT_RECIPIENT_EMAIL: str = "complaints.metrology@gov.in"
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
         if isinstance(v, str):
+            v = v.strip().strip("'\"")
             if v.startswith("postgres://"):
-                return v.replace("postgres://", "postgresql+asyncpg://", 1)
-            if v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
-                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+                v = v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+                v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+            from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+            parsed = urlparse(v)
+            if parsed.query:
+                query_params = parse_qs(parsed.query, keep_blank_values=True)
+                cleaned_query = {}
+                if "sslmode" in query_params:
+                    cleaned_query["ssl"] = query_params["sslmode"][0]
+                elif "ssl" in query_params:
+                    cleaned_query["ssl"] = query_params["ssl"][0]
+
+                allowed_keys = {
+                    "ssl", "timeout", "command_timeout", "statement_cache_size",
+                    "max_cached_statement_lifetime", "max_cacheable_statement_size",
+                    "server_settings", "direct_tls"
+                }
+                for k, vals in query_params.items():
+                    if k in allowed_keys and k not in cleaned_query:
+                        cleaned_query[k] = vals[0]
+
+                v = urlunparse((
+                    parsed.scheme,
+                    parsed.netloc,
+                    parsed.path,
+                    parsed.params,
+                    urlencode(cleaned_query),
+                    parsed.fragment
+                ))
         return v
 
     @field_validator("ALLOWED_IMAGE_TYPES", "CORS_ORIGINS", mode="before")
@@ -70,7 +134,11 @@ class Settings(BaseSettings):
         return v
 
     model_config = SettingsConfigDict(
-        env_file=ENV_FILE if os.path.exists(ENV_FILE) else None,
+        env_file=tuple(
+            str(p)
+            for p in env_candidates
+            if p and p.is_file()
+        ) or None,
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
