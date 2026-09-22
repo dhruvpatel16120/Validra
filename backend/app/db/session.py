@@ -6,6 +6,7 @@ Table creation and migrations are managed separately.
 
 import os
 from typing import AsyncGenerator
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -18,6 +19,9 @@ from app.core.config import settings
 engine_kwargs = {
     "echo": (settings.ENV == "development"),
     "future": True,
+    "connect_args": {
+        "statement_cache_size": 0,
+    },
 }
 
 if settings.ENV == "test" or os.getenv("TESTING") == "1":
@@ -54,4 +58,13 @@ async def init_db() -> None:
     """Initialize database tables for registered SQLAlchemy models."""
     from app.models import Base
     async with engine.begin() as conn:
+        await conn.execute(text("""
+            DO $$
+            BEGIN
+                IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'UserRole') THEN
+                    CREATE TYPE "UserRole" AS ENUM ('INSPECTOR', 'ADMIN');
+                END IF;
+            END
+            $$;
+        """))
         await conn.run_sync(Base.metadata.create_all)

@@ -125,8 +125,15 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: 🚀 Deploy to Vercel (Preview)
-        run: vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⚠️ VERCEL_TOKEN secret is not configured in GitHub repository secrets. Skipping CLI deployment."
+            echo "ℹ️ Note: If your repository is connected to Vercel via GitHub, Vercel deploys automatically."
+            exit 0
+          fi
+          vercel deploy --token="$VERCEL_TOKEN" --yes
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -143,7 +150,14 @@ jobs:
         run: npm install -g vercel@latest
 
       - name: 🏁 Deploy to Vercel (Production)
-        run: vercel deploy --prod --token=${{ secrets.VERCEL_TOKEN }} --yes
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "⚠️ VERCEL_TOKEN secret is not configured in GitHub repository secrets. Skipping CLI deployment."
+            echo "ℹ️ Note: If your repository is connected to Vercel via GitHub, Vercel deploys automatically on push."
+            exit 0
+          fi
+          vercel deploy --prod --token="$VERCEL_TOKEN" --yes
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
