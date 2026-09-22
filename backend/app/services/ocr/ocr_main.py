@@ -4,7 +4,7 @@ Owner: Team M3 (Computer Vision)
 Orchestrates the single-pass RGB upscale pipeline:
 - Stage 1: Quality Gate (blur, brightness, glare, motion blur, perspective, text coverage)
 - Stage 2: RGB Upscale Preprocessing (original_upscaled.jpg in full RGB)
-- Stage 3: PaddleOCR Inference on original_upscaled.jpg
+- Stage 3: OCR Inference on original_upscaled.jpg (via OCR.space cloud API or local engine)
 - Stage 4: Character Measurement & Back-Projection to original coordinates
 - Stage 5: Legal Metrology Field Extraction
 - Stage 6: Visual Evidence Annotation (annotated.jpg)
@@ -56,7 +56,7 @@ logger = logging.getLogger("validra.ocr")
 class OCRPipeline:
     """Production OCR Pipeline coordinator with RGB upscale processing."""
 
-    def __init__(self, engine_name: str = "easyocr"):
+    def __init__(self, engine_name: str = "ocr_space"):
         self.engine_name = engine_name
 
     async def process_image(
@@ -146,7 +146,7 @@ class OCRPipeline:
             return error_payload
 
         # ---------------------------------------------------------------
-        # Stage 3: PaddleOCR Inference on original_upscaled.jpg
+        # Stage 3: OCR Inference on original_upscaled.jpg
         # ---------------------------------------------------------------
         try:
             with PILImage.open(upscaled_path) as up_img:
@@ -199,7 +199,7 @@ class OCRPipeline:
             regions = deduplicate_detections(processed_dets, iou_threshold=0.5)
 
         except Exception as e:
-            logger.error(f"PaddleOCR inference failed for scan {scan_id}: {e}", exc_info=True)
+            logger.error(f"OCR inference failed for scan {scan_id}: {e}", exc_info=True)
             elapsed_ms = int((time.perf_counter() - start_time) * 1000)
             return {
                 "status": "failed",
@@ -266,7 +266,7 @@ class OCRPipeline:
             "status": "completed",
             "scan_id": scan_id,
             "engine": self.engine_name,
-            "model_version": "PP-OCRv4",
+            "model_version": "ocr_space_v2",
             "processing_time_ms": elapsed_ms,
             "images": {
                 "original": f"/uploads/scans/{scan_id}/{src_path.name}",

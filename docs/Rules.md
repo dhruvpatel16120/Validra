@@ -34,11 +34,11 @@ Documentation must stay synchronized with actual codebase implementations.
 
 | Module | Domain | Scope | Path Boundaries | GitHub Tag |
 |---|---|---|---|---|
-| **M1** | **Frontend & Presentation** | Next.js 14+ App Router, Tailwind CSS, shadcn/ui, Landing, Inspector Review UI, Admin Portal | `frontend/` | `frontend` |
-| **M2** | **Backend & Infrastructure** | FastAPI, REST APIs, PostgreSQL, Dual ORM (Prisma/SQLAlchemy), Auth/JWT, RBAC, Task Queue, PDF Reports | `backend/`, `db/` | `backend` / `db` |
-| **M3** | **Computer Vision & OCR** | OpenCV Preprocessing, Quality Gate, PaddleOCR PP-OCRv4, Bounding Boxes, Field Extraction | `cv/` | `cv` |
-| **M4** | **Rule Engine** | Legal Metrology Rule Evaluation (C01–C26), Deterministic Validation, Rule Repository | `rule-engine/` | `rule-engine` |
-| **M5** | **Research & QA** | Datasets, Model Benchmarking, Rule Validation Testing, E2E Testing, SIH Documentation | `research/`, `tests/`, `qa/` | `qa` / `research` |
+| **M1** | **Frontend & Presentation** | Next.js 16+ App Router, React 19, Tailwind CSS v4, shadcn/ui, Landing, Inspector Review UI, Admin Portal | `frontend/` | `frontend` |
+| **M2** | **Backend & Infrastructure** | FastAPI, REST APIs, PostgreSQL, Dual ORM (Prisma/SQLAlchemy 2.0 async), Auth/JWT, RBAC, PDF Reports | `backend/`, `db/` | `backend` / `db` |
+| **M3** | **Computer Vision & OCR** | OpenCV Preprocessing, Quality Gate, EasyOCR Pipeline, Bounding Boxes, Character Height Measurement | `backend/app/services/ocr/`, `cv/` | `cv` |
+| **M4** | **Rule Engine** | Legal Metrology Rule Evaluation (C01–C26), Deterministic Validation, Rule Seeding & Repository | `backend/app/services/rule_engine.py`, `rule-engine/` | `rule-engine` |
+| **M5** | **Research & QA** | Datasets, Model Benchmarking, Rule Validation Testing, E2E Testing, SIH Documentation | `backend/tests/`, `research/`, `qa/` | `qa` / `research` |
 
 ### Frontend Sub-Team Ownership (M1)
 
@@ -73,9 +73,10 @@ Documentation must stay synchronized with actual codebase implementations.
 - **No Silent Failures**: Uncaught exceptions must be mapped to structured JSON error responses with standard HTTP status codes.
 
 ### 4.3 Computer Vision & OCR Standards (M3)
-- **PaddleOCR PP-OCRv4**: Selected for high accuracy on retail packaging text.
+- **EasyOCR Portable Pipeline**: Thread-safe singleton reader executed via `asyncio.to_thread` for non-blocking inference with cross-platform stability.
 - **Confidence Scores Mandatory**: Every extracted field must include a confidence score `[0.0, 1.0]`.
 - **Bounding Box Coordinate Preservation**: Spatial polygons (`[x1, y1, x2, y2]`) must flow through extraction to evidence crops and PDF reports.
+- **Groq LLM Hybrid Extraction**: Groq LPU inference (`openai/gpt-oss-120b`) parses statutory declarations from concatenated multi-panel text; deterministic rules evaluate compliance.
 
 ### 4.4 Rule Engine Standards (M4)
 - **Deterministic Evaluation**: Compliance evaluation is rule-based and versioned (C01–C26). AI models never determine the final legal verdict.

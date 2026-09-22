@@ -11,7 +11,7 @@ from app.services.ocr.preprocessor import (
     ALL_VARIANTS,
     CORE_VARIANTS,
 )
-from app.services.ocr.engine import PaddleOCREngine, ocr_engine
+from app.services.ocr.engine import CloudOCREngine, PaddleOCREngine, EasyOCREngine, ocr_engine
 from app.services.ocr.variant_fusion import (
     fuse_variant_results,
     deduplicate_detections,

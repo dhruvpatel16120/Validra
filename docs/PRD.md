@@ -39,12 +39,12 @@ Validra is explicitly designed as an enforcement decision-support system. It nev
 |---|---|---|---|
 | **FR-01** | Auth | Register, login, email verification, password reset, and session management | All users |
 | **FR-02** | Auth / RBAC | Role-based portal routing and permissions (Inspector vs Supervisor vs Admin) | All users |
-| **FR-03** | Scan | Upload high-resolution images via drag-and-drop or device camera capture | Inspector |
-| **FR-04** | Scan | Client-side file type (JPEG/PNG/WebP) and file size (≤ 10MB) validation | Inspector |
+| **FR-03** | Scan | Upload multi-panel package images (1–6 panels: front, back, sides, top, bottom) via drag-and-drop or camera capture | Inspector |
+| **FR-04** | Scan | Client & server validation for file type (JPEG/PNG/WebP/BMP) and file size (≤ 5MB per panel) | Inspector |
 | **FR-05** | Scan | Multi-stage upload and processing progress indicator (Quality → OCR → Extract → Rule) | Inspector |
 | **FR-06** | CV / OCR | Automated quality gate check (blur score, brightness, glare, resolution) | System |
-| **FR-07** | CV / OCR | Text recognition and spatial bounding-box coordinate tracking with confidence scores | System |
-| **FR-08** | Extraction | Structured extraction of mandatory declarations (MRP, Net Qty, Dates, Mfg, Contact) | System |
+| **FR-07** | CV / OCR | Text recognition and spatial polygon & bounding-box tracking with confidence scores via EasyOCR | System |
+| **FR-08** | Extraction | Structured extraction of mandatory declarations via Groq LLM with regex fallback | System |
 | **FR-09** | Rule Engine | Deterministic evaluation against Legal Metrology Rules (C01–C26 checks) | System |
 | **FR-10** | Review | Evidence-first review UI displaying original image with interactive bounding box overlays | Inspector |
 | **FR-11** | Review | Side-by-side display of extracted declarations, confidence scores, and legal citations | Inspector |
@@ -99,7 +99,7 @@ The deterministic Rule Engine evaluates packages against 26 compliance checks de
 
 ### 5.1 Performance & Latency Budgets
 - **Client Upload Latency**: Immediate client-side format/size validation (< 50ms).
-- **Full Scan Pipeline Execution**: End-to-end processing (Quality → Preprocessing → PaddleOCR → Field Extraction → Rule Evaluation) completed within **15 seconds** for an 8MP image.
+- **Full Scan Pipeline Execution**: End-to-end processing (Quality → RGB Preprocessing → EasyOCR → Groq Extraction → Rule Evaluation) completed within **10–15 seconds** for multi-panel package scans.
 - **UI Responsiveness**: Initial page loads < 1.5s; client UI transitions < 100ms via Next.js App Router and Server Components.
 
 ### 5.2 Confidence Gating & Quality Assurance

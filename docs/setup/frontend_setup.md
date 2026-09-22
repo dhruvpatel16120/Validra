@@ -1,7 +1,3 @@
----
-title: "Frontend Setup Guide"
-description: "Step-by-step instructions for setting up, configuring, and running the Validra Next.js frontend."
----
 
 # 🎨 Validra — Frontend Setup Guide
 
@@ -34,11 +30,14 @@ description: "Step-by-step instructions for setting up, configuring, and running
 
 | Package | Version | Notes |
 |---------|---------|-------|
-| Next.js | 16.3.4 | App Router |
-| React | 19.2.8 | Server Components |
+| Next.js | 16.3.4 | App Router, Server Components default |
+| React | 19.2.8 | React 19 concurrent features |
 | TypeScript | ^5 | Strict mode |
-| Tailwind CSS | ^4 | v4 (CSS-first config) |
-| Prisma | ^6.19.3 | PostgreSQL ORM for auth & user management |
+| Tailwind CSS | ^4 | v4 (@tailwindcss/postcss) |
+| Prisma | ^6.19.3 | PostgreSQL ORM for auth, users & audit logs |
+| NextAuth / Auth.js | ^5.0.0-beta.32 | JWT session strategy & credentials provider |
+| Nodemailer | ^8.0.11 | Transactional email & verification delivery |
+| Lucide React | ^1.46.0 | Modern UI icon library |
 
 ---
 
@@ -54,6 +53,7 @@ npm run setup
 This runs `scripts/setup.js` which:
 1. Checks for `.env` — copies from `.env.example` if missing
 2. Installs all npm dependencies
+3. Runs `prisma generate` to generate Prisma Client types
 
 Then start the dev server:
 
@@ -87,25 +87,29 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 NEXT_PUBLIC_APP_ENV=development
 
 # ─── Database (Prisma) ─────────────────────────
-DATABASE_URL="postgresql://postgres:your_password@localhost:5432/validra"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/validra"
 
 # ─── NextAuth / Auth.js ────────────────────────
-NEXTAUTH_SECRET="generate-a-random-32-char-string"
+NEXTAUTH_SECRET="your-development-secret-key-min-32-chars"
 NEXTAUTH_URL="http://localhost:3000"
+AUTH_TRUST_HOST=true
 
-# ─── Nodemailer (Email Verification) ───────────
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your-email@gmail.com"
-SMTP_PASSWORD="your-app-password"
-SMTP_FROM="Validra <your-email@gmail.com>"
+# ─── Email (Nodemailer SMTP — Gmail App Password) ───────────
+EMAIL_FROM="validra.metrology@gmail.com"
+EMAIL_PASSWORD="your-16-char-app-password"
+EMAIL_HOST="smtp.gmail.com"
+EMAIL_PORT=587
+
+# ─── Inspection Auth Bypass (Development Only) ───
+NEXT_PUBLIC_BYPASS_INSPECTION_AUTH=false
+NEXT_PUBLIC_DEV_AUTH_BYPASS=false
 ```
 
 > [!TIP]
 > Generate `NEXTAUTH_SECRET` with: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`
 
 > [!TIP]
-> For Gmail SMTP, enable 2-Factor Auth and create an [App Password](https://myaccount.google.com/apppasswords).
+> For Gmail SMTP, enable 2-Factor Auth and create a 16-character [App Password](https://myaccount.google.com/apppasswords). Then verify connection with `npm run email:test`.
 
 ### 3. Install Dependencies
 
@@ -130,7 +134,7 @@ CREATE DATABASE validra;
 
 ### 5. Set Up Prisma with PostgreSQL (Database ORM)
 
-Prisma is configured as the ORM for Next.js authentication and user management accessing the shared PostgreSQL database.
+Prisma is configured as the ORM for Next.js authentication, inspector accounts, and security audit logs accessing the shared PostgreSQL database.
 
 #### 1. Configure Database URL
 
@@ -144,7 +148,7 @@ Replace `postgres` (user), `your_password`, and `validra` (database name) with y
 
 #### 2. Prisma Schema (`prisma/schema.prisma`)
 
-The Prisma schema is initialized with the PostgreSQL datasource and client generator:
+The Prisma schema defines the core authentication and audit logging models:
 
 ```prisma
 // frontend/prisma/schema.prisma
@@ -157,67 +161,94 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-```
 
-#### 3. Prisma Client Singleton (`src/lib/prisma.ts`)
-
-To avoid creating multiple database connections during Next.js hot-reloads in development, use the singleton instance in [`frontend/src/lib/prisma.ts`](../../frontend/src/lib/prisma.ts):
-
-```typescript
-import { PrismaClient } from '@prisma/client';
-
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
-
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+enum UserRole {
+  INSPECTOR
+  ADMIN
 }
 
-export default prisma;
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  fullName          String
+  role              UserRole  @default(INSPECTOR)
+  isActive          Boolean   @default(false)
+  isVerified        Boolean   @default(false)
+  badgeNumber       String?
+  jurisdiction      String?
+  verifyToken       String?   @unique
+  verifyTokenExpiry DateTime?
+  resetToken        String?   @unique
+  resetTokenExpiry  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([email])
+  @@index([role, isActive])
+  @@map("users")
+}
+
+model AuditLog {
+  id              String    @id @default(cuid())
+  logCode         String    @unique @map("log_code")
+  timestamp       DateTime  @default(now()) @map("timestamp")
+  userName        String    @map("user_name")
+  userEmail       String    @map("user_email")
+  userRole        String    @default("admin") @map("user_role")
+  action          String
+  entityType      String    @default("system") @map("entity_type")
+  entityId        String    @default("SYSTEM") @map("entity_id")
+  ipAddress       String    @default("127.0.0.1") @map("ip_address")
+  severity        String    @default("INFO")
+  status          String    @default("SUCCESS")
+  description     String
+  metadata        Json      @default("{}")
+  acknowledgedBy  String?   @map("acknowledged_by")
+  acknowledgedAt  DateTime? @map("acknowledged_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  @@index([severity, status])
+  @@index([timestamp])
+  @@index([action])
+  @@map("audit_logs")
+}
 ```
 
-#### 4. Validate Schema
+#### 3. Push or Migrate the Database Schema
 
-Validate the Prisma configuration at any time without touching database tables:
+To push the schema definitions to your local PostgreSQL database:
 
 ```bash
-npx prisma validate
+# Push schema changes directly to PostgreSQL
+npm run db:push
+
+# Generate Prisma Client types
+npm run db:generate
 ```
 
-> [!CAUTION]
-> **DO NOT CREATE TABLES YET**  
-> Do **NOT** run `npx prisma migrate dev` or `npx prisma db push` at this stage. Table models (users, sessions, accounts) will be defined and created by the team during the dedicated database schema milestone. Keep the schema at connection-only stage until models are explicitly finalized.
-
-#### 5. Future Step: Creating Tables & Migrations (When Models Are Defined)
-
-Once the team commits the model definitions from the [DB Schema Blueprint](../blueprints/db/prisma/schema-blueprint.md):
+For formal migration files:
 
 ```bash
-# Generate the Prisma Client types
-npx prisma generate
-
-# Create and apply initial migration to PostgreSQL
-npx prisma migrate dev --name init
+npm run db:migrate
 ```
 
-### 6. Install shadcn/ui Components
-
-shadcn/ui components are added individually as needed:
+To explore the database tables visually in your browser:
 
 ```bash
-# Initialize shadcn/ui (first time only)
-npx shadcn@latest init
-
-# Add components as needed
-npx shadcn@latest add button card input badge accordion dialog toast skeleton table
+npm run db:studio
 ```
+
+#### 4. Provision Initial Admin Account
+
+Admin accounts are created securely via the CLI script:
+
+```bash
+npm run admin:create
+```
+
+Follow the interactive prompts to enter the admin name, email, and password.
 
 ---
 
@@ -229,8 +260,12 @@ npm run dev
 
 | URL | Purpose |
 | :--- | :--- |
-| `http://localhost:3000` | Frontend application |
-| `http://localhost:3000/api/auth` | NextAuth API routes (after auth setup) |
+| `http://localhost:3000` | Landing Page & Public Information |
+| `http://localhost:3000/login` | Field Inspector Login |
+| `http://localhost:3000/admin-login` | Dedicated Admin Portal Login |
+| `http://localhost:3000/dashboard` | Inspector Workspace & Scan Management |
+| `http://localhost:3000/admin/dashboard` | Administration & Enforcement Portal |
+| `http://localhost:3000/api/auth/token` | JWT Bridge for Backend FastAPI Requests |
 
 ---
 
@@ -238,11 +273,28 @@ npm run dev
 
 | Command | Action | Description |
 | :--- | :--- | :--- |
-| `npm run setup` | `node scripts/setup.js` | Automated env config + dependency install |
+| `npm run setup` | `node scripts/setup.js` | Automated env config, dependency install & prisma generate |
 | `npm run dev` | `next dev` | Start dev server with hot reload |
-| `npm run build` | `next build` | Create optimized production build |
+| `npm run build` | `prisma generate && next build` | Create optimized production build |
 | `npm run start` | `next start` | Start production server |
-| `npm run lint` | `eslint` | Run ESLint static analysis |
+| `npm run lint` | `eslint` | Run ESLint static analysis across code |
+| `npm run db:generate` | `prisma generate` | Generate Prisma Client types |
+| `npm run db:push` | `prisma db push` | Push schema changes directly to PostgreSQL |
+| `npm run db:migrate` | `prisma migrate dev` | Create and apply database migration files |
+| `npm run db:studio` | `prisma studio` | Launch visual Prisma Studio database manager |
+| `npm run manage` | `node scripts/manage.js` | Unified interactive CLI management launcher |
+| `npm run admin:manage` | `node scripts/manage-admin.js` | Admin interactive management CLI |
+| `npm run admin:create` | `node scripts/manage-admin.js create` | Create a new administrator account |
+| `npm run admin:list` | `node scripts/manage-admin.js list` | List all administrator accounts |
+| `npm run inspector:manage` | `node scripts/manage-inspector.js` | Inspector interactive management CLI |
+| `npm run inspector:approve` | `node scripts/manage-inspector.js approve` | Approve pending inspector accounts |
+| `npm run inspector:pending` | `node scripts/manage-inspector.js list-pending` | List inspector accounts awaiting approval |
+| `npm run inspector:list` | `node scripts/manage-inspector.js list` | List all registered inspector accounts |
+| `npm run email:test` | `node scripts/test-email.js` | Verify SMTP connection & test verification email |
+| `npm run logs:manage` | `node scripts/manage-logs.js` | Security audit logs interactive CLI |
+| `npm run logs:list` | `node scripts/manage-logs.js list` | View recent system audit log events |
+| `npm run logs:stats` | `node scripts/manage-logs.js stats` | View audit telemetry summary statistics |
+| `npm run logs:clear` | `node scripts/manage-logs.js truncate` | Truncate audit log records |
 
 ---
 
@@ -251,60 +303,80 @@ npm run dev
 ```text
 frontend/
 ├── prisma/
-│   ├── schema.prisma          # Database schema (auth tables)
-│   ├── migrations/            # Migration history
-│   └── seed.ts                # Admin user seed script
-├── public/                    # Static assets & fonts
+│   └── schema.prisma          # Database schema (User & AuditLog models)
+├── public/                    # Static assets, branding, and icons
 ├── scripts/
-│   └── setup.js               # Automated setup script
+│   ├── setup.js               # Automated setup script
+│   ├── manage.js              # Unified interactive management launcher
+│   ├── manage-admin.js        # Admin user CLI manager
+│   ├── manage-inspector.js    # Inspector approval & lifecycle CLI
+│   ├── manage-logs.js         # Security audit log CLI
+│   ├── test-email.js          # Nodemailer SMTP diagnostic test
+│   └── utils.js               # Shared CLI formatting & prompt utilities
 ├── src/
 │   ├── app/
 │   │   ├── (landing)/         # Public/marketing pages (FE-1)
-│   │   │   ├── layout.tsx     # Navbar + Footer
-│   │   │   ├── page.tsx       # "/" — Landing page
-│   │   │   ├── about/
-│   │   │   ├── features/
-│   │   │   ├── how-it-works/
-│   │   │   ├── contact/
-│   │   │   └── faq/
+│   │   │   ├── layout.tsx     # Navbar + Footer shell
+│   │   │   ├── page.tsx       # "/" — Composed container landing page
+│   │   │   ├── about/         # "/about"
+│   │   │   ├── features/      # "/features"
+│   │   │   ├── how-it-works/  # "/how-it-works"
+│   │   │   ├── contact/       # "/contact"
+│   │   │   └── faq/           # "/faq"
 │   │   ├── (auth)/            # Auth pages (FE-2)
 │   │   │   ├── layout.tsx     # Centered auth card layout
+│   │   │   ├── login/         # "/login" (Inspector login)
+│   │   │   ├── admin-login/   # "/admin-login" (Dedicated Admin login)
+│   │   │   ├── register/      # "/register" (Inspector self-registration)
+│   │   │   ├── verify-email/  # "/verify-email" (Token confirmation)
+│   │   │   ├── pending-approval/ # "/pending-approval" (Awaiting admin approval)
+│   │   │   ├── forgot-password/  # "/forgot-password"
+│   │   │   └── reset-password/   # "/reset-password"
+│   │   ├── (inspector)/       # Inspector workspace (FE-2)
+│   │   │   ├── layout.tsx     # InspectorShell (sidebar + header + auth guard)
+│   │   │   ├── dashboard/     # "/dashboard" (Enforcement KPIs & recent scans)
+│   │   │   ├── scan/
+│   │   │   │   ├── new/       # "/scan/new" (Multi-photo upload / camera)
+│   │   │   │   └── [id]/
+│   │   │   │       ├── processing/ # "/scan/[id]/processing" (Pipeline status)
+│   │   │   │       └── review/     # "/scan/[id]/review" (Dedicated review UI)
+│   │   │   ├── inspections/   # "/inspections", "/inspections/[id]"
+│   │   │   ├── reports/       # "/reports", "/reports/[id]"
+│   │   │   ├── profile/       # "/profile"
+│   │   │   └── help/          # "/help" (Legal metrology rules cheatsheet)
+│   │   ├── (admin)/           # Admin portal (FE-3)
+│   │   │   ├── layout.tsx     # AdminShell (admin sidebar + header + RBAC guard)
+│   │   │   ├── page.tsx       # Redirects to /admin/dashboard
+│   │   │   └── admin/
+│   │   │       ├── dashboard/ # "/admin/dashboard" (System enforcement KPIs)
+│   │   │       ├── users/     # "/admin/users", "/admin/users/[id]"
+│   │   │       ├── rules/     # "/admin/rules", "/admin/rules/new", "/admin/rules/[id]"
+│   │   │       ├── inspections/ # "/admin/inspections", "/admin/inspections/[id]"
+│   │   │       ├── audit-logs/  # "/admin/audit-logs" (Court audit trail)
+│   │   │       └── settings/    # "/admin/settings" (System thresholds)
+│   │   ├── api/auth/          # Next.js internal auth endpoints
+│   │   │   ├── [...nextauth]/ # Auth.js handler
+│   │   │   ├── token/         # JWT minting bridge for backend FastAPI requests
 │   │   │   ├── login/
 │   │   │   ├── register/
 │   │   │   ├── verify-email/
+│   │   │   ├── resend-verification/
 │   │   │   ├── forgot-password/
 │   │   │   └── reset-password/
-│   │   ├── (inspector)/       # Inspector app (FE-2)
-│   │   │   ├── layout.tsx     # InspectorShell (sidebar + header)
-│   │   │   ├── dashboard/
-│   │   │   ├── scan/
-│   │   │   ├── inspections/
-│   │   │   ├── reports/
-│   │   │   └── profile/
-│   │   ├── (admin)/           # Admin portal (FE-3)
-│   │   │   ├── layout.tsx     # AdminShell (admin sidebar + header)
-│   │   │   └── admin/
-│   │   │       ├── dashboard/
-│   │   │       ├── users/
-│   │   │       ├── rules/
-│   │   │       ├── legal-documents/
-│   │   │       ├── inspections/
-│   │   │       ├── audit-logs/
-│   │   │       └── settings/
-│   │   ├── layout.tsx         # Root layout (html, body, providers)
-│   │   ├── globals.css        # Tailwind + design tokens
+│   │   ├── layout.tsx         # Root layout (fonts, providers)
+│   │   ├── globals.css        # Tailwind v4 styles + design tokens
 │   │   └── favicon.ico
 │   ├── components/
-│   │   ├── landing/           # Landing-only components (FE-1)
-│   │   ├── auth/              # Auth-only components (FE-2)
-│   │   ├── inspector/         # Inspector-only components (FE-2)
-│   │   ├── admin/             # Admin-only components (FE-3)
-│   │   └── shared/            # Shared design system (all teams)
-│   │       └── ui/            # shadcn/ui primitives
-│   ├── hooks/                 # Custom React hooks
-│   ├── services/              # API service functions
-│   ├── lib/                   # Utilities, constants, data
-│   └── types/                 # TypeScript type definitions
+│   │   ├── landing/           # Landing sections & containers (Hero, Features, etc.)
+│   │   ├── auth/              # Forms: Login, AdminLogin, Register, VerifyEmail, etc.
+│   │   ├── inspector/         # Inspector components (scan, review, reports, layout)
+│   │   ├── admin/             # Admin components (dashboard, users, rules, audit-logs)
+│   │   └── shared/            # Shared UI primitives (Button, Card, Badge, Input, Logo)
+│   ├── hooks/                 # Custom React hooks (useAuth)
+│   ├── services/              # API clients & service layers (scan, report, admin, etc.)
+│   ├── lib/                   # Auth config, prisma client, email templates, utils
+│   ├── types/                 # TypeScript type definitions (inspection, rule, audit, etc.)
+│   └── middleware.ts          # Edge route security & RBAC guard
 ├── .env.example
 ├── .gitignore
 ├── eslint.config.mjs
@@ -316,9 +388,11 @@ frontend/
 
 ---
 
-## 👥 Team Ownership — Who Works Where
+## 👥 Team Ownership & Authentication Workflow
 
-The frontend is split into **three isolated route groups** so team members can work independently without code conflicts:
+### Team Ownership
+
+The frontend is split into **three isolated route groups** so team members work independently without code conflicts:
 
 | Team Member | Route Group | Components Folder | Branch Pattern |
 |-------------|-------------|-------------------|----------------|
@@ -326,10 +400,24 @@ The frontend is split into **three isolated route groups** so team members can w
 | **FE-2** | `(auth)/` + `(inspector)/` | `components/auth/` + `components/inspector/` | `feature/inspector-*` |
 | **FE-3** | `(admin)/` | `components/admin/` | `feature/admin-*` |
 
-**Shared across all:** `components/shared/ui/` (shadcn/ui primitives)
+**Shared across all:** `components/shared/ui/` (primitives) and `src/services/api.ts`.
 
-> [!IMPORTANT]
-> **Never** import components from another team's folder. For example, `components/inspector/` must NOT import from `components/landing/`.
+### Inspector Onboarding Lifecycle
+
+```
+[Register] ──> [Verify Email Link] ──> [Pending Admin Approval] ──> [Admin Approves Account] ──> [Login & Dashboard]
+```
+
+1. **Self-Registration**: Officer fills `/register`. A verification link with token is sent via Nodemailer.
+2. **Email Verification**: Clicking `/verify-email?token=...` marks `isVerified = true`.
+3. **Pending Approval**: Account remains `isActive = false` until administrator review. Accessing protected pages redirects to `/pending-approval`.
+4. **Admin Approval**: Administrator approves via `/admin/users` UI or CLI `npm run inspector:approve`.
+5. **Dashboard Access**: Officer can now log in at `/login` and access `/dashboard`.
+
+### Admin Provisioning & Access
+
+1. **Provisioning**: Admin accounts cannot self-register; they are provisioned via `npm run admin:create`.
+2. **Access**: Admins sign in at `/admin-login` and are routed directly to `/admin/dashboard`. Non-admin accounts attempting access are redirected.
 
 ---
 

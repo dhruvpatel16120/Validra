@@ -1,0 +1,42 @@
+# Vercel Deployment Ignore
+# Files and directories to exclude from Vercel deployment
+
+# Documentation
+docs/
+Assets/
+
+# Backend (deployed separately or as serverless)
+backend/tests/
+backend/scripts/
+backend/.env
+backend/.env.example
+backend/uploads/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.venv/
+
+# Development files
+.github/
+.agents/
+.git/
+*.md
+!README.md
+
+# IDE & OS
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Test & QA
+tests/
+qa/
+research/
+temp/
+
+# Node development
+frontend/node_modules/
+frontend/.env
+frontend/.env.local

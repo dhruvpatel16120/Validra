@@ -10,13 +10,13 @@ The Validra frontend is built with modern, accessible, and performant web techno
 
 | Layer | Technology | Purpose |
 |---|---|---|
-| **Framework** | Next.js 14+ (App Router) | Server Components default, streaming SSR, optimized bundling |
+| **Framework** | Next.js 16+ (16.3.4 App Router) | Server Components default, streaming SSR, optimized bundling |
+| **Runtime / Library** | React 19 (19.2.8) | Modern concurrent rendering, Server Actions compatibility |
 | **Language** | TypeScript (Strict mode) | Type safety across component props and API contracts |
-| **Styling** | Tailwind CSS + shadcn/ui | Utility-first styling with accessible, headless UI primitives |
-| **Authentication** | Auth.js / NextAuth + Nodemailer | Secure email verification, sessions, and signed JWT issuance |
-| **State Management** | Server Components + TanStack React Query | Minimizes client bundle; handles optimistic caching & polling |
-| **Form Handling** | React Hook Form + Zod | Schema-based client-side validation |
-| **Icons** | Lucide React | Clean, consistent UI iconography |
+| **Styling** | Tailwind CSS v4 | CSS-first configuration via `@tailwindcss/postcss` |
+| **Authentication** | NextAuth v5 (Auth.js beta) + Nodemailer | Credentials provider, stateless JWT sessions, transactional emails |
+| **Database ORM** | Prisma 6.19+ | PostgreSQL connection, User accounts, court-verifiable Audit Logs |
+| **Icons** | Lucide React + React Icons | Clean, consistent legal metrology UI iconography |
 
 ---
 
@@ -38,9 +38,11 @@ frontend/src/app/
 │
 ├── (auth)/                            ← FE-2: Authentication Pages (No Sidebar)
 │   ├── layout.tsx                     ← Centered Auth Card layout
-│   ├── login/page.tsx                 ← "/login"
-│   ├── register/page.tsx              ← "/register" (Inspector registration)
-│   ├── verify-email/page.tsx          ← "/verify-email"
+│   ├── login/page.tsx                 ← "/login" (Field Inspector login)
+│   ├── admin-login/page.tsx           ← "/admin-login" (Dedicated Admin login)
+│   ├── register/page.tsx              ← "/register" (Inspector self-registration)
+│   ├── verify-email/page.tsx          ← "/verify-email" (Token verification)
+│   ├── pending-approval/page.tsx      ← "/pending-approval" (Awaiting admin approval)
 │   ├── forgot-password/page.tsx       ← "/forgot-password"
 │   └── reset-password/page.tsx        ← "/reset-password"
 │
@@ -59,28 +61,25 @@ frontend/src/app/
 │   │   ├── page.tsx                   ← "/reports" (Report catalog)
 │   │   └── [id]/page.tsx              ← "/reports/[id]" (PDF preview & download)
 │   ├── profile/page.tsx               ← "/profile"
-│   └── help/page.tsx                  ← "/help"
+│   └── help/page.tsx                  ← "/help" (Legal metrology reference cheatsheet)
 │
 └── (admin)/                           ← FE-3: Administration Portal
     ├── layout.tsx                     ← AdminShell (Admin Sidebar + Header + RBAC Guard)
-    ├── admin/
-    │   ├── dashboard/page.tsx         ← "/admin/dashboard" (System enforcement metrics)
-    │   ├── users/
-    │   │   ├── page.tsx               ← "/admin/users" (Inspector accounts management)
-    │   │   └── [id]/page.tsx          ← "/admin/users/[id]"
-    │   ├── rules/
-    │   │   ├── page.tsx               ← "/admin/rules" (Rule engine configuration)
-    │   │   ├── new/page.tsx           ← "/admin/rules/new"
-    │   │   └── [id]/page.tsx          ← "/admin/rules/[id]"
-    │   ├── legal-documents/
-    │   │   ├── page.tsx               ← "/admin/legal-documents" (Act/Rules catalog)
-    │   │   └── upload/page.tsx        ← "/admin/legal-documents/upload"
-    │   ├── inspections/
-    │   │   ├── page.tsx               ← "/admin/inspections" (System-wide read-only oversight)
-    │   │   └── [id]/page.tsx          ← "/admin/inspections/[id]"
-    │   ├── audit-logs/page.tsx        ← "/admin/audit-logs" (Immutable security audit trail)
-    │   └── settings/page.tsx          ← "/admin/settings"
-    └── page.tsx                       ← Redirects to "/admin/dashboard"
+    ├── page.tsx                       ← Redirects to "/admin/dashboard"
+    └── admin/
+        ├── dashboard/page.tsx         ← "/admin/dashboard" (System enforcement metrics)
+        ├── users/
+        │   ├── page.tsx               ← "/admin/users" (Inspector accounts management)
+        │   └── [id]/page.tsx          ← "/admin/users/[id]"
+        ├── rules/
+        │   ├── page.tsx               ← "/admin/rules" (Rule engine configuration)
+        │   ├── new/page.tsx           ← "/admin/rules/new"
+        │   └── [id]/page.tsx          ← "/admin/rules/[id]"
+        ├── inspections/
+        │   ├── page.tsx               ← "/admin/inspections" (System-wide read-only oversight)
+        │   └── [id]/page.tsx          ← "/admin/inspections/[id]"
+        ├── audit-logs/page.tsx        ← "/admin/audit-logs" (Court security audit trail)
+        └── settings/page.tsx          ← "/admin/settings"
 ```
 
 ### Module Isolation Rules
@@ -108,7 +107,7 @@ The public landing page (`/`) is built using modular, self-contained containers:
 ├────────────────────────────────────────────────────────┤
 │  FeaturesContainer   — Key product capabilities        │
 ├────────────────────────────────────────────────────────┤
-│  TechStackContainer  — Next.js, FastAPI, PaddleOCR, PG │
+│  TechStackContainer  — Next.js, FastAPI, EasyOCR, Groq LLM, PG │
 ├────────────────────────────────────────────────────────┤
 │  TeamContainer       — VisionMinds team members        │
 ├────────────────────────────────────────────────────────┤

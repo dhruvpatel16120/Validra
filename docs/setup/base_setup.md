@@ -1,8 +1,3 @@
----
-title: "Base Setup Guide"
-description: "Beginner-friendly environment setup for Validra — from scratch to development-ready."
----
-
 # 🛠️ Validra — Base Environment Setup Guide
 
 <p align="center">

@@ -101,6 +101,7 @@ frontend/src/
 │   │   │   └── index.ts              ← Barrel export
 │   │   ├── Navbar.tsx                ← Landing navigation bar
 │   │   ├── Footer.tsx                ← Landing footer
+│   │   ├── ContactForm.tsx           ← Interactive contact / inquiry form
 │   │   ├── FeatureCard.tsx
 │   │   ├── StepCard.tsx
 │   │   ├── TeamMemberCard.tsx
@@ -111,26 +112,24 @@ frontend/src/
 │   │   └── index.ts
 │   │
 │   └── shared/                       ← SHARED across all modules (design system)
-│       ├── ui/                       ← shadcn/ui primitives
-│       │   ├── button.tsx
-│       │   ├── card.tsx
-│       │   ├── input.tsx
-│       │   ├── badge.tsx
-│       │   ├── accordion.tsx
-│       │   ├── dialog.tsx
-│       │   ├── toast.tsx
-│       │   ├── skeleton.tsx
-│       │   └── ...
-│       ├── Logo.tsx
-│       ├── ThemeToggle.tsx
+│       ├── ui/                       ← Primitives (button, card, input, badge, etc.)
+│       ├── Logo.tsx                  ← Validra brand emblem
 │       └── index.ts
 │
 ├── lib/
-│   ├── utils.ts                      ← cn(), formatters, etc.
-│   └── constants.ts                  ← Site metadata, nav links, etc.
+│   ├── utils.ts                      ← cn(), formatting utilities
+│   ├── constants.ts                  ← Site metadata, navigation constants
+│   └── data/                         ← Landing page static content data models
+│       ├── landing-hero.ts
+│       ├── landing-features.ts
+│       ├── landing-steps.ts
+│       ├── landing-tech.ts
+│       ├── landing-team.ts
+│       ├── landing-faq.ts
+│       └── navigation.ts
 │
-├── styles/
-│   └── globals.css                   ← Tailwind + design tokens
+├── app/
+│   └── globals.css                   ← Tailwind CSS v4 + design tokens
 │
 └── types/
     └── landing.ts                    ← Landing-specific types
