@@ -16,15 +16,11 @@
       "destination": "/backend/main.py"
     },
     {
-      "source": "/api/auth/(.*)",
-      "destination": "/frontend/api/auth/$1"
+      "source": "/api/auth/:path*",
+      "destination": "/frontend/api/auth/:path*"
     },
     {
-      "source": "/api/auth",
-      "destination": "/frontend/api/auth"
-    },
-    {
-      "source": "/api/(.*)",
+      "source": "/api/:path*",
       "destination": "/backend/main.py"
     },
     {
@@ -32,15 +28,7 @@
       "destination": "/backend/main.py"
     },
     {
-      "source": "/docs",
-      "destination": "/backend/main.py"
-    },
-    {
-      "source": "/openapi.json",
-      "destination": "/backend/main.py"
-    },
-    {
-      "source": "/uploads/(.*)",
+      "source": "/uploads/:path*",
       "destination": "/backend/main.py"
     },
     {

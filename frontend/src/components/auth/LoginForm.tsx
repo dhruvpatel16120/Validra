@@ -90,6 +90,8 @@ export function LoginForm() {
           setTimeout(() => {
             router.push("/pending-approval");
           }, 2000);
+        } else if (errorMsg.includes("DATABASE_ERROR")) {
+          setServerError("Database connection error. Please verify DATABASE_URL is reachable.");
         } else {
           setServerError("An error occurred during sign in. Please try again.");
         }

@@ -24,7 +24,12 @@ engine_kwargs = {
     },
 }
 
-if settings.ENV == "test" or os.getenv("TESTING") == "1":
+if (
+    settings.ENV == "test"
+    or os.getenv("TESTING") == "1"
+    or os.getenv("VERCEL")
+    or os.getenv("AWS_LAMBDA_FUNCTION_NAME")
+):
     engine_kwargs["poolclass"] = NullPool
 else:
     engine_kwargs["pool_pre_ping"] = True
