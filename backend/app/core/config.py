@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     API_STR: str = "/api"
     ENV: str = "development"  # development | production | test
     DATABASE_URL: str = "postgresql+asyncpg://postgres:root@localhost:5432/validra"
-    UPLOAD_DIR: str = str(BASE_DIR / "uploads")
+    UPLOAD_DIR: str = "/tmp/uploads" if os.getenv("VERCEL") else str(BASE_DIR / "uploads")
     MAX_UPLOAD_SIZE_BYTES: int = 5 * 1024 * 1024  # 5 MB
     ALLOWED_IMAGE_TYPES: Union[List[str], str] = [
         "image/jpeg",
@@ -32,6 +32,7 @@ class Settings(BaseSettings):
         "image/webp",
         "image/bmp",
     ]
+    CORS_ORIGINS: Union[List[str], str] = ["*"]
 
     # ─── Auth & Security ───
     AUTH_SECRET: str = "validra-default-jwt-secret-key-change-in-production"
@@ -51,9 +52,19 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = "noreply@validra.gov.in"
     REPORT_RECIPIENT_EMAIL: str = "complaints.metrology@gov.in"
 
-    @field_validator("ALLOWED_IMAGE_TYPES", mode="before")
+    @field_validator("DATABASE_URL", mode="before")
     @classmethod
-    def parse_allowed_image_types(cls, v: Union[List[str], str]) -> List[str]:
+    def assemble_db_connection(cls, v: str) -> str:
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            if v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return v
+
+    @field_validator("ALLOWED_IMAGE_TYPES", "CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_list_or_str(cls, v: Union[List[str], str]) -> List[str]:
         if isinstance(v, str):
             return [t.strip() for t in v.split(",") if t.strip()]
         return v
