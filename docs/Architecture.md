@@ -26,7 +26,7 @@ Image → Quality Gate → Preprocessing → OCR → Field Extraction → Rule E
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  Layer 1 — USER EXPERIENCE (Next.js 14+ App Router)                   │
+│  Layer 1 — USER EXPERIENCE (Next.js 16+ App Router)                   │
 │  Landing Pages · Scan Interface · Dedicated Review · Reports · Admin  │
 ├────────────────────────────────────────────────────────────────────────┤
 │  Layer 2 — ORCHESTRATION & GATEWAY (FastAPI)                          │
@@ -47,9 +47,9 @@ Image → Quality Gate → Preprocessing → OCR → Field Extraction → Rule E
 
 ```mermaid
 flowchart TD
-    USER["👤 Inspector / Admin / Supervisor"]
+    USER["👤 Inspector / Admin"]
 
-    subgraph FRONTEND["🖥️ Layer 1: User Experience — Next.js 14+ (M1)"]
+    subgraph FRONTEND["🖥️ Layer 1: User Experience — Next.js 16+ (M1)"]
         AUTH_FE["Auth.js / NextAuth & Nodemailer"]
         PAGES["Landing · Inspector Portal · Dedicated Review · Admin Portal"]
     end
@@ -165,41 +165,44 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    actor User as 👤 Inspector / Supervisor
-    participant FE as 🖥️ Next.js Auth (Auth.js / NextAuth)
+    actor Officer as 👤 Inspector
+    actor Admin as 👑 Administrator
+    participant FE as 🖥️ Next.js Frontend
     participant Mail as 📧 Nodemailer
     participant DB as 💾 PostgreSQL (Prisma)
     participant BE as ⚙️ FastAPI Backend
 
-    User->>FE: Inspector Registration / Login
-    alt Inspector Registration
-        FE->>Mail: Send email verification link
-        User->>FE: Click verification link
-        FE->>DB: Mark email_verified = true
+    rect rgb(20, 25, 35)
+    Note over Officer, DB: Inspector Onboarding Flow
+    Officer->>FE: Register at /register
+    FE->>DB: Create User (isActive: false, isVerified: false)
+    FE->>Mail: Send email verification link
+    Officer->>FE: Click verification link (/verify-email?token=...)
+    FE->>DB: Mark isVerified = true
+    Officer->>FE: Attempt login → redirected to /pending-approval
+    Admin->>FE: Approve inspector in /admin/users or via CLI (npm run inspector:approve)
+    FE->>DB: Mark isActive = true
     end
-    User->>FE: Submit credentials (email + password)
-    FE->>DB: Authenticate via Prisma user record
-    FE-->>User: Issue signed JWT session token (includes user_id, role, email)
 
-    Note over User, BE: Protected API Request (e.g. POST /api/v1/scans)
-    User->>BE: HTTP Request + Header: "Authorization: Bearer <JWT>"
+    rect rgb(25, 20, 35)
+    Note over Officer, BE: Authenticated Session & API Execution
+    Officer->>FE: Submit credentials at /login
+    FE->>DB: Verify bcrypt password & active status
+    FE-->>Officer: Set NextAuth session cookie
+    FE->>FE: Request /api/auth/token → mint signed HS256 Bearer JWT
+    Officer->>BE: HTTP Request (e.g. POST /api/scans) + "Authorization: Bearer <JWT>"
     BE->>BE: FastAPI Auth Middleware: verify signature, expiration & RBAC
-    alt Invalid / Expired / Forbidden
-        BE-->>User: 401 Unauthorized / 403 Forbidden
-    else Authorized
-        BE->>BE: Execute requested endpoint logic
-        BE-->>User: 200 OK + payload
+    BE-->>Officer: 200 OK + payload
     end
 ```
 
 ### Security Principles & Rules
 
 1. **Independent Backend Authorization**: FastAPI **never** trusts a frontend client-side authorization flag (`isAuthorized: true`). Every protected API endpoint independently validates the cryptographic JWT signature, expiration, and role permissions.
-2. **Admin Provisioning**: Administrative accounts are **never created via public registration**. Admin users are provisioned exclusively through secure CLI scripts (`npm run prisma:seed` or admin CLI).
+2. **Admin Provisioning**: Administrative accounts are **never created via public registration**. Admin users are provisioned exclusively through secure CLI scripts (`npm run admin:create`).
 3. **Role-Based Access Control (RBAC)**:
-   - `inspector`: Upload scans, view assigned inspections, review findings, finalize inspections, download reports.
-   - `supervisor`: Read-only access to all inspections, inspector performance monitoring, dashboard analytics.
-   - `admin`: User management, rule management (CRUD), audit logs, system configuration.
+   - `INSPECTOR`: Upload scans, view assigned inspections, review findings, finalize inspections, download reports.
+   - `ADMIN`: User management, inspector account approvals, rule management (CRUD), audit logs, system configuration.
 4. **Zero Hardcoded Secrets**: Secrets, DB connection strings, and JWT signing keys are managed strictly via environment variables (`.env`).
 5. **Tamper-Evidence & Integrity**: SHA-256 hashes are computed for both raw uploaded images and finalized PDF reports.
 
@@ -246,7 +249,7 @@ Validra uses **two ORMs** accessing the **same PostgreSQL database**:
 
 | ORM | Layer | Scope & Entities |
 |---|---|---|
-| **Prisma** | Frontend / NextAuth | `users`, `accounts`, `sessions`, `verification_tokens`, `password_reset_tokens` |
+| **Prisma** | Frontend / NextAuth | `users` (CUID, credentials, approval & verification flags), `audit_logs` (security incident trail) |
 | **SQLAlchemy 2.0 (async)** | Backend / FastAPI | `products`, `inspections`, `images`, `ocr_runs`, `ocr_text_regions`, `extracted_fields`, `rules`, `compliance_results`, `violations`, `reports`, `audit_logs` |
 
 ### Relational Entity Model

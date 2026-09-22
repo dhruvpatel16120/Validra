@@ -27,11 +27,15 @@ frontend/src/
 │   ├── (auth)/                           ← Auth route group (no sidebar)
 │   │   ├── layout.tsx                    ← Centered auth layout (logo + card)
 │   │   ├── login/
-│   │   │   └── page.tsx                  ← "/login"
+│   │   │   └── page.tsx                  ← "/login" (Field Inspector login)
+│   │   ├── admin-login/
+│   │   │   └── page.tsx                  ← "/admin-login" (Dedicated Admin login)
 │   │   ├── register/
-│   │   │   └── page.tsx                  ← "/register"
+│   │   │   └── page.tsx                  ← "/register" (Inspector self-registration)
 │   │   ├── verify-email/
-│   │   │   └── page.tsx                  ← "/verify-email"
+│   │   │   └── page.tsx                  ← "/verify-email" (Token confirmation)
+│   │   ├── pending-approval/
+│   │   │   └── page.tsx                  ← "/pending-approval" (Awaiting admin approval)
 │   │   ├── forgot-password/
 │   │   │   └── page.tsx                  ← "/forgot-password"
 │   │   └── reset-password/
@@ -40,118 +44,131 @@ frontend/src/
 │   ├── (inspector)/                      ← Inspector route group (with sidebar)
 │   │   ├── layout.tsx                    ← InspectorShell (sidebar + header + auth guard)
 │   │   ├── dashboard/
-│   │   │   └── page.tsx                  ← "/dashboard"
+│   │   │   └── page.tsx                  ← "/dashboard" (Enforcement KPIs & recent scans)
 │   │   ├── scan/
 │   │   │   ├── new/
-│   │   │   │   └── page.tsx              ← "/scan/new" (upload/capture)
+│   │   │   │   └── page.tsx              ← "/scan/new" (Upload 1-4 label photos / camera)
 │   │   │   └── [id]/
 │   │   │       ├── processing/
-│   │   │       │   └── page.tsx          ← "/scan/[id]/processing" (status)
+│   │   │       │   └── page.tsx          ← "/scan/[id]/processing" (Pipeline progress status)
 │   │   │       └── review/
-│   │   │           └── page.tsx          ← "/scan/[id]/review" (findings)
+│   │   │           └── page.tsx          ← "/scan/[id]/review" (Dedicated Review Inspection ⭐)
 │   │   ├── inspections/
-│   │   │   ├── page.tsx                  ← "/inspections" (history list)
+│   │   │   ├── page.tsx                  ← "/inspections" (History, search, filter, paginate)
 │   │   │   └── [id]/
-│   │   │       └── page.tsx              ← "/inspections/[id]" (detail)
+│   │   │       └── page.tsx              ← "/inspections/[id]" (Inspection detail view)
 │   │   ├── reports/
-│   │   │   ├── page.tsx                  ← "/reports" (report list)
+│   │   │   ├── page.tsx                  ← "/reports" (Report catalog)
 │   │   │   └── [id]/
-│   │   │       └── page.tsx              ← "/reports/[id]" (view report)
+│   │   │       └── page.tsx              ← "/reports/[id]" (PDF preview & download)
 │   │   ├── profile/
 │   │   │   └── page.tsx                  ← "/profile"
 │   │   └── help/
-│   │       └── page.tsx                  ← "/help"
+│   │       └── page.tsx                  ← "/help" (Legal metrology rules cheatsheet)
+│   │
+│   ├── api/auth/                         ← Internal Next.js authentication endpoints
+│   │   ├── [...nextauth]/route.ts        ← Auth.js handler
+│   │   ├── token/route.ts                ← JWT generation bridge for FastAPI backend
+│   │   ├── login/route.ts
+│   │   ├── register/route.ts
+│   │   ├── verify-email/route.ts
+│   │   ├── resend-verification/route.ts
+│   │   ├── forgot-password/route.ts
+│   │   └── reset-password/route.ts
 │   │
 │   ├── (landing)/                        ← FE-1 owns (DO NOT TOUCH)
 │   └── (admin)/                          ← FE-3 owns (DO NOT TOUCH)
 │
 ├── components/
 │   ├── auth/                             ← Auth-specific components
-│   │   ├── LoginForm.tsx
-│   │   ├── RegisterForm.tsx
-│   │   ├── VerifyEmailCard.tsx
-│   │   ├── ForgotPasswordForm.tsx
-│   │   ├── ResetPasswordForm.tsx
-│   │   ├── AuthCard.tsx                  ← Shared auth page wrapper (logo + card)
-│   │   ├── PasswordStrengthMeter.tsx
-│   │   ├── SocialLoginButtons.tsx        ← (future, if needed)
+│   │   ├── LoginForm.tsx                 ← Inspector credentials login
+│   │   ├── AdminLoginForm.tsx            ← Dedicated Admin login
+│   │   ├── RegisterForm.tsx              ← Inspector registration
+│   │   ├── VerifyEmailCard.tsx           ← Email confirmation view
+│   │   ├── ForgotPasswordForm.tsx        ← Request password reset link
+│   │   ├── ResetPasswordForm.tsx         ← Set new password with token
+│   │   ├── AuthCard.tsx                  ← Shared auth layout wrapper card
+│   │   ├── PasswordStrengthMeter.tsx     ← Interactive password strength feedback
+│   │   ├── AuthBridge.tsx                ← Client session auth synchronization
+│   │   ├── AuthLoadingState.tsx          ← Auth state loading skeleton
+│   │   ├── SessionProvider.tsx           ← NextAuth session provider
 │   │   └── index.ts
 │   │
 │   ├── inspector/                        ← Inspector-specific components
 │   │   ├── layout/
 │   │   │   ├── InspectorShell.tsx        ← Sidebar + Header + Content area
 │   │   │   ├── InspectorSidebar.tsx      ← Navigation sidebar
-│   │   │   ├── InspectorHeader.tsx       ← Top bar (user menu, notifications)
+│   │   │   ├── InspectorHeader.tsx       ← Top bar (user badge, profile menu)
 │   │   │   └── index.ts
 │   │   ├── dashboard/
-│   │   │   ├── StatsGrid.tsx             ← Total / Compliant / Violations / Review
-│   │   │   ├── RecentInspections.tsx
-│   │   │   ├── ComplianceTrendChart.tsx
-│   │   │   ├── ViolationBreakdown.tsx
+│   │   │   ├── StatsGrid.tsx             ← Total / Compliant / Violations / Needs Review
+│   │   │   ├── RecentInspections.tsx     ← Recent scans list
+│   │   │   ├── ComplianceTrendChart.tsx  ← Compliance rate trend chart
+│   │   │   ├── ViolationBreakdown.tsx    ← Violation frequency chart
 │   │   │   └── index.ts
 │   │   ├── scan/
-│   │   │   ├── ImageUploader.tsx         ← Drag-drop + camera capture
-│   │   │   ├── UploadProgress.tsx
-│   │   │   ├── ProcessingStatus.tsx      ← Multi-step status indicator
-│   │   │   ├── CameraCapture.tsx         ← Device camera integration
+│   │   │   ├── ImageUploader.tsx         ← Drag-drop 1-4 label photos
+│   │   │   ├── UploadProgress.tsx        ← Upload progress indicator
+│   │   │   ├── ProcessingStatus.tsx      ← Stepped OCR & pipeline status
+│   │   │   ├── CameraCapture.tsx         ← Device camera capture integration
 │   │   │   └── index.ts
 │   │   ├── review/
-│   │   │   ├── ReviewPage.tsx            ← Main review layout
-│   │   │   ├── ExtractedFieldsTable.tsx  ← Field, value, confidence, status
-│   │   │   ├── EvidenceViewer.tsx        ← Image + bounding box overlay
-│   │   │   ├── FindingCard.tsx           ← Per-finding: status, rule, evidence
-│   │   │   ├── FindingsList.tsx          ← All findings scrollable list
-│   │   │   ├── InspectorDecisionPanel.tsx← Accept / Reject / Modify buttons
-│   │   │   ├── RemarksInput.tsx          ← Inspector notes/remarks
-│   │   │   ├── FinalizeDialog.tsx        ← Confirmation before finalize
-│   │   │   ├── ConfidenceIndicator.tsx   ← Confidence bar + percentage
-│   │   │   ├── ComplianceScoreRing.tsx   ← Circular score display
+│   │   │   ├── ReviewPage.tsx            ← Main review layout coordinator
+│   │   │   ├── ExtractedFieldsTable.tsx  ← Field, value, confidence, status table
+│   │   │   ├── EvidenceViewer.tsx        ← Interactive image zoom & bbox overlay
+│   │   │   ├── FindingCard.tsx           ← Per-finding status, legal citation & actions
+│   │   │   ├── FindingsList.tsx          ← Scrollable findings collection
+│   │   │   ├── InspectorDecisionPanel.tsx← Officer action controls (Accept/Modify/Reject)
+│   │   │   ├── RemarksInput.tsx          ← Inspector evidence remarks
+│   │   │   ├── FinalizeDialog.tsx        ← Final sign-off & report generation modal
+│   │   │   ├── ConfidenceIndicator.tsx   ← Score percentage & confidence badge
+│   │   │   ├── ComplianceScoreRing.tsx   ← Overall compliance ring graphic
 │   │   │   └── index.ts
 │   │   ├── inspections/
-│   │   │   ├── InspectionTable.tsx       ← Sortable, filterable data table
-│   │   │   ├── InspectionFilters.tsx     ← Status, date range, search
-│   │   │   ├── InspectionDetailView.tsx  ← Full inspection detail
+│   │   │   ├── InspectionTable.tsx       ← Sortable, paginated inspection history
+│   │   │   ├── InspectionFilters.tsx     ← Status, date range, search query
+│   │   │   ├── InspectionPagination.tsx  ← Deterministic numbered page navigation
+│   │   │   ├── InspectionDetailView.tsx  ← Full inspection detail view
 │   │   │   └── index.ts
 │   │   ├── reports/
-│   │   │   ├── ReportList.tsx
-│   │   │   ├── ReportCard.tsx
-│   │   │   ├── ReportViewer.tsx          ← Inline PDF preview
-│   │   │   ├── ReportDownloadButton.tsx
+│   │   │   ├── ReportList.tsx            ← Searchable reports catalog
+│   │   │   ├── ReportCard.tsx            ← Individual report preview card
+│   │   │   ├── ReportViewer.tsx          ← PDF preview renderer
+│   │   │   ├── ReportDownloadButton.tsx  ← Download official PDF report
 │   │   │   └── index.ts
 │   │   ├── common/
-│   │   │   ├── StatusBadge.tsx           ← COMPLIANT / VIOLATION / NEEDS_REVIEW
-│   │   │   ├── SeverityBadge.tsx         ← LOW / MEDIUM / HIGH / CRITICAL
-│   │   │   ├── PageHeader.tsx            ← Page title + breadcrumb + actions
-│   │   │   ├── EmptyState.tsx
-│   │   │   ├── LoadingState.tsx
-│   │   │   ├── ErrorState.tsx
+│   │   │   ├── PageHeader.tsx            ← Page title, breadcrumb & actions
+│   │   │   ├── EmptyState.tsx            ← Standardized empty state view
+│   │   │   ├── LoadingState.tsx          ← Standardized loading skeleton
+│   │   │   ├── ErrorState.tsx            ← Standardized error display & retry
 │   │   │   └── index.ts
 │   │   └── index.ts
 │   │
-│   └── shared/                           ← Shared design system (co-owned)
-│       └── ui/                           ← shadcn/ui primitives
+│   └── shared/                           ← Shared design system primitives
+│       ├── Logo.tsx                      ← Validra brand emblem
+│       └── ui/                           ← Button, Card, Badge, Input, etc.
 │
 ├── hooks/
-│   ├── useAuth.ts                        ← Auth state hook
-│   ├── useScan.ts                        ← Scan upload + processing hook
-│   ├── useInspections.ts                 ← Inspections query hook
-│   ├── useReports.ts                     ← Reports query hook
-│   └── usePolling.ts                     ← Poll scan status
+│   └── useAuth.ts                        ← Client authentication & token hook
 │
 ├── services/
-│   ├── api.ts                            ← Axios/fetch base config
-│   ├── auth-service.ts                   ← Login, register, verify, reset
-│   ├── scan-service.ts                   ← Upload, get status
-│   ├── inspection-service.ts             ← CRUD inspections
-│   ├── report-service.ts                 ← Generate, download reports
-│   └── dashboard-service.ts              ← Dashboard stats
+│   ├── api.ts                            ← Unified HTTP client, JWT bearer handling, error normalization
+│   ├── auth-service.ts                   ← Registration, email verification, password reset
+│   ├── scan-service.ts                   ← Multi-image upload (`POST /api/scans`), scan polling
+│   ├── inspection-service.ts             ← Inspection history retrieval & report generation
+│   ├── review-service.ts                 ← Finding modifications & officer decisions
+│   ├── report-service.ts                 ← Report listing, detail & PDF download
+│   ├── dashboard-service.ts              ← Officer dashboard statistics
+│   └── profile-service.ts                ← Inspector profile metadata
 │
 └── types/
-    ├── auth.ts                           ← User, Session, LoginRequest, etc.
-    ├── inspection.ts                     ← Inspection, Finding, Violation
-    ├── scan.ts                           ← ScanRequest, ProcessingStatus
-    ├── report.ts                         ← Report, ReportDownload
-    └── compliance.ts                     ← ComplianceResult, ComplianceField
+    ├── auth.ts                           ← Auth tokens, user session, credentials
+    ├── inspection.ts                     ← Inspection summary, detail, findings
+    ├── scan.ts                           ← Upload payloads, pipeline status
+    ├── review.ts                         ← Review decisions, field overrides, remarks
+    ├── report.ts                         ← PDF report summaries and metadata
+    ├── dashboard.ts                      ← Officer performance KPIs
+    └── legal-document.ts                 ← Act & rule reference definitions
 ```
 
 ---
@@ -265,7 +282,16 @@ frontend/src/
 └─────────────────────────────────────┘
 ```
 
-### 3.4 Forgot Password Page — `/forgot-password`
+### 3.4 Pending Approval Page — `/pending-approval`
+
+| ID | Requirement |
+|---|---|
+| PEN-01 | Display official pending status banner with badge icons |
+| PEN-02 | Show visual step progression: Email Verified (completed) → Admin Approval (pending) |
+| PEN-03 | Clarify instructions: An administrator reviews and approves account before workspace access |
+| PEN-04 | Provide "Sign In with Another Account" link → `/login` |
+
+### 3.5 Forgot Password Page — `/forgot-password`
 
 | ID | Requirement |
 |---|---|
@@ -276,11 +302,11 @@ frontend/src/
 | FPW-05 | "Back to Login" link → `/login` |
 | FPW-06 | Rate-limit resend requests |
 
-### 3.5 Reset Password Page — `/reset-password`
+### 3.6 Reset Password Page — `/reset-password`
 
 | ID | Requirement |
 |---|---|
-| RST-01 | Accept token from email link query param |
+| RST-01 | Accept token from email link query param (`/reset-password?token=...`) |
 | RST-02 | Display new password + confirm password fields |
 | RST-03 | Password strength meter |
 | RST-04 | Validate: min 8 chars, passwords match |
@@ -519,20 +545,27 @@ frontend/src/
 
 ## 8. API Integration Points
 
-| Page | API Calls |
-|---|---|
-| Dashboard | `GET /api/v1/dashboard` |
-| New Scan | `POST /api/v1/scans` (multipart upload) |
-| Processing | `GET /api/v1/scans/[id]` (poll) |
-| Review | `GET /api/v1/inspections/[id]` |
-|        | `PATCH /api/v1/inspections/[id]/findings/[fid]` |
-|        | `POST /api/v1/inspections/[id]/finalize` |
-| History | `GET /api/v1/inspections?page=&status=&sort=` |
-| Detail | `GET /api/v1/inspections/[id]` |
-| Reports | `GET /api/v1/reports` |
-|         | `POST /api/v1/reports/[inspection_id]` |
-|         | `GET /api/v1/reports/[id]/download` |
-| Profile | `GET /api/v1/users/me`, `PATCH /api/v1/users/me` |
+All backend communication maps directly to `/api/*` endpoints through `src/services/api.ts` with automatic Bearer JWT header injection:
+
+| Page / Feature | API Calls | Purpose |
+|---|---|---|
+| JWT Bridge | `GET /api/auth/token` | Mints HS256 JWT bearer token from active NextAuth session for FastAPI |
+| Dashboard | `GET /api/dashboard` | Inspector enforcement statistics & summary |
+| New Scan | `POST /api/scans` (multipart) | Uploads 1–4 package label photos to trigger analysis pipeline |
+| Processing | `GET /api/scans/[id]` (poll) | Polls OCR & pipeline execution status |
+| Review | `GET /api/scans/[id]` | Retrieves detailed scan findings, bounding boxes & declarations |
+| Review Action | `POST /api/reports` | Files inspector findings / escalated report |
+| History | `GET /api/scans` | Retrieves officer's paginated scan history |
+| Reports | `GET /api/reports` | Lists all filed compliance inspection reports |
+| Report Detail | `GET /api/reports/[id]` | Inspects specific finalized report details |
+| Report PDF | `GET /api/reports/[id]/pdf` | Downloads court-admissible signed PDF report |
+| Profile | `GET /api/profile` | Fetches signed-in officer's jurisdiction & badge data |
+
+### Development Bypass Modes
+
+For testing inspection workflows without completing full email verification or admin approval in development environments:
+- `NEXT_PUBLIC_BYPASS_INSPECTION_AUTH=true`: Bypasses edge middleware auth checks on inspector routes.
+- `NEXT_PUBLIC_DEV_AUTH_BYPASS=true`: Bypasses client-side session checks.
 
 ---
 

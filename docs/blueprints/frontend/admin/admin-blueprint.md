@@ -29,43 +29,39 @@ frontend/src/
 ├── app/
 │   ├── (admin)/                              ← Admin route group
 │   │   ├── layout.tsx                        ← AdminShell (admin sidebar + header + auth guard + role check)
-│   │   ├── admin/
-│   │   │   ├── dashboard/
-│   │   │   │   └── page.tsx                  ← "/admin/dashboard"
-│   │   │   ├── users/
-│   │   │   │   ├── page.tsx                  ← "/admin/users" (user list)
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx              ← "/admin/users/[id]" (user detail)
-│   │   │   ├── rules/
-│   │   │   │   ├── page.tsx                  ← "/admin/rules" (rule list)
-│   │   │   │   ├── new/
-│   │   │   │   │   └── page.tsx              ← "/admin/rules/new" (create rule)
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx              ← "/admin/rules/[id]" (edit rule)
-│   │   │   ├── legal-documents/
-│   │   │   │   ├── page.tsx                  ← "/admin/legal-documents" (doc list)
-│   │   │   │   └── upload/
-│   │   │   │       └── page.tsx              ← "/admin/legal-documents/upload"
-│   │   │   ├── inspections/
-│   │   │   │   ├── page.tsx                  ← "/admin/inspections" (all inspections)
-│   │   │   │   └── [id]/
-│   │   │   │       └── page.tsx              ← "/admin/inspections/[id]" (detail, read-only)
-│   │   │   ├── audit-logs/
-│   │   │   │   └── page.tsx                  ← "/admin/audit-logs"
-│   │   │   └── settings/
-│   │   │       └── page.tsx                  ← "/admin/settings"
-│   │   └── page.tsx                          ← Redirect to /admin/dashboard
+│   │   ├── page.tsx                          ← Redirects to "/admin/dashboard"
+│   │   └── admin/
+│   │       ├── dashboard/
+│   │       │   └── page.tsx                  ← "/admin/dashboard" (Enforcement KPIs & telemetry)
+│   │       ├── users/
+│   │       │   ├── page.tsx                  ← "/admin/users" (Inspector accounts management)
+│   │       │   └── [id]/
+│   │       │       └── page.tsx              ← "/admin/users/[id]" (Officer detail & activity)
+│   │       ├── rules/
+│   │       │   ├── page.tsx                  ← "/admin/rules" (Rule engine configuration)
+│   │       │   ├── new/
+│   │       │   │   └── page.tsx              ← "/admin/rules/new" (Create rule)
+│   │       │   └── [id]/
+│   │       │       └── page.tsx              ← "/admin/rules/[id]" (Edit rule & versioning)
+│   │       ├── inspections/
+│   │       │   ├── page.tsx                  ← "/admin/inspections" (System-wide inspections)
+│   │       │   └── [id]/
+│   │       │       └── page.tsx              ← "/admin/inspections/[id]" (Read-only oversight)
+│   │       ├── audit-logs/
+│   │       │   └── page.tsx                  ← "/admin/audit-logs" (Court-verifiable audit trail)
+│   │       └── settings/
+│   │           └── page.tsx                  ← "/admin/settings" (System & OCR thresholds)
 │   │
-│   ├── (auth)/                               ← FE-2 owns (shared auth pages)
-│   ├── (inspector)/                          ← FE-2 owns (DO NOT TOUCH)
-│   └── (landing)/                            ← FE-1 owns (DO NOT TOUCH)
+│   ├── (auth)/admin-login/                   ← Dedicated Admin Login Page ("/admin-login")
+│   ├── (inspector)/                          ← FE-2 owns (Inspector workspace)
+│   └── (landing)/                            ← FE-1 owns (Public landing & marketing)
 │
 ├── components/
 │   ├── admin/                                ← Admin-specific components
 │   │   ├── layout/
 │   │   │   ├── AdminShell.tsx                ← Admin sidebar + header + content
 │   │   │   ├── AdminSidebar.tsx              ← Admin navigation sidebar
-│   │   │   ├── AdminHeader.tsx               ← Top bar (admin badge, user menu)
+│   │   │   ├── AdminHeader.tsx               ← Top bar (admin badge, profile menu)
 │   │   │   └── index.ts
 │   │   ├── dashboard/
 │   │   │   ├── SystemStatsGrid.tsx           ← Total inspections, users, rules, etc.
@@ -77,28 +73,17 @@ frontend/src/
 │   │   │   ├── PendingReviewsCard.tsx        ← Items awaiting review
 │   │   │   └── index.ts
 │   │   ├── users/
-│   │   │   ├── UserTable.tsx                 ← Sortable user data table
+│   │   │   ├── UserTable.tsx                 ← Sortable user data table with search
 │   │   │   ├── UserFilters.tsx               ← Role filter, status filter, search
-│   │   │   ├── UserDetailCard.tsx            ← User profile + activity
-│   │   │   ├── UserRoleSelect.tsx            ← Change user role
-│   │   │   ├── UserStatusToggle.tsx          ← Activate / deactivate
-│   │   │   ├── InviteUserDialog.tsx          ← Invite new inspector (email)
+│   │   │   ├── UserDetailCard.tsx            ← User profile + inspection history
+│   │   │   ├── InviteUserDialog.tsx          ← Invite/create new inspector dialog
 │   │   │   └── index.ts
 │   │   ├── rules/
-│   │   │   ├── RuleTable.tsx                 ← All rules with status
+│   │   │   ├── RuleTable.tsx                 ← All rules with status badges
 │   │   │   ├── RuleFilters.tsx               ← Category, severity, active/inactive
-│   │   │   ├── RuleForm.tsx                  ← Create / edit rule form
-│   │   │   ├── RuleDetailCard.tsx            ← Full rule detail view
-│   │   │   ├── RuleVersionHistory.tsx        ← Version timeline
-│   │   │   ├── RuleStatusBadge.tsx           ← Active / Inactive / Draft
-│   │   │   ├── DeleteRuleDialog.tsx          ← Confirmation for destructive action
-│   │   │   └── index.ts
-│   │   ├── legal-documents/
-│   │   │   ├── DocumentTable.tsx             ← Legal doc list
-│   │   │   ├── DocumentUploadForm.tsx        ← PDF upload + metadata
-│   │   │   ├── DocumentDetailCard.tsx        ← Doc info + chunks preview
-│   │   │   ├── IngestionStatusBadge.tsx      ← Processing / Ready / Failed
-│   │   │   ├── DeleteDocumentDialog.tsx
+│   │   │   ├── RuleForm.tsx                  ← Create / edit rule form with validation
+│   │   │   ├── RuleVersionHistory.tsx        ← Version timeline component
+│   │   │   ├── DeleteRuleDialog.tsx          ← Confirmation for destructive rule deletion
 │   │   │   └── index.ts
 │   │   ├── inspections/
 │   │   │   ├── AllInspectionsTable.tsx        ← All inspectors' inspections
@@ -126,18 +111,18 @@ frontend/src/
 │       └── ui/
 │
 ├── services/
-│   ├── admin-user-service.ts                 ← User CRUD, role changes
-│   ├── admin-rule-service.ts                 ← Rule CRUD
-│   ├── admin-document-service.ts             ← Legal doc upload/manage
-│   ├── admin-inspection-service.ts           ← All inspections read access
-│   ├── admin-audit-service.ts                ← Audit log queries
-│   └── admin-dashboard-service.ts            ← System-wide stats
+│   ├── admin-dashboard-service.ts            ← Admin dashboard KPI metrics
+│   ├── admin-user-service.ts                 ← User CRUD & approval actions
+│   ├── admin-rule-service.ts                 ← Rule configuration & editing
+│   ├── admin-inspection-service.ts           ← System-wide inspection review
+│   ├── admin-audit-service.ts                ← Audit trail retrieval & stats
+│   └── admin-settings-service.ts             ← System settings persistence
 │
 └── types/
-    ├── admin.ts                              ← Admin-specific types
-    ├── rule.ts                               ← Rule, RuleVersion
-    ├── legal-document.ts                     ← LegalDocument, IngestionStatus
-    └── audit-log.ts                          ← AuditLogEntry
+    ├── admin.ts                              ← Admin UI & form types
+    ├── audit-log.ts                          ← Audit event data types
+    ├── rule.ts                               ← Rule configuration types
+    └── legal-document.ts                     ← Legal document metadata types
 ```
 
 ---
@@ -164,24 +149,24 @@ frontend/src/
 |---|---|
 | USR-01 | DataTable: name, email, role, status, last active, inspections count |
 | USR-02 | Search by name or email |
-| USR-03 | Filter by role (inspector / admin / supervisor) |
-| USR-04 | Filter by status (active / inactive) |
+| USR-03 | Filter by role (inspector / admin) |
+| USR-04 | Filter by status (active / pending / inactive) |
 | USR-05 | Sort by name, role, last active, inspections count |
 | USR-06 | Pagination |
 | USR-07 | Click row → `/admin/users/[id]` detail page |
-| USR-08 | Invite new inspector button → InviteUserDialog (sends email invite) |
-| USR-09 | Bulk actions: activate / deactivate selected users |
+| USR-08 | Invite new inspector button → InviteUserDialog |
+| USR-09 | Approve pending inspector accounts directly from table |
 
 ### 3.3 User Detail — `/admin/users/[id]`
 
 | ID | Requirement |
 |---|---|
-| USRD-01 | User profile information (name, email, role, created, last active) |
+| USRD-01 | User profile information (name, email, role, created, badge, jurisdiction) |
 | USRD-02 | Change user role dropdown |
 | USRD-03 | Activate / deactivate toggle |
-| USRD-04 | User's inspection history (last 10 inspections) |
+| USRD-04 | User's inspection history (recent inspections) |
 | USRD-05 | User's activity statistics |
-| USRD-06 | Confirmation dialog for role changes |
+| USRD-06 | Confirmation dialog for destructive changes |
 | USRD-07 | Cannot deactivate own account |
 
 ### 3.4 Rule Management — `/admin/rules`
@@ -271,16 +256,18 @@ frontend/src/
 
 ---
 
-## 4. Admin Shell Layout
+## 4. Layout Architecture
+
+### Admin Shell Layout
 
 ```tsx
 // components/admin/layout/AdminShell.tsx
 
-<div className="flex h-screen">
-  <AdminSidebar />              {/* Fixed left sidebar (admin-branded) */}
-  <div className="flex-1 flex flex-col">
-    <AdminHeader />             {/* Top bar: admin badge, breadcrumb, user menu */}
-    <main className="flex-1 overflow-auto p-6 bg-muted/30">
+<div className="flex h-screen bg-slate-950 text-slate-100 antialiased">
+  <AdminSidebar />              {/* Fixed left sidebar with brand logo, nav links & logout */}
+  <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <AdminHeader />             {/* Top navigation bar: title, admin badge, user menu */}
+    <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">
       {children}
     </main>
   </div>
@@ -292,9 +279,8 @@ frontend/src/
 ```
 📊 Dashboard           → /admin/dashboard
 👥 Users               → /admin/users
+📋 Inspections         → /admin/inspections
 ⚖️ Rules               → /admin/rules
-📚 Legal Documents     → /admin/legal-documents
-📋 All Inspections     → /admin/inspections
 📝 Audit Logs          → /admin/audit-logs
 ⚙️ Settings            → /admin/settings
 🚪 Logout              → signOut()
@@ -302,33 +288,43 @@ frontend/src/
 
 ---
 
-## 5. Admin Auth Notes
+## 5. Admin Authentication & Route Protection
 
-> **Admin accounts are created via Next.js CLI scripts. No admin registration page exists.**
+> **Admin accounts are provisioned exclusively via CLI scripts. No public admin registration form exists.**
 
 ### Admin Creation Flow
 
 ```
-1. Run: npx ts-node scripts/create-admin.ts
-2. Script prompts for: name, email, password
-3. Script creates user in DB with role: "admin"
-4. Admin logs in via shared /login page
-5. Auth middleware detects role="admin" and allows access to (admin)/ routes
+1. Run: npm run admin:create  (or: node scripts/manage-admin.js create)
+2. Script prompts for: Admin Full Name, Email, Password
+3. Script creates user in PostgreSQL via Prisma with role: "ADMIN", isVerified: true, isActive: true
+4. Admin logs in via dedicated /admin-login page
+5. Edge middleware validates role === "ADMIN" and grants access to /admin/*
 ```
 
-### Route Protection
+### Route Protection (Edge Middleware)
 
-```tsx
-// app/(admin)/layout.tsx
-export default async function AdminLayout({ children }) {
-  const session = await getServerSession();
-  
-  if (!session) redirect('/login');
-  if (session.user.role !== 'admin' && session.user.role !== 'supervisor') {
-    redirect('/dashboard');  // Non-admins go to inspector dashboard
+Route protection is enforced before layout rendering via `frontend/src/middleware.ts`:
+
+```typescript
+// frontend/src/middleware.ts (excerpt)
+if (isAdminRoute) {
+  if (!token) {
+    const loginUrl = new URL("/admin-login", request.url);
+    loginUrl.searchParams.set("callbackUrl", pathname + search);
+    return NextResponse.redirect(loginUrl);
   }
-  
-  return <AdminShell>{children}</AdminShell>;
+
+  const role = (token.role as string)?.toUpperCase();
+  if (role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/dashboard", request.url));
+  }
+
+  if (token.isActive === false) {
+    return NextResponse.redirect(new URL("/admin-login?error=account_deactivated", request.url));
+  }
+
+  return NextResponse.next();
 }
 ```
 
@@ -343,24 +339,25 @@ export default async function AdminLayout({ children }) {
 | Filterable | Multi-filter support on all list pages |
 | Bulk operations | Checkbox selection + bulk action toolbar |
 | Confirmations | Destructive actions require confirmation dialogs |
-| Audit awareness | Show who/when for all modifications |
-| Version awareness | Rules show version history, legal docs show processing status |
-| Read-only where needed | Admin can view inspections but cannot modify inspector decisions |
+| Audit awareness | Show who/when for all modifications; auto-records to audit log |
+| Version awareness | Rules show version history and revision dates |
+| Read-only where needed | Admin can review all inspections but cannot alter inspector findings |
 
 ---
 
 ## 7. API Integration Points
 
+All admin API calls map directly to `/api/admin/*` endpoints:
+
 | Page | API Calls |
 |---|---|
-| Dashboard | `GET /api/v1/admin/dashboard` |
-| Users | `GET /api/v1/admin/users`, `PATCH /api/v1/admin/users/[id]` |
-| User Detail | `GET /api/v1/admin/users/[id]` |
-| Rules | `GET /api/v1/admin/rules`, `POST`, `PATCH`, `DELETE` |
-| Legal Docs | `GET /api/v1/admin/legal-documents`, `POST` (upload), `DELETE` |
-| All Inspections | `GET /api/v1/admin/inspections` |
-| Audit Logs | `GET /api/v1/admin/audit-logs` |
-| Settings | `GET /api/v1/admin/settings`, `PATCH` |
+| Dashboard | `GET /api/admin/dashboard` |
+| Users | `GET /api/admin/users`, `POST /api/admin/users/[id]/approve`, `PATCH /api/admin/users/[id]`, `DELETE /api/admin/users/[id]` |
+| User Detail | `GET /api/admin/users/[id]` |
+| Rules | `GET /api/admin/rules`, `POST /api/admin/rules`, `PATCH /api/admin/rules/[id]`, `DELETE /api/admin/rules/[id]` |
+| Inspections | `GET /api/admin/inspections`, `GET /api/admin/inspections/[id]` |
+| Audit Logs | `GET /api/admin/audit-logs`, `GET /api/admin/audit-logs/stats` |
+| Settings | `GET /api/admin/settings`, `PATCH /api/admin/settings` |
 
 ---
 
@@ -371,6 +368,5 @@ export default async function AdminLayout({ children }) {
 | FE-3 owns | `(admin)/`, `components/admin/`, admin services, admin types |
 | FE-3 co-owns | `components/shared/` (design system primitives) |
 | FE-3 must NOT | Import from `components/landing/` or `components/inspector/` |
-| FE-3 must NOT | Create auth or registration pages (FE-2 handles auth) |
 | FE-3 must NOT | Create inspector-specific scan/review pages |
 | Branch pattern | `feature/admin-*` (e.g., `feature/admin-users`, `feature/admin-rules`) |

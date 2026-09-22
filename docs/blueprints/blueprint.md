@@ -73,22 +73,23 @@ Validra is a decision-support system, not a replacement for authorized legal jud
 
 | Component | Technology |
 |---|---|
-| Framework | Next.js 14+ (App Router) |
+| Framework | Next.js 16+ (16.3.4 App Router) |
+| Runtime | React 19 (19.2.8) |
 | Language | TypeScript (strict mode) |
-| Styling | Tailwind CSS + shadcn/ui |
-| Auth | Auth.js / NextAuth + Nodemailer |
-| State | Server Components default, React Query for server state |
-| Forms | React Hook Form + Zod validation |
+| Styling | Tailwind CSS v4 (@tailwindcss/postcss) |
+| Auth | NextAuth v5 (Auth.js) + Nodemailer + Prisma |
+| Database ORM | Prisma 6.19+ (PostgreSQL) |
+| Icons | Lucide React |
 
 ### 2.2 Route Map
 
 | Area | Routes | Description |
 |---|---|---|
 | **Public** | `/` `/about` `/features` `/how-it-works` `/contact` `/faq` | Landing, marketing, SEO-optimized |
-| **Auth** | `/login` `/register` `/verify-email` `/forgot-password` | Auth flows via NextAuth |
+| **Auth** | `/login` `/admin-login` `/register` `/verify-email` `/pending-approval` `/forgot-password` `/reset-password` | Auth flows via NextAuth |
 | **Inspector** | `/dashboard` `/scan/new` `/scan/[id]/processing` `/scan/[id]/review` `/inspections` `/inspections/[id]` `/reports` `/reports/[id]` | Core inspection workflow |
-| **Admin** | `/admin/dashboard` `/admin/users` `/admin/rules` `/admin/legal-documents` `/admin/audit-logs` `/admin/settings` | Administration portal |
-| **Common** | `/profile` `/notifications` `/help` `/404` `/403` | Shared pages |
+| **Admin** | `/admin/dashboard` `/admin/users` `/admin/rules` `/admin/inspections` `/admin/audit-logs` `/admin/settings` | Administration portal |
+| **Common** | `/profile` `/help` | Shared pages |
 
 ### 2.3 Component Architecture
 
