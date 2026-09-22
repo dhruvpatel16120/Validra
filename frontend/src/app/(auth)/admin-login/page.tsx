@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { AuthCard } from "@/components/auth/AuthCard";
 import { AdminLoginForm } from "@/components/auth/AdminLoginForm";
 
@@ -13,7 +14,9 @@ export default function AdminLoginPage() {
       title="Admin Portal"
       description="Sign in with your administrator credentials."
     >
-      <AdminLoginForm />
+      <Suspense fallback={null}>
+        <AdminLoginForm />
+      </Suspense>
     </AuthCard>
   );
 }

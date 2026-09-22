@@ -126,6 +126,26 @@ class Settings(BaseSettings):
                 ))
         return v
 
+    @field_validator("UPLOAD_DIR", mode="before")
+    @classmethod
+    def resolve_upload_dir(cls, v: Union[str, None]) -> str:
+        # Serverless environments (Vercel, AWS Lambda) have read-only filesystems except /tmp
+        is_serverless = bool(
+            os.getenv("VERCEL")
+            or os.getenv("AWS_LAMBDA_FUNCTION_NAME")
+            or os.getenv("LAMBDA_TASK_ROOT")
+        )
+        if is_serverless:
+            return "/tmp/uploads"
+
+        if not v or str(v).strip() in ("", "uploads"):
+            return str(BASE_DIR / "uploads")
+
+        p = Path(str(v).strip().strip("'\""))
+        if not p.is_absolute():
+            return str(BASE_DIR / p)
+        return str(p)
+
     @field_validator("ALLOWED_IMAGE_TYPES", "CORS_ORIGINS", mode="before")
     @classmethod
     def parse_list_or_str(cls, v: Union[List[str], str]) -> List[str]:

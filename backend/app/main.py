@@ -22,8 +22,15 @@ logger = logging.getLogger("validra.main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Ensure uploads directory exists
-    upload_path = Path(settings.UPLOAD_DIR)
-    upload_path.mkdir(parents=True, exist_ok=True)
+    try:
+        upload_path = Path(settings.UPLOAD_DIR)
+        upload_path.mkdir(parents=True, exist_ok=True)
+    except (OSError, PermissionError) as exc:
+        logger.warning(f"Failed to create upload directory {settings.UPLOAD_DIR}: {exc}. Using /tmp/uploads.")
+        try:
+            Path("/tmp/uploads").mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
 
     # Initialize database tables
     try:
@@ -69,8 +76,18 @@ app.include_router(router, prefix=settings.API_STR)
 
 # Mount uploads directory for static panel evidence images
 upload_path = Path(settings.UPLOAD_DIR)
-upload_path.mkdir(parents=True, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
+try:
+    upload_path.mkdir(parents=True, exist_ok=True)
+except (OSError, PermissionError) as exc:
+    logger.warning(f"Cannot write to configured UPLOAD_DIR ({upload_path}): {exc}. Falling back to /tmp/uploads.")
+    upload_path = Path("/tmp/uploads")
+    try:
+        upload_path.mkdir(parents=True, exist_ok=True)
+    except Exception as err:
+        logger.warning(f"Could not create /tmp/uploads directory: {err}")
+
+if upload_path.exists():
+    app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 
 
 @app.get("/health", tags=["Health"], summary="Health check endpoint")

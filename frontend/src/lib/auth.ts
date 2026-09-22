@@ -7,12 +7,28 @@
  * - Admin: created via script → login
  */
 
-import NextAuth from "next-auth";
+import NextAuth, { CredentialsSignin } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { recordAuditLog } from "@/lib/audit";
 import type { UserRole } from "@prisma/client";
+
+export class InvalidCredentialsError extends CredentialsSignin {
+  code = "INVALID_CREDENTIALS";
+}
+
+export class EmailNotVerifiedError extends CredentialsSignin {
+  code = "EMAIL_NOT_VERIFIED";
+}
+
+export class AccountNotApprovedError extends CredentialsSignin {
+  code = "ACCOUNT_NOT_APPROVED";
+}
+
+export class DatabaseAuthError extends CredentialsSignin {
+  code = "DATABASE_ERROR";
+}
 
 // Extend the NextAuth session and JWT types
 declare module "next-auth" {
@@ -44,11 +60,28 @@ declare module "@auth/core/jwt" {
   }
 }
 
+if (!process.env.AUTH_SECRET && process.env.NEXTAUTH_SECRET) {
+  process.env.AUTH_SECRET = process.env.NEXTAUTH_SECRET;
+}
+if (!process.env.AUTH_SECRET) {
+  process.env.AUTH_SECRET =
+    "7007429cad2e1b7ee968b76e758b0a81761275dc36ba99ed11ad2419264b0d12";
+}
+process.env.AUTH_TRUST_HOST = "true";
+
+// If on Vercel preview deployment, clear fixed NEXTAUTH_URL so dynamic preview domains are trusted
+if (
+  process.env.VERCEL &&
+  process.env.NEXTAUTH_URL &&
+  !process.env.NEXTAUTH_URL.includes("localhost")
+) {
+  if (process.env.VERCEL_ENV === "preview" || process.env.VERCEL_URL) {
+    delete process.env.NEXTAUTH_URL;
+  }
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  secret:
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "validra-default-jwt-secret-key-change-in-production",
+  secret: process.env.AUTH_SECRET,
   trustHost: true,
   pages: {
     signIn: "/login",
@@ -67,15 +100,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email and password are required.");
+          throw new InvalidCredentialsError();
         }
 
         const email = (credentials.email as string).toLowerCase().trim();
         const password = credentials.password as string;
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
+        let user;
+        try {
+          user = await prisma.user.findUnique({
+            where: { email },
+          });
+        } catch (dbErr) {
+          console.error("Database connection error in authorize():", dbErr);
+          throw new DatabaseAuthError();
+        }
 
         if (!user) {
           await recordAuditLog({
@@ -87,7 +126,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             status: "FAILURE",
             description: `Authentication failed: Account with email ${email} not found.`,
           });
-          throw new Error("INVALID_CREDENTIALS");
+          throw new InvalidCredentialsError();
         }
 
         const isValid = await verifyPassword(password, user.passwordHash);
@@ -101,7 +140,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             status: "FAILURE",
             description: `Authentication failed: Incorrect password attempt for ${user.email}.`,
           });
-          throw new Error("INVALID_CREDENTIALS");
+          throw new InvalidCredentialsError();
         }
 
         // Check email verification
@@ -115,7 +154,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             status: "FAILURE",
             description: `Authentication blocked for ${user.email}: Email address not verified.`,
           });
-          throw new Error("EMAIL_NOT_VERIFIED");
+          throw new EmailNotVerifiedError();
         }
 
         // Check admin approval (inspectors must be approved)
@@ -129,7 +168,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             status: "FAILURE",
             description: `Authentication blocked for ${user.email}: Inspector account pending administrative approval.`,
           });
-          throw new Error("ACCOUNT_NOT_APPROVED");
+          throw new AccountNotApprovedError();
         }
 
         return {

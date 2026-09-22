@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { AlertCircle, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
@@ -20,12 +20,17 @@ interface FormErrors {
  */
 export function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [showPassword, setShowPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const errorFromRedirect = searchParams.get("error")
+    ? searchParams.get("message") || "Authentication error. Please try again."
+    : null;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -67,8 +72,10 @@ export function AdminLoginForm() {
           setServerError("Invalid admin credentials. Please check your email and password.");
         } else if (result.error.includes("ACCOUNT_NOT_APPROVED")) {
           setServerError("This admin account has been deactivated.");
+        } else if (result.error.includes("DATABASE_ERROR")) {
+          setServerError("Database connection error. Please verify DATABASE_URL is reachable.");
         } else {
-          setServerError("Authentication failed. Please try again.");
+          setServerError("Authentication failed. Please check your credentials and try again.");
         }
       } else if (result?.ok) {
         router.push("/admin/dashboard");
@@ -88,6 +95,18 @@ export function AdminLoginForm() {
         <ShieldCheck className="w-4 h-4 text-emerald-600" aria-hidden="true" />
         <span>Administrative access only — managed accounts</span>
       </div>
+
+      {/* Redirect Error Banner */}
+      {errorFromRedirect && !serverError && (
+        <div
+          role="alert"
+          aria-live="polite"
+          className="flex items-start gap-2.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs leading-relaxed"
+        >
+          <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
+          <span>{errorFromRedirect}</span>
+        </div>
+      )}
 
       {/* Server Error Alert */}
       {serverError && (
