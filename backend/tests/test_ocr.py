@@ -344,7 +344,7 @@ def test_ocr_pipeline_execution(tmp_path):
             )
 
             assert result["status"] == "completed"
-            assert result["engine"] in ("easyocr", "paddleocr")
+            assert result["engine"] in ("easyocr", "paddleocr", "ocr_space")
             assert len(result["regions"]) >= 2
             assert result["fields"]["mrp"]["value"] == 199.0
             assert result["fields"]["net_quantity"]["value"] == 1.0

@@ -1,13 +1,51 @@
 {
   "version": 2,
-  "framework": "nextjs",
-  "buildCommand": "cd frontend && npm ci && npx prisma generate && npm run build",
-  "outputDirectory": "frontend/.next",
-  "installCommand": "cd frontend && npm ci",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/next"
+    },
+    {
+      "src": "backend/main.py",
+      "use": "@vercel/python"
+    }
+  ],
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "source": "/api/auth/verify-token",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/api/auth/(.*)",
+      "destination": "/frontend/api/auth/$1"
+    },
+    {
+      "source": "/api/auth",
+      "destination": "/frontend/api/auth"
+    },
+    {
+      "source": "/api/(.*)",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/health",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/docs",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/openapi.json",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/uploads/(.*)",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
     }
   ],
   "headers": [

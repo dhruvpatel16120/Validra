@@ -54,12 +54,14 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+cors_origins = [settings.CORS_ORIGINS] if isinstance(settings.CORS_ORIGINS, str) else list(settings.CORS_ORIGINS)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    allow_origin_regex=r"https?://.*" if "*" in cors_origins else None,
 )
 
 # Mount feature routes under /api
@@ -72,6 +74,7 @@ app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
 
 
 @app.get("/health", tags=["Health"], summary="Health check endpoint")
+@app.get("/api/health", tags=["Health"], summary="Health check endpoint (prefixed)")
 async def health_check():
     return {"status": "ok", "app": settings.PROJECT_NAME}
 
