@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     // Send verification email
     try {
-      await sendVerificationEmail(normalizedEmail, verifyToken, user.fullName);
+      await sendVerificationEmail(normalizedEmail, verifyToken, user.fullName, request);
     } catch (emailError) {
       console.error("Failed to resend verification email:", emailError);
     }

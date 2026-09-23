@@ -6,15 +6,16 @@
 
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { getBaseUrl } from "@/lib/email";
 
 export async function GET(request: Request) {
   try {
+    const baseUrl = getBaseUrl(request);
     const { searchParams } = new URL(request.url);
     const token = searchParams.get("token");
 
     if (!token) {
       // Redirect to login with error
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       return NextResponse.redirect(
         `${baseUrl}/login?error=missing_token&message=${encodeURIComponent("Verification link is invalid.")}`
       );
@@ -26,7 +27,6 @@ export async function GET(request: Request) {
     });
 
     if (!user) {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       return NextResponse.redirect(
         `${baseUrl}/login?error=invalid_token&message=${encodeURIComponent("Verification link is invalid or has already been used.")}`
       );
@@ -34,7 +34,6 @@ export async function GET(request: Request) {
 
     // Check token expiry
     if (user.verifyTokenExpiry && user.verifyTokenExpiry < new Date()) {
-      const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
       return NextResponse.redirect(
         `${baseUrl}/verify-email?email=${encodeURIComponent(user.email)}&error=expired&message=${encodeURIComponent("Verification link has expired. Please request a new one.")}`
       );
@@ -51,13 +50,12 @@ export async function GET(request: Request) {
     });
 
     // Redirect to login with success message
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     return NextResponse.redirect(
       `${baseUrl}/login?verified=true&message=${encodeURIComponent("Email verified successfully! You can now sign in.")}`
     );
   } catch (error) {
     console.error("Email verification error:", error);
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = getBaseUrl(request);
     return NextResponse.redirect(
       `${baseUrl}/login?error=server_error&message=${encodeURIComponent("An error occurred during verification. Please try again.")}`
     );

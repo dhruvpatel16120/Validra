@@ -49,7 +49,7 @@ export async function POST(request: Request) {
 
     // Send reset email
     try {
-      await sendPasswordResetEmail(normalizedEmail, resetToken, user.fullName);
+      await sendPasswordResetEmail(normalizedEmail, resetToken, user.fullName, request);
     } catch (emailError) {
       console.error("Failed to send password reset email:", emailError);
     }

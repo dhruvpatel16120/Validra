@@ -99,17 +99,25 @@ if (!process.env.AUTH_SECRET) {
   process.env.AUTH_SECRET =
     "7007429cad2e1b7ee968b76e758b0a81761275dc36ba99ed11ad2419264b0d12";
 }
+// Strip quotes if accidentally pasted with quotes in Vercel UI
+process.env.AUTH_SECRET = process.env.AUTH_SECRET.replace(/^["']|["']$/g, "").trim();
 process.env.AUTH_TRUST_HOST = "true";
 
-// If on Vercel preview deployment, clear fixed NEXTAUTH_URL so dynamic preview domains are trusted
+// Normalize NEXTAUTH_URL and AUTH_URL
+if (process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.NEXTAUTH_URL.replace(/^["']|["']$/g, "").replace(/\/+$/, "").trim();
+  if (!process.env.AUTH_URL) {
+    process.env.AUTH_URL = process.env.NEXTAUTH_URL;
+  }
+}
+
+// If on Vercel preview deployment, clear fixed URLs so dynamic preview domains are trusted
 if (
   process.env.VERCEL &&
-  process.env.NEXTAUTH_URL &&
-  !process.env.NEXTAUTH_URL.includes("localhost")
+  process.env.VERCEL_ENV === "preview"
 ) {
-  if (process.env.VERCEL_ENV === "preview" || process.env.VERCEL_URL) {
-    delete process.env.NEXTAUTH_URL;
-  }
+  delete process.env.NEXTAUTH_URL;
+  delete process.env.AUTH_URL;
 }
 
 /**
