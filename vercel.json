@@ -16,11 +16,7 @@
       "destination": "/backend/main.py"
     },
     {
-      "source": "/api/auth/:path*",
-      "destination": "/frontend/api/auth/:path*"
-    },
-    {
-      "source": "/api/:path*",
+      "source": "/api/:path((?!auth/).*)",
       "destination": "/backend/main.py"
     },
     {
@@ -30,10 +26,6 @@
     {
       "source": "/uploads/:path*",
       "destination": "/backend/main.py"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
     }
   ],
   "headers": [
