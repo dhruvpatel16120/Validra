@@ -24,29 +24,35 @@ The **Validra Backend** is built with **FastAPI**, **Python 3.10+**, **SQLAlchem
 An interactive setup wizard manages `.venv`, synchronizes configuration from `frontend/.env` (DB URL, JWT Secret, SMTP), installs dependencies with an automatic fallback mechanism, and checks PostgreSQL connectivity:
 
 - **Windows (PowerShell):**
+
   ```powershell
   .\setup.ps1
   ```
-  *(For automated CI/CD without prompts: `.\setup.ps1 -NonInteractive`)*
+
+  _(For automated CI/CD without prompts: `.\setup.ps1 -NonInteractive`)_
 
 - **Windows (CMD):**
+
   ```cmd
   setup.bat
   ```
-  *(Automated: `setup.bat --non-interactive`)*
+
+  _(Automated: `setup.bat --non-interactive`)_
 
 - **Linux / macOS:**
+
   ```bash
   chmod +x setup.sh
   ./setup.sh
   ```
-  *(Automated: `./setup.sh --non-interactive`)*
+
+  _(Automated: `./setup.sh --non-interactive`)_
 
 - **Direct Python:**
   ```bash
   python scripts/setup.py
   ```
-  *(Automated: `python scripts/setup.py -y`)*
+  _(Automated: `python scripts/setup.py -y`)_
 
 ### 2. Manual Setup
 
@@ -97,7 +103,7 @@ Configured in `.env` (template provided in `.env.example`):
 ```env
 # Application Settings
 PROJECT_NAME="Validra API"
-API_STR="/api"
+API_STR="/ml-api"
 ENV="development"
 HOST="0.0.0.0"
 PORT=8000

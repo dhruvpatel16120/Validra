@@ -20,7 +20,7 @@
       "destination": "/frontend/api/auth/:path*"
     },
     {
-      "source": "/api/:path*",
+      "source": "/ml-api/:path*",
       "destination": "/backend/main.py"
     },
     {
