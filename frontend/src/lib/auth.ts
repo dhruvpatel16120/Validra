@@ -12,22 +12,54 @@ import Credentials from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma";
 import { verifyPassword } from "@/lib/password";
 import { recordAuditLog } from "@/lib/audit";
-import type { UserRole } from "@prisma/client";
+import { Prisma, type UserRole } from "@prisma/client";
+import { AUTH_ERROR_CODES, type AuthErrorCode } from "@/lib/auth-errors";
 
-export class InvalidCredentialsError extends CredentialsSignin {
-  code = "INVALID_CREDENTIALS";
+/**
+ * Auth.js masks any non-CredentialsSignin error as "Configuration" on the client,
+ * so every failure in the sign-in path is converted to one of these with a specific code.
+ */
+export class AuthCodeError extends CredentialsSignin {
+  constructor(code: AuthErrorCode, cause?: unknown) {
+    super(code, { cause });
+    this.code = code;
+  }
 }
 
-export class EmailNotVerifiedError extends CredentialsSignin {
-  code = "EMAIL_NOT_VERIFIED";
+export class InvalidCredentialsError extends AuthCodeError {
+  constructor() {
+    super(AUTH_ERROR_CODES.INVALID_CREDENTIALS);
+  }
 }
 
-export class AccountNotApprovedError extends CredentialsSignin {
-  code = "ACCOUNT_NOT_APPROVED";
+export class EmailNotVerifiedError extends AuthCodeError {
+  constructor() {
+    super(AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED);
+  }
 }
 
-export class DatabaseAuthError extends CredentialsSignin {
-  code = "DATABASE_ERROR";
+export class AccountNotApprovedError extends AuthCodeError {
+  constructor() {
+    super(AUTH_ERROR_CODES.ACCOUNT_NOT_APPROVED);
+  }
+}
+
+export class DatabaseAuthError extends AuthCodeError {
+  constructor(cause: unknown) {
+    super(classifyDatabaseError(cause), cause);
+  }
+}
+
+function classifyDatabaseError(err: unknown): AuthErrorCode {
+  if (err instanceof Prisma.PrismaClientInitializationError) {
+    return AUTH_ERROR_CODES.DATABASE_UNREACHABLE;
+  }
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    // P1001/P1002: server unreachable/timed out; P2021/P2022: table/column missing
+    if (err.code === "P1001" || err.code === "P1002") return AUTH_ERROR_CODES.DATABASE_UNREACHABLE;
+    if (err.code === "P2021" || err.code === "P2022") return AUTH_ERROR_CODES.DATABASE_SCHEMA_ERROR;
+  }
+  return AUTH_ERROR_CODES.DATABASE_ERROR;
 }
 
 // Extend the NextAuth session and JWT types
@@ -88,6 +120,101 @@ if (
   delete process.env.AUTH_URL;
 }
 
+/**
+ * Validates credentials against the Prisma user store.
+ * Known failures throw AuthCodeError subclasses; anything else is wrapped by the caller.
+ */
+async function authorizeCredentials(credentials: Partial<Record<string, unknown>>) {
+  const rawEmail = credentials?.email;
+  const password = credentials?.password;
+  if (typeof rawEmail !== "string" || typeof password !== "string" || !rawEmail.trim() || !password) {
+    throw new AuthCodeError(AUTH_ERROR_CODES.INVALID_INPUT);
+  }
+
+  const email = rawEmail.toLowerCase().trim();
+
+  let user;
+  try {
+    user = await prisma.user.findUnique({
+      where: { email },
+    });
+  } catch (dbErr) {
+    console.error("[auth] Database error in authorize():", dbErr);
+    throw new DatabaseAuthError(dbErr);
+  }
+
+  if (!user) {
+    await recordAuditLog({
+      userName: "Unregistered / Unknown",
+      userEmail: email,
+      userRole: "inspector",
+      action: "AUTH_FAILURE",
+      severity: "HIGH",
+      status: "FAILURE",
+      description: `Authentication failed: Account with email ${email} not found.`,
+    });
+    throw new InvalidCredentialsError();
+  }
+
+  let isValid: boolean;
+  try {
+    isValid = await verifyPassword(password, user.passwordHash);
+  } catch (hashErr) {
+    console.error(`[auth] Password hash for ${user.email} could not be verified:`, hashErr);
+    throw new AuthCodeError(AUTH_ERROR_CODES.PASSWORD_VERIFY_ERROR, hashErr);
+  }
+  if (!isValid) {
+    await recordAuditLog({
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole: user.role.toLowerCase(),
+      action: "AUTH_FAILURE",
+      severity: "HIGH",
+      status: "FAILURE",
+      description: `Authentication failed: Incorrect password attempt for ${user.email}.`,
+    });
+    throw new InvalidCredentialsError();
+  }
+
+  // Check email verification
+  if (!user.isVerified) {
+    await recordAuditLog({
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole: user.role.toLowerCase(),
+      action: "AUTH_FAILURE",
+      severity: "MEDIUM",
+      status: "FAILURE",
+      description: `Authentication blocked for ${user.email}: Email address not verified.`,
+    });
+    throw new EmailNotVerifiedError();
+  }
+
+  // Check admin approval (inspectors must be approved)
+  if (!user.isActive) {
+    await recordAuditLog({
+      userName: user.fullName,
+      userEmail: user.email,
+      userRole: user.role.toLowerCase(),
+      action: "AUTH_FAILURE",
+      severity: "MEDIUM",
+      status: "FAILURE",
+      description: `Authentication blocked for ${user.email}: Inspector account pending administrative approval.`,
+    });
+    throw new AccountNotApprovedError();
+  }
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.fullName,
+    role: user.role,
+    isActive: user.isActive,
+    isVerified: user.isVerified,
+    fullName: user.fullName,
+  };
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET,
   trustHost: true,
@@ -107,87 +234,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new InvalidCredentialsError();
-        }
-
-        const email = (credentials.email as string).toLowerCase().trim();
-        const password = credentials.password as string;
-
-        let user;
         try {
-          user = await prisma.user.findUnique({
-            where: { email },
-          });
-        } catch (dbErr) {
-          console.error("Database connection error in authorize():", dbErr);
-          throw new DatabaseAuthError();
+          return await authorizeCredentials(credentials);
+        } catch (err) {
+          if (err instanceof CredentialsSignin) throw err;
+          console.error("[auth] Unexpected error in authorize():", err);
+          throw new AuthCodeError(AUTH_ERROR_CODES.UNEXPECTED_ERROR, err);
         }
-
-        if (!user) {
-          await recordAuditLog({
-            userName: "Unregistered / Unknown",
-            userEmail: email,
-            userRole: "inspector",
-            action: "AUTH_FAILURE",
-            severity: "HIGH",
-            status: "FAILURE",
-            description: `Authentication failed: Account with email ${email} not found.`,
-          });
-          throw new InvalidCredentialsError();
-        }
-
-        const isValid = await verifyPassword(password, user.passwordHash);
-        if (!isValid) {
-          await recordAuditLog({
-            userName: user.fullName,
-            userEmail: user.email,
-            userRole: user.role.toLowerCase(),
-            action: "AUTH_FAILURE",
-            severity: "HIGH",
-            status: "FAILURE",
-            description: `Authentication failed: Incorrect password attempt for ${user.email}.`,
-          });
-          throw new InvalidCredentialsError();
-        }
-
-        // Check email verification
-        if (!user.isVerified) {
-          await recordAuditLog({
-            userName: user.fullName,
-            userEmail: user.email,
-            userRole: user.role.toLowerCase(),
-            action: "AUTH_FAILURE",
-            severity: "MEDIUM",
-            status: "FAILURE",
-            description: `Authentication blocked for ${user.email}: Email address not verified.`,
-          });
-          throw new EmailNotVerifiedError();
-        }
-
-        // Check admin approval (inspectors must be approved)
-        if (!user.isActive) {
-          await recordAuditLog({
-            userName: user.fullName,
-            userEmail: user.email,
-            userRole: user.role.toLowerCase(),
-            action: "AUTH_FAILURE",
-            severity: "MEDIUM",
-            status: "FAILURE",
-            description: `Authentication blocked for ${user.email}: Inspector account pending administrative approval.`,
-          });
-          throw new AccountNotApprovedError();
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          role: user.role,
-          isActive: user.isActive,
-          isVerified: user.isVerified,
-          fullName: user.fullName,
-        };
       },
     }),
   ],
@@ -224,6 +277,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id as string;
+        token.email = user.email as string;
         token.role = user.role;
         token.isActive = user.isActive;
         token.isVerified = user.isVerified;
@@ -234,6 +288,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       if (token) {
         session.user.id = token.id as string;
+        session.user.email = (token.email as string) ?? session.user.email ?? "";
         session.user.role = token.role as UserRole;
         session.user.isActive = token.isActive as boolean;
         session.user.isVerified = token.isVerified as boolean;
