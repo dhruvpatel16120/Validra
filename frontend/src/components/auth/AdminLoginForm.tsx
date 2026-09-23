@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { AlertCircle, Eye, EyeOff, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
+import { AUTH_ERROR_CODES, getAuthErrorMessage } from "@/lib/auth-errors";
 
 interface FormErrors {
   email?: string;
@@ -28,8 +29,9 @@ export function AdminLoginForm() {
   const [serverError, setServerError] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const errorFromRedirect = searchParams.get("error")
-    ? searchParams.get("message") || "Authentication error. Please try again."
+  const redirectErrorType = searchParams.get("error");
+  const errorFromRedirect = redirectErrorType
+    ? searchParams.get("message") || getAuthErrorMessage(redirectErrorType, searchParams.get("code"))
     : null;
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,14 +70,14 @@ export function AdminLoginForm() {
       });
 
       if (result?.error) {
-        if (result.error.includes("INVALID_CREDENTIALS")) {
+        // The specific reason from authorize() comes back in result.code (see lib/auth-errors.ts)
+        const errorCode = result.code ?? null;
+        if (errorCode === AUTH_ERROR_CODES.INVALID_CREDENTIALS) {
           setServerError("Invalid admin credentials. Please check your email and password.");
-        } else if (result.error.includes("ACCOUNT_NOT_APPROVED")) {
+        } else if (errorCode === AUTH_ERROR_CODES.ACCOUNT_NOT_APPROVED) {
           setServerError("This admin account has been deactivated.");
-        } else if (result.error.includes("DATABASE_ERROR")) {
-          setServerError("Database connection error. Please verify DATABASE_URL is reachable.");
         } else {
-          setServerError("Authentication failed. Please check your credentials and try again.");
+          setServerError(getAuthErrorMessage(result.error, errorCode));
         }
       } else if (result?.ok) {
         router.push("/admin/dashboard");
