@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
     // Send verification email
     try {
-      await sendVerificationEmail(normalizedEmail, verifyToken, trimmedName);
+      await sendVerificationEmail(normalizedEmail, verifyToken, trimmedName, request);
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
       // Don't fail registration if email fails — user can resend

@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     // Send confirmation email
     try {
       const { sendPasswordChangedConfirmation } = await import("@/lib/email");
-      await sendPasswordChangedConfirmation(user.email, user.fullName);
+      await sendPasswordChangedConfirmation(user.email, user.fullName, request);
     } catch (emailErr) {
       console.error("Failed to send password changed confirmation email:", emailErr);
     }

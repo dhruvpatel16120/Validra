@@ -17,7 +17,95 @@ const rawEmail = process.env.EMAIL_FROM || "validra.metrology@gmail.com";
 const rawPassword = (process.env.EMAIL_PASSWORD || "").replace(/\s+/g, "").replace(/^["']|["']$/g, "");
 const host = process.env.EMAIL_HOST || "smtp.gmail.com";
 const port = Number(process.env.EMAIL_PORT) || 587;
-const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+function cleanUrl(url: string): string {
+  let cleaned = url.replace(/^["']|["']$/g, "").trim().replace(/\/+$/, "");
+  if (!cleaned.startsWith("http://") && !cleaned.startsWith("https://")) {
+    cleaned = `https://${cleaned}`;
+  }
+  return cleaned;
+}
+
+/**
+ * Resolves the application base URL with comprehensive fallbacks:
+ * 1. Explicit string origin/URL (if provided)
+ * 2. NEXT_URL environment variable (custom Next.js deployment URL)
+ * 3. Incoming HTTP Request headers (x-forwarded-host, origin, host, url)
+ * 4. NEXTAUTH_URL or AUTH_URL environment variable
+ * 5. NEXT_PUBLIC_APP_URL environment variable
+ * 6. VERCEL_PROJECT_PRODUCTION_URL or VERCEL_URL (auto-injected on Vercel)
+ * 7. Default development fallback (http://localhost:3000)
+ */
+export function getBaseUrl(reqOrOrigin?: Request | string): string {
+  // 1. Explicit string provided
+  if (typeof reqOrOrigin === "string" && reqOrOrigin.trim()) {
+    return cleanUrl(reqOrOrigin);
+  }
+
+  // 2. Explicit NEXT_URL from environment (e.g. configured in Vercel / .env)
+  if (process.env.NEXT_URL && process.env.NEXT_URL.trim()) {
+    return cleanUrl(process.env.NEXT_URL);
+  }
+
+  // 3. Dynamic resolution from incoming Request
+  if (reqOrOrigin && typeof reqOrOrigin === "object" && "headers" in reqOrOrigin) {
+    try {
+      const headers = reqOrOrigin.headers;
+
+      // Reverse proxy headers (Vercel, Cloudflare, AWS, Nginx)
+      const forwardedHost = headers.get("x-forwarded-host");
+      const forwardedProto = headers.get("x-forwarded-proto") || "https";
+      if (forwardedHost) {
+        return cleanUrl(`${forwardedProto}://${forwardedHost}`);
+      }
+
+      // Origin header (sent automatically by browsers on fetch / POST)
+      const origin = headers.get("origin");
+      if (origin) {
+        return cleanUrl(origin);
+      }
+
+      // Host header
+      const host = headers.get("host");
+      if (host) {
+        const isLocal = host.includes("localhost") || host.includes("127.0.0.1") || host.startsWith("192.168.");
+        const proto = isLocal ? "http" : "https";
+        return cleanUrl(`${proto}://${host}`);
+      }
+
+      // Request URL fallback
+      if ("url" in reqOrOrigin && reqOrOrigin.url) {
+        const parsed = new URL(reqOrOrigin.url);
+        return cleanUrl(parsed.origin);
+      }
+    } catch {
+      // Fall through to environment variables if request header parsing fails
+    }
+  }
+
+  // 4. Standard NextAuth / Auth.js environment variables
+  if (process.env.NEXTAUTH_URL && process.env.NEXTAUTH_URL.trim()) {
+    return cleanUrl(process.env.NEXTAUTH_URL);
+  }
+  if (process.env.AUTH_URL && process.env.AUTH_URL.trim()) {
+    return cleanUrl(process.env.AUTH_URL);
+  }
+
+  // 5. Public app URL
+  if (process.env.NEXT_PUBLIC_APP_URL && process.env.NEXT_PUBLIC_APP_URL.trim()) {
+    return cleanUrl(process.env.NEXT_PUBLIC_APP_URL);
+  }
+
+  // 6. Vercel deployment variables
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL && process.env.VERCEL_PROJECT_PRODUCTION_URL.trim()) {
+    return cleanUrl(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`);
+  }
+  if (process.env.VERCEL_URL && process.env.VERCEL_URL.trim()) {
+    return cleanUrl(`https://${process.env.VERCEL_URL}`);
+  }
+
+  // 7. Fallback for local development
+  return "http://localhost:3000";
+}
 
 // Create reusable transporter
 const transporter = nodemailer.createTransport(
@@ -285,8 +373,10 @@ async function sendMailSafely({
 export async function sendVerificationEmail(
   email: string,
   token: string,
-  fullName: string
+  fullName: string,
+  reqOrUrl?: Request | string
 ): Promise<{ success: boolean; simulated?: boolean }> {
+  const baseUrl = getBaseUrl(reqOrUrl);
   const verifyUrl = `${baseUrl}/verify-email?token=${encodeURIComponent(token)}`;
 
   const html = renderEmailShell({
@@ -351,8 +441,10 @@ After verification, an administrator will activate your inspection privileges.
 export async function sendPasswordResetEmail(
   email: string,
   token: string,
-  fullName: string
+  fullName: string,
+  reqOrUrl?: Request | string
 ): Promise<{ success: boolean; simulated?: boolean }> {
+  const baseUrl = getBaseUrl(reqOrUrl);
   const resetUrl = `${baseUrl}/reset-password?token=${encodeURIComponent(token)}`;
 
   const html = renderEmailShell({
@@ -411,8 +503,10 @@ If you did not request this reset, you can safely ignore this email.
  */
 export async function sendAccountApprovedEmail(
   email: string,
-  fullName: string
+  fullName: string,
+  reqOrUrl?: Request | string
 ): Promise<{ success: boolean; simulated?: boolean }> {
+  const baseUrl = getBaseUrl(reqOrUrl);
   const loginUrl = `${baseUrl}/login`;
 
   const html = renderEmailShell({
@@ -473,8 +567,10 @@ All inspection activities are logged and audited in compliance with the Legal Me
  */
 export async function sendPasswordChangedConfirmation(
   email: string,
-  fullName: string
+  fullName: string,
+  reqOrUrl?: Request | string
 ): Promise<{ success: boolean; simulated?: boolean }> {
+  const baseUrl = getBaseUrl(reqOrUrl);
   const loginUrl = `${baseUrl}/login`;
 
   const html = renderEmailShell({

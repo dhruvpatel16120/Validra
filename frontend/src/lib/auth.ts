@@ -114,7 +114,7 @@ if (process.env.NEXTAUTH_URL) {
 // If on Vercel preview deployment, clear fixed URLs so dynamic preview domains are trusted
 if (
   process.env.VERCEL &&
-  (process.env.VERCEL_ENV === "preview" || process.env.VERCEL_URL)
+  process.env.VERCEL_ENV === "preview"
 ) {
   delete process.env.NEXTAUTH_URL;
   delete process.env.AUTH_URL;
