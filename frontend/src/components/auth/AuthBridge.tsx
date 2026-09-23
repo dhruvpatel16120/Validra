@@ -18,10 +18,11 @@ export function AuthBridge() {
 
     async function syncToken() {
       if (status === "authenticated" && session?.user) {
+        const email = session.user.email ?? "";
         setAuthUser({
           id: session.user.id,
-          email: session.user.email,
-          fullName: session.user.fullName || session.user.email.split("@")[0],
+          email,
+          fullName: session.user.fullName || email.split("@")[0] || "Officer",
           role: session.user.role?.toLowerCase() === "admin" ? "admin" : "inspector",
           isActive: session.user.isActive ?? true,
           isVerified: session.user.isVerified ?? true,

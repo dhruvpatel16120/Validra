@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/shared/ui/button";
 import { cn } from "@/lib/utils";
+import { AUTH_ERROR_CODES, getAuthErrorMessage } from "@/lib/auth-errors";
 
 interface FormErrors {
   email?: string;
@@ -26,14 +27,17 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = React.useState(false);
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [serverError, setServerError] = React.useState<string | null>(null);
+  const [serverErrorCode, setServerErrorCode] = React.useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   // Success message from email verification redirect
   const verifiedMessage = searchParams.get("verified") === "true"
     ? searchParams.get("message") || "Email verified successfully! You can now sign in."
     : null;
-  const errorFromRedirect = searchParams.get("error")
-    ? searchParams.get("message") || null
+  // Auth.js redirects to /login?error=<type>&code=<code> when a flow fails outside this form
+  const redirectErrorType = searchParams.get("error");
+  const errorFromRedirect = redirectErrorType
+    ? searchParams.get("message") || getAuthErrorMessage(redirectErrorType, searchParams.get("code"))
     : null;
 
   // Email format regular expression (RFC 5322 subset)
@@ -61,6 +65,7 @@ export function LoginForm() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setServerError(null);
+    setServerErrorCode(null);
 
     if (!validate()) {
       return;
@@ -75,25 +80,21 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        // Parse NextAuth error messages from our authorize() function
-        const errorMsg = result.error;
-        if (errorMsg.includes("INVALID_CREDENTIALS")) {
-          setServerError("Invalid email address or password. Please check your credentials.");
-        } else if (errorMsg.includes("EMAIL_NOT_VERIFIED")) {
-          setServerError("Your email address has not been verified yet.");
+        // Auth.js always reports CredentialsSignin subclasses as error="CredentialsSignin";
+        // the specific reason from authorize() comes back in result.code (see lib/auth-errors.ts).
+        const errorCode = result.code ?? null;
+        setServerErrorCode(errorCode);
+        setServerError(getAuthErrorMessage(result.error, errorCode));
+
+        if (errorCode === AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED) {
           // Redirect to verification page after a moment
           setTimeout(() => {
             router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
           }, 2000);
-        } else if (errorMsg.includes("ACCOUNT_NOT_APPROVED")) {
-          setServerError("Your account is pending admin approval. You will be notified once approved.");
+        } else if (errorCode === AUTH_ERROR_CODES.ACCOUNT_NOT_APPROVED) {
           setTimeout(() => {
             router.push("/pending-approval");
           }, 2000);
-        } else if (errorMsg.includes("DATABASE_ERROR")) {
-          setServerError("Database connection error. Please verify DATABASE_URL is reachable.");
-        } else {
-          setServerError("An error occurred during sign in. Please try again.");
         }
       } else if (result?.ok) {
         router.push("/dashboard");
@@ -142,7 +143,7 @@ export function LoginForm() {
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="flex-1">
             <span>{serverError}</span>
-            {serverError.includes("verified") && (
+            {serverErrorCode === AUTH_ERROR_CODES.EMAIL_NOT_VERIFIED && (
               <div className="mt-1">
                 <Link
                   href={`/verify-email?email=${encodeURIComponent(email.trim())}`}
@@ -152,7 +153,7 @@ export function LoginForm() {
                 </Link>
               </div>
             )}
-            {serverError.includes("pending") && (
+            {serverErrorCode === AUTH_ERROR_CODES.ACCOUNT_NOT_APPROVED && (
               <div className="mt-1">
                 <Link
                   href="/pending-approval"

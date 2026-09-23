@@ -33,7 +33,7 @@ export async function GET() {
       id: user.id,
       email: user.email,
       role,
-      name: user.fullName || user.email.split("@")[0],
+      name: user.fullName || user.email?.split("@")[0],
       fullName: user.fullName,
       isActive: user.isActive,
       isVerified: user.isVerified,
