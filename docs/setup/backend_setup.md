@@ -13,12 +13,12 @@
 
 ## 📋 System Requirements
 
-| Tool           | Required Version         | Purpose                      |
-| :------------- | :----------------------- | :--------------------------- |
-| **Python**     | 3.10+ (3.12 recommended) | FastAPI Backend & AI Runtime |
-| **pip**        | Latest                   | Python Package Manager       |
-| **PostgreSQL** | 15+                      | Database                     |
-| **Git**        | 2.40+                    | Version Control              |
+| Tool | Required Version | Purpose |
+| :--- | :--- | :--- |
+| **Python** | 3.10+ (3.12 recommended) | FastAPI Backend & AI Runtime |
+| **pip** | Latest | Python Package Manager |
+| **PostgreSQL** | 15+ | Database |
+| **Git** | 2.40+ | Version Control |
 
 > [!IMPORTANT]
 > Complete the [Base Setup Guide](./base_setup.mdx) first if you haven't installed these tools.
@@ -27,33 +27,33 @@
 
 ## 📦 Current Stack
 
-| Package                                                                                                                    | Version          | Purpose                                                                       |
-| -------------------------------------------------------------------------------------------------------------------------- | ---------------- | ----------------------------------------------------------------------------- |
-| [FastAPI](https://fastapi.tiangolo.com/)                                                                                   | ≥0.100.0         | High-performance async REST API framework                                     |
-| [Uvicorn](https://www.uvicorn.org/)                                                                                        | ≥0.22.0          | ASGI web server with live reload                                              |
-| [Pydantic](https://docs.pydantic.dev/) & [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) | ≥2.0.0           | Type validation & `.env` configuration management                             |
-| [SQLAlchemy[asyncio]](https://www.sqlalchemy.org/)                                                                         | ≥2.0.0           | Async ORM for PostgreSQL persistence                                          |
-| [asyncpg](https://github.com/MagicStack/asyncpg)                                                                           | ≥0.29.0          | High-performance async PostgreSQL database driver                             |
-| [python-jose[cryptography]](https://github.com/mpdavis/python-jose)                                                        | ≥3.3.0           | NextAuth v5 JWT verification & cryptographic claims decoding                  |
-| [passlib[bcrypt]](https://passlib.readthedocs.io/)                                                                         | ≥1.7.4           | Password hashing and verification utilities                                   |
-| [EasyOCR](https://github.com/JaidedAI/EasyOCR)                                                                             | ≥1.7.0           | Portable multi-language OCR engine for detection and recognition              |
-| [OpenCV](https://opencv.org/) (`opencv-python-headless`)                                                                   | ≥4.8.0           | Quality assessment (Laplacian blur, glare), CLAHE contrast & spatial geometry |
-| [Pillow (PIL)](https://python-pillow.org/)                                                                                 | ≥10.0.0          | Image processing, EXIF transposition, crops & evidence annotations            |
-| [Groq](https://groq.com/)                                                                                                  | ≥0.9.0           | High-speed LLM inference for statutory declaration field extraction           |
-| [ReportLab](https://www.reportlab.com/)                                                                                    | ≥5.0.0           | Court-admissible statutory inspection audit PDF report compilation            |
-| [aiosmtplib](https://github.com/cole/aiosmtplib)                                                                           | ≥3.0.0           | Asynchronous SMTP client for dispatching email audit reports                  |
-| [python-multipart](https://github.com/Kludex/python-multipart)                                                             | ≥0.0.9           | Streaming multipart/form-data multi-panel image uploads                       |
-| [pytest](https://docs.pytest.org/) & [httpx](https://www.python-httpx.org/)                                                | ≥7.4.0 / ≥0.24.0 | Unit, integration & async API testing suite                                   |
+| Package | Version | Purpose |
+|---------|---------|---------|
+| [FastAPI](https://fastapi.tiangolo.com/) | ≥0.100.0 | High-performance async REST API framework |
+| [Uvicorn](https://www.uvicorn.org/) | ≥0.22.0 | ASGI web server with live reload |
+| [Pydantic](https://docs.pydantic.dev/) & [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) | ≥2.0.0 | Type validation & `.env` configuration management |
+| [SQLAlchemy[asyncio]](https://www.sqlalchemy.org/) | ≥2.0.0 | Async ORM for PostgreSQL persistence |
+| [asyncpg](https://github.com/MagicStack/asyncpg) | ≥0.29.0 | High-performance async PostgreSQL database driver |
+| [python-jose[cryptography]](https://github.com/mpdavis/python-jose) | ≥3.3.0 | NextAuth v5 JWT verification & cryptographic claims decoding |
+| [passlib[bcrypt]](https://passlib.readthedocs.io/) | ≥1.7.4 | Password hashing and verification utilities |
+| [EasyOCR](https://github.com/JaidedAI/EasyOCR) | ≥1.7.0 | Portable multi-language OCR engine for detection and recognition |
+| [OpenCV](https://opencv.org/) (`opencv-python-headless`) | ≥4.8.0 | Quality assessment (Laplacian blur, glare), CLAHE contrast & spatial geometry |
+| [Pillow (PIL)](https://python-pillow.org/) | ≥10.0.0 | Image processing, EXIF transposition, crops & evidence annotations |
+| [Groq](https://groq.com/) | ≥0.9.0 | High-speed LLM inference for statutory declaration field extraction |
+| [ReportLab](https://www.reportlab.com/) | ≥5.0.0 | Court-admissible statutory inspection audit PDF report compilation |
+| [aiosmtplib](https://github.com/cole/aiosmtplib) | ≥3.0.0 | Asynchronous SMTP client for dispatching email audit reports |
+| [python-multipart](https://github.com/Kludex/python-multipart) | ≥0.0.9 | Streaming multipart/form-data multi-panel image uploads |
+| [pytest](https://docs.pytest.org/) & [httpx](https://www.python-httpx.org/) | ≥7.4.0 / ≥0.24.0 | Unit, integration & async API testing suite |
 
 > [!TIP]
 > For OCR engine architecture, refer to the [Computer Vision & OCR Pipeline Architecture](../blueprints/backend/backend-blueprint.md#4-ocr--computer-vision-pipeline-architecture) in the backend blueprint.
+
 
 ---
 
 ## 🚀 Quick Setup (Interactive Bootstrapper)
 
 The backend provides an interactive setup wizard matching the frontend setup experience:
-
 - **Interactive `.env` Wizard**: Offers options to keep, backup (`.env.backup.<timestamp>`), or overwrite; auto-detects existing configurations and synchronizes shared keys (PostgreSQL database, NextAuth JWT secret, SMTP settings) from `frontend/.env`.
 - **Automatic `.venv` Management**: Creates and verifies the Python virtual environment.
 - **Dependency Installation with Fallback**: Upgrades `pip`, installs `requirements.txt`, and features intelligent fallback to core API essentials if heavy OCR wheels encounter environment issues.
@@ -96,6 +96,7 @@ python scripts/setup.py -y
 
 ---
 
+
 ## 🛠️ Manual Setup (Step-by-Step)
 
 ### 1. Navigate to Backend Directory
@@ -112,11 +113,11 @@ python -m venv .venv
 
 ### 3. Activate Virtual Environment
 
-| Platform                 | Command                      |
-| ------------------------ | ---------------------------- |
+| Platform | Command |
+|----------|---------|
 | **Windows (PowerShell)** | `.venv\Scripts\Activate.ps1` |
-| **Windows (CMD)**        | `.venv\Scripts\activate.bat` |
-| **Linux / macOS**        | `source .venv/bin/activate`  |
+| **Windows (CMD)** | `.venv\Scripts\activate.bat` |
+| **Linux / macOS** | `source .venv/bin/activate` |
 
 You should see `(.venv)` at the start of your terminal prompt.
 
@@ -133,7 +134,7 @@ Edit `.env` with your local configuration:
 
 ```env
 PROJECT_NAME=Validra Base API
-API_STR=/ml-api
+API_STR=/api
 ENV=development
 HOST=0.0.0.0
 PORT=8000
@@ -202,7 +203,6 @@ Validra organizes database management inside `app/db/`:
   3. Ensures the local uploads folder (`uploads/`) exists and is mounted at `/uploads` for static panel evidence images.
 
 - **`get_db()` dependency**: Asynchronous generator yielding database sessions per API request with automatic commit/cleanup:
-
   ```python
   from fastapi import Depends
   from sqlalchemy.ext.asyncio import AsyncSession
@@ -216,7 +216,6 @@ Validra organizes database management inside `app/db/`:
 #### 3. Dual-ORM Architecture (Prisma + SQLAlchemy)
 
 Validra uses a shared PostgreSQL database between the Next.js frontend (Prisma ORM) and the FastAPI backend (SQLAlchemy 2.0):
-
 - **User Accounts (`users`)**: Authenticated via NextAuth v5 in Next.js, verified cryptographically in FastAPI via [`app/core/security.py`](../../backend/app/core/security.py) using the shared `AUTH_SECRET` / `NEXTAUTH_SECRET`.
 - **Audit Logs (`audit_logs`)**: Tamper-evident activity logs written by both frontend actions and backend inspection events.
 
@@ -238,12 +237,12 @@ Start the live-reloading development server:
 uvicorn app.main:app --reload
 ```
 
-| URL                            | Purpose                  |
-| :----------------------------- | :----------------------- |
-| `http://127.0.0.1:8000`        | API Base URL             |
-| `http://127.0.0.1:8000/docs`   | Swagger Interactive Docs |
-| `http://127.0.0.1:8000/redoc`  | ReDoc Interactive Docs   |
-| `http://127.0.0.1:8000/health` | Health Check Endpoint    |
+| URL | Purpose |
+| :--- | :--- |
+| `http://127.0.0.1:8000` | API Base URL |
+| `http://127.0.0.1:8000/docs` | Swagger Interactive Docs |
+| `http://127.0.0.1:8000/redoc` | ReDoc Interactive Docs |
+| `http://127.0.0.1:8000/health` | Health Check Endpoint |
 
 > [!TIP]
 > Swagger at `/docs` is the fastest way to test API endpoints during development.
@@ -339,22 +338,23 @@ backend/
 
 ## 👥 Module Ownership
 
-| Module | Domain                      | Owner         | Directory                                                                                                     |
-| ------ | --------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------- |
-| M1     | Frontend                    | Frontend Lead | `frontend/`                                                                                                   |
-| M2     | Backend & Infrastructure    | Backend Lead  | `backend/app/api/`, `backend/app/db/`, `backend/app/models/`, `backend/app/schemas/`, `backend/app/services/` |
-| M3     | Computer Vision & OCR       | CV Lead       | `backend/app/services/ocr/`, `cv/`                                                                            |
-| M4     | Legal Metrology Rule Engine | Rules Lead    | `backend/app/services/rule_engine.py`, `rule-engine/`                                                         |
-| M5     | Research & QA               | QA Lead       | `backend/tests/`, `qa/`, `research/`                                                                          |
+| Module | Domain | Owner | Directory |
+|--------|--------|-------|-----------|
+| M1 | Frontend | Frontend Lead | `frontend/` |
+| M2 | Backend & Infrastructure | Backend Lead | `backend/app/api/`, `backend/app/db/`, `backend/app/models/`, `backend/app/schemas/`, `backend/app/services/` |
+| M3 | Computer Vision & OCR | CV Lead | `backend/app/services/ocr/`, `cv/` |
+| M4 | Legal Metrology Rule Engine | Rules Lead | `backend/app/services/rule_engine.py`, `rule-engine/` |
+| M5 | Research & QA | QA Lead | `backend/tests/`, `qa/`, `research/` |
+
 
 ---
 
 ## 📖 Blueprints — What to Build
 
-| Blueprint                     | Location                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------- |
-| Backend API Design            | [docs/blueprints/backend/](../blueprints/backend/backend-blueprint.md)    |
-| Full System Blueprint         | [docs/blueprint.md](../blueprint.md)                                      |
+| Blueprint | Location |
+|-----------|----------|
+| Backend API Design | [docs/blueprints/backend/](../blueprints/backend/backend-blueprint.md) |
+| Full System Blueprint | [docs/blueprint.md](../blueprint.md) |
 | Database Schema (Prisma/Auth) | [docs/blueprints/db/prisma/](../blueprints/db/prisma/schema-blueprint.md) |
 
 ---
@@ -436,7 +436,7 @@ Or download from [Visual Studio Build Tools](https://visualstudio.microsoft.com/
 
 **⚙️ Validra Backend — Ready to Build!**
 
-_Check the backend blueprint, set up your first API route, and start orchestrating._ 🚀
+*Check the backend blueprint, set up your first API route, and start orchestrating.* 🚀
 
 <br/>
 

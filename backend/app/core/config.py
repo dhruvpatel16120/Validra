@@ -29,7 +29,7 @@ for env_path in env_candidates:
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Validra Base API"
-    API_STR: str = "/ml-api"
+    API_STR: str = "/api"
     ENV: str = Field(
         default="development",
         validation_alias=AliasChoices("ENV", "NEXT_PUBLIC_APP_ENV", "NODE_ENV", "env")

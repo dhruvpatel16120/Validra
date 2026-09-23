@@ -12,7 +12,15 @@
   ],
   "rewrites": [
     {
-      "source": "/ml-api/:path*",
+      "source": "/api/auth/verify-token",
+      "destination": "/backend/main.py"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/frontend/api/auth/:path*"
+    },
+    {
+      "source": "/api/:path*",
       "destination": "/backend/main.py"
     },
     {
